@@ -48,7 +48,7 @@ async function checkAutoStart() {
     await new Promise(resolve => setTimeout(resolve, 3000));
 
     const buttons = document.querySelectorAll("button") as NodeList;
-    const startButton = Array.from(buttons).find(button => button.textContent === "Start");
+    const startButton = Array.from(buttons).find(button => button.textContent === "Start game");
     startButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     if (checkAutoStartInterval) clearInterval(checkAutoStartInterval);

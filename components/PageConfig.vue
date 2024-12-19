@@ -457,6 +457,23 @@
             </div>
           </div>
 
+          <div class="space-y-4 rounded border border-white/10 p-4">
+            <div>
+              <div class="flex items-center justify-between text-lg font-semibold">
+                <div>Dart-Zoom</div>
+                <div class="opacity-50">
+                  <small>by Dotty</small>
+                </div>
+              </div>
+              <p class="max-w-2xl text-white/40">
+                Dart-Zoom on 3 Camera-Views.
+              </p>
+            </div>
+            <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
+              <AppToggle v-model="config.dartZoom.enabled" />
+            </div>
+          </div>
+
           <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
             <div>
               <h2 class="text-lg font-semibold">

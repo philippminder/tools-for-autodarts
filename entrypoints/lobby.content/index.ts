@@ -53,9 +53,9 @@ export default defineContentScript({
         if (config.teamLobby.enabled) {
           const lobbyStatus = await AutodartsToolsLobbyStatus.getValue();
           if (lobbyStatus.isPrivate) {
-            await waitForElement("table a p");
+            await waitForElement(".ad-ext-player-name");
             const username = (await AutodartsToolsGlobalStatus.getValue())?.user?.name;
-            const userElements = [ ...document.querySelectorAll("table a p") ];
+            const userElements = [ ...document.querySelectorAll(".ad-ext-player-name") ];
             const userEl = userElements?.filter(el => el.textContent?.trim() === username);
 
             if (userEl.length) {

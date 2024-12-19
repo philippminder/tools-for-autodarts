@@ -32,7 +32,7 @@ async function checkPlayers() {
 }
 
 function getPlayerNameFromRow(row: HTMLTableRowElement) {
-  return row.querySelector("td:nth-of-type(2) > a > div p")?.textContent;
+  return row.querySelector("td:nth-of-type(2) > span > div p")?.textContent;
 }
 
 function getIndexByPlayerName(playerName: string) {
@@ -50,7 +50,7 @@ async function handleShuffle() {
   if (checkPlayersInterval) clearInterval(checkPlayersInterval);
 
   // get player names from the rows
-  const playerNames = Array.from(playerRows).map(row => row.querySelector("td:nth-of-type(2) > a > div p")?.textContent);
+  const playerNames = Array.from(playerRows).map(row => row.querySelector("td:nth-of-type(2) > span > div p")?.textContent);
 
   // shuffle the player names by ordering them in a random order
   shuffledPlayerNames = [ ...playerNames ] as string[];
@@ -65,7 +65,7 @@ async function handleShuffle() {
 
   function updatePlayerButtons() {
     for (const row of playerRows) {
-      const playerName = row.querySelector("td:nth-of-type(2) > a > div p")?.textContent;
+      const playerName = row.querySelector("td:nth-of-type(2) > span > div p")?.textContent;
       const playerButtonUp = row.querySelector("button:nth-of-type(1)");
       const playerButtonDown = row.querySelector("button:nth-of-type(2)");
       playerButtons[playerName!] = { up: playerButtonUp as HTMLButtonElement, down: playerButtonDown as HTMLButtonElement };

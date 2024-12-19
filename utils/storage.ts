@@ -101,6 +101,9 @@ export interface IConfig {
   teamLobby: {
     enabled: boolean;
   };
+  dartZoom: {
+    enabled: boolean;
+  };
 }
 
 export interface IGlobalStatus {
@@ -215,7 +218,9 @@ export const defaultConfig: IConfig = {
   teamLobby: {
     enabled: false,
   },
-
+  dartZoom: {
+    enabled: false,
+  },
 };
 
 export const AutodartsToolsConfig: WxtStorageItem<IConfig, any> = storage.defineItem(
