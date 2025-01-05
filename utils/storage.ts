@@ -56,6 +56,9 @@ export interface IConfig {
   sounds: {
     enabled: boolean;
   };
+  animations: {
+    enabled: boolean;
+  };
   externalBoards: {
     enabled: boolean;
     boards: {
@@ -191,6 +194,9 @@ export const defaultConfig: IConfig = {
     enabled: false,
   },
   sounds: {
+    enabled: false,
+  },
+  animations: {
     enabled: false,
   },
   externalBoards: {
