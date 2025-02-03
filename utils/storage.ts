@@ -20,6 +20,7 @@ export interface IConfig {
     footerText: string;
     board: boolean;
     boardImage: boolean;
+    avg: boolean; // P4394
     scoreBoardSettings: {
       scale: number;
       x: number;
@@ -157,6 +158,7 @@ export const defaultConfig: IConfig = {
     footerText: "",
     board: false,
     boardImage: false,
+    avg: false, // P42de
     scoreBoardSettings: {
       scale: 1,
       x: 0,

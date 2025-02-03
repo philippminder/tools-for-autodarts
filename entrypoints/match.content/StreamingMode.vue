@@ -249,17 +249,21 @@ const game = reactive<{
   footer: string;
   throws: string[];
   turnPoints?: string;
+  avg?: string;
 }>({
   title: "",
   players: [],
   footer: "Game provided by Autodarts.io",
   throws: [],
+  avg: "",
 });
 
 const config: Ref<IConfig | null> = ref(null);
 const coords = ref("");
 
 const streamingModeButton: Ref<HTMLAnchorElement | null> = ref(null);
+
+const showAvg = computed(() => config.value?.streamingMode.avg);
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
@@ -344,6 +348,12 @@ async function setGameData(matchStatus: IMatchStatus) {
       } catch (e) {
         console.error(e);
       }
+    }
+
+    if (config.value.streamingMode.avg) {
+      const totalPoints = matchStatus.playerInfo.reduce((acc, player) => acc + parseInt(player.score), 0);
+      const totalDarts = matchStatus.playerInfo.reduce((acc, player) => acc + parseInt(player.darts || "0"), 0);
+      game.avg = (totalPoints / totalDarts).toFixed(2);
     }
   } catch (e) {
     console.error(e);

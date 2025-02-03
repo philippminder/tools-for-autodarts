@@ -288,6 +288,10 @@
                 <AppToggle v-model="config.streamingMode.boardImage" text-on="LIVE" text-off="IMG" />
                 <p>Toggles the Board between Live and Image mode</p>
               </div>
+              <div v-if="config.streamingMode.enabled" class="grid grid-cols-[5rem_auto] items-center gap-4">
+                <AppToggle v-model="config.streamingMode.avg" />
+                <p>Display AVG</p>
+              </div>
               <input
                 v-model="config.streamingMode.footerText"
                 placeholder="Bottom text of the streaming overlay"
