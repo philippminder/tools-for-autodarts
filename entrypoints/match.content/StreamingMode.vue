@@ -156,7 +156,7 @@
             <div class="truncate py-2 font-bold">
               {{ player.name }}
             </div>
-            <div class="whitespace-nowrap text-lg font-bold text-gray-500">
+            <div v-if="showAvg" class="whitespace-nowrap text-lg font-bold text-gray-500">
               {{ player.stats }}
             </div>
           </div>
@@ -351,8 +351,8 @@ async function setGameData(matchStatus: IMatchStatus) {
     }
 
     if (config.value.streamingMode.avg) {
-      const totalPoints = matchStatus.playerInfo.reduce((acc, player) => acc + parseInt(player.score), 0);
-      const totalDarts = matchStatus.playerInfo.reduce((acc, player) => acc + parseInt(player.darts || "0"), 0);
+      const totalPoints = matchStatus.playerInfo.reduce((acc, player) => acc + Number.parseInt(player.score), 0);
+      const totalDarts = matchStatus.playerInfo.reduce((acc, player) => acc + Number.parseInt(player.darts || "0"), 0);
       game.avg = (totalPoints / totalDarts).toFixed(2);
     }
   } catch (e) {
