@@ -22,7 +22,6 @@
 import { twMerge } from "tailwind-merge";
 import type { IMatchStatus } from "@/utils/storage";
 import { AutodartsToolsConfig, AutodartsToolsMatchStatus } from "@/utils/storage";
-import { defaultAnimationsConfig } from "@/utils/animationsStorage";
 
 // Constants
 const FADE_DURATION = 300; // ms
@@ -84,11 +83,11 @@ function detectAndPlayAnimation(matchStatus: IMatchStatus): void {
 
 async function playAnimation(configKey: string): Promise<void> {
   try {
-    const animations = defaultAnimationsConfig[configKey];
+    const animations = config.value.animations[configKey];
     if (!animations || !animations.length) return;
 
-    const startDelay = Number(defaultAnimationsConfig.startDelay) * 1000;
-    const endDelay = Number(defaultAnimationsConfig.endDelay) * 1000;
+    const startDelay = Number(config.value.animations.startDelay) * 1000;
+    const endDelay = Number(config.value.animations.endDelay) * 1000;
     const url = animations[getRandomInt(animations.length)].info;
 
     currentAnimationUrl.value = url;

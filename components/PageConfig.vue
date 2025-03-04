@@ -1151,38 +1151,38 @@
               <AppToggle v-model="config.animations.enabled" />
               <div />
               <button
-                @click="animationsConfig = defaultAnimationsConfig"
+                @click="config.animations = defaultConfig.animations"
                 v-if="config.animations.enabled"
                 class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
               >
                 <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
               </button>
             </div>
-            <div v-if="config.animations.enabled && animationsConfig" class="grid gap-4">
+            <div v-if="config.animations.enabled" class="grid gap-4">
               <div>Start delay</div>
               <input
-                v-model="animationsConfig.startDelay"
+                v-model="config.animations.startDelay"
                 placeholder="Time in seconds"
                 type="number"
                 :class="twMerge(
                   'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                  !!animationsConfig.startDelay && 'text-white/40',
+                  !!config.animations.startDelay && 'text-white/40',
                 )"
               >
               <div>End delay</div>
               <input
-                v-model="animationsConfig.endDelay"
+                v-model="config.animations.endDelay"
                 placeholder="Time in seconds"
                 type="number"
                 :class="twMerge(
                   'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                  !!animationsConfig.startDelay && 'text-white/40',
+                  !!config.animations.startDelay && 'text-white/40',
                 )"
               >
               <div class="mt-1.5">
                 <span class="font-semibold">Winner animations</span>
               </div>
-              <div v-for="(animation, index) in animationsConfig.winner" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+              <div v-for="(animation, index) in config.animations.winner" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
                 <img :src="animation.info">
                 <input
                   v-model="animation.info"
@@ -1195,15 +1195,15 @@
                   )"
                 >
                 <button
-                  @click="animationsConfig.winner.splice(index, 1)"
+                  @click="config.animations.winner.splice(index, 1)"
                   class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                 >
-                  <span class="icon-[mdi-light--delete] text-lg"></span>
+                  <span class="icon-[mdi-light--delete] text-lg" />
                 </button>
               </div>
               <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
                 <button
-                  @click="animationsConfig.winner.push({ info: '' })"
+                  @click="config.animations.winner.push({ info: '' })"
                   class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                 >
                   <span class="icon-[mdi-light--plus]" />
@@ -1211,11 +1211,11 @@
                 <div />
               </div>
             </div>
-            <div v-if="config.animations.enabled && animationsConfig" class="grid gap-4">
+            <div v-if="config.animations.enabled" class="grid gap-4">
               <div class="mt-1.5">
                 <span class="font-semibold">Bull animations</span>
               </div>
-              <div v-for="(animation, index) in animationsConfig.bull" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+              <div v-for="(animation, index) in config.animations.bull" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
                 <img :src="animation.info">
                 <input
                   v-model="animation.info"
@@ -1228,15 +1228,15 @@
                   )"
                 >
                 <button
-                  @click="animationsConfig.bull.splice(index, 1)"
+                  @click="config.animations.bull.splice(index, 1)"
                   class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                 >
-                  <span class="icon-[mdi-light--delete] text-lg"></span>
+                  <span class="icon-[mdi-light--delete] text-lg" />
                 </button>
               </div>
               <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
                 <button
-                  @click="animationsConfig.bull.push({ info: '' })"
+                  @click="config.animations.bull.push({ info: '' })"
                   class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                 >
                   <span class="icon-[mdi-light--plus]" />
@@ -1244,11 +1244,11 @@
                 <div />
               </div>
             </div>
-            <div v-if="config.animations.enabled && animationsConfig" class="grid gap-4">
+            <div v-if="config.animations.enabled" class="grid gap-4">
               <div class="mt-1.5">
                 <span class="font-semibold">180 animations</span>
               </div>
-              <div v-for="(animation, index) in animationsConfig.oneEighty" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+              <div v-for="(animation, index) in config.animations.oneEighty" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
                 <img :src="animation.info">
                 <input
                   v-model="animation.info"
@@ -1261,15 +1261,15 @@
                   )"
                 >
                 <button
-                  @click="animationsConfig.oneEighty.splice(index, 1)"
+                  @click="config.animations.oneEighty.splice(index, 1)"
                   class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                 >
-                  <span class="icon-[mdi-light--delete] text-lg"></span>
+                  <span class="icon-[mdi-light--delete] text-lg" />
                 </button>
               </div>
               <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
                 <button
-                  @click="animationsConfig.oneEighty.push({ info: '' })"
+                  @click="config.animations.oneEighty.push({ info: '' })"
                   class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                 >
                   <span class="icon-[mdi-light--plus]" />
@@ -1277,11 +1277,11 @@
                 <div />
               </div>
             </div>
-            <div v-if="config.animations.enabled && animationsConfig" class="grid gap-4">
+            <div v-if="config.animations.enabled" class="grid gap-4">
               <div class="mt-1.5">
                 <span class="font-semibold">Miss animations</span>
               </div>
-              <div v-for="(animation, index) in animationsConfig.miss" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+              <div v-for="(animation, index) in config.animations.miss" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
                 <img :src="animation.info">
                 <input
                   v-model="animation.info"
@@ -1294,15 +1294,15 @@
                   )"
                 >
                 <button
-                  @click="animationsConfig.miss.splice(index, 1)"
+                  @click="config.animations.miss.splice(index, 1)"
                   class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                 >
-                  <span class="icon-[mdi-light--delete] text-lg"></span>
+                  <span class="icon-[mdi-light--delete] text-lg" />
                 </button>
               </div>
               <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
                 <button
-                  @click="animationsConfig.miss.push({ info: '' })"
+                  @click="config.animations.miss.push({ info: '' })"
                   class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                 >
                   <span class="icon-[mdi-light--plus]" />
@@ -1310,11 +1310,11 @@
                 <div />
               </div>
             </div>
-            <div v-if="config.animations.enabled && animationsConfig" class="grid gap-4">
+            <div v-if="config.animations.enabled" class="grid gap-4">
               <div class="mt-1.5">
                 <span class="font-semibold">Bust animations</span>
               </div>
-              <div v-for="(animation, index) in animationsConfig.bust" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+              <div v-for="(animation, index) in config.animations.bust" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
                 <img :src="animation.info">
                 <input
                   v-model="animation.info"
@@ -1327,15 +1327,15 @@
                   )"
                 >
                 <button
-                  @click="animationsConfig.bust.splice(index, 1)"
+                  @click="config.animations.bust.splice(index, 1)"
                   class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                 >
-                  <span class="icon-[mdi-light--delete] text-lg"></span>
+                  <span class="icon-[mdi-light--delete] text-lg" />
                 </button>
               </div>
               <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
                 <button
-                  @click="animationsConfig.bust.push({ info: '' })"
+                  @click="config.animations.bust.push({ info: '' })"
                   class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                 >
                   <span class="icon-[mdi-light--plus]" />
@@ -1361,15 +1361,12 @@ import { AutodartsToolsCallerConfig, defaultCallerConfig } from "@/utils/callerS
 import type { ISoundsConfig, TSoundData } from "@/utils/soundsStorage";
 import { AutodartsToolsSoundsConfig, defaultSoundsConfig } from "@/utils/soundsStorage";
 import { playPointsSound, playSound } from "@/utils/playSound";
-import type { IAnimationsConfig } from "@/utils/animationsStorage";
-import { AutodartsToolsAnimationsConfig, defaultAnimationsConfig } from "@/utils/animationsStorage";
 
 const config = ref<IConfig>();
 const callerConfig = ref<ICallerConfig>();
 const soundsConfig = ref<ISoundsConfig>();
 const streamingModeBackgroundFileSelect = ref() as Ref<HTMLInputElement>;
 const tripleCountArr = [ 15, 16, 17, 18, 19, 20 ];
-const animationsConfig = ref<IAnimationsConfig>();
 
 function setActive(index: number) {
   callerConfig?.value?.caller.forEach((caller, i) => {
@@ -1395,7 +1392,6 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   callerConfig.value = await AutodartsToolsCallerConfig.getValue();
   soundsConfig.value = await AutodartsToolsSoundsConfig.getValue();
-  animationsConfig.value = await AutodartsToolsAnimationsConfig.getValue();
 });
 
 watch(config, async () => {
@@ -1418,13 +1414,6 @@ watch(soundsConfig, async () => {
     ...JSON.parse(JSON.stringify(soundsConfig.value)),
   });
 }, { deep: true });
-
-watch(animationsConfig, async () => {
-    await AutodartsToolsAnimationsConfig.setValue({
-      ...JSON.parse(JSON.stringify(defaultAnimationsConfig)),
-      ...JSON.parse(JSON.stringify(animationsConfig.value)),
-    });
-  }, { deep: true });
 
 function handleStreamingModeBackgroundFileSelect() {
   streamingModeBackgroundFileSelect.value.click();
