@@ -2,7 +2,7 @@
   <div
     @click="hideAnimation"
     v-if="isShowingAnimation"
-    class="fixed left-0 top-0 z-[9998] size-full"
+    class="fixed left-0 top-0 z-[180] size-full"
   >
     <div class="absolute inset-0">
       <img

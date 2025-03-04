@@ -22,7 +22,8 @@ export function waitForElement(selector: string | string[], timeout = 3000): Pro
         }
       }
 
-      if (Date.now() - startTime >= timeout) {
+      // Skip timeout check if timeout is 0
+      if (timeout !== 0 && Date.now() - startTime >= timeout) {
         clearInterval(timer);
         reject(new Error(`Timeout waiting for element ${selector}`));
       }

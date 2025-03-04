@@ -20,6 +20,7 @@ export const getMenu = () => document.querySelector("#root > div > div") as HTML
 export const getWinnerPlayerCard = () => document.querySelector(".ad-ext-player-winner");
 
 export const getDartsThrown = (playerCard: HTMLElement) => playerCard?.nextElementSibling?.querySelector(":scope > div > p")?.textContent?.split("|")?.[0]?.trim().split("#")?.[1] || "";
+
 export function getStats(playerCard: HTMLElement) {
   return playerCard?.querySelector("div > div:last-of-type > p")?.textContent?.split("|")?.[1]?.trim() || playerCard?.querySelector("div > p:last-of-type")?.textContent?.split(":")?.[1]?.trim() || playerCard?.querySelector("div > p:last-of-type")?.textContent || "";
 }

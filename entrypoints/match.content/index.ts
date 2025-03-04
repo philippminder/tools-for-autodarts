@@ -39,6 +39,8 @@ import { handleUndoMode } from "@/entrypoints/match.content/handleUndoMode";
 import { nextPlayerOnTakeOutStuck } from "@/entrypoints/match.content/nextPlayerOnTakeOutStuck";
 import { disableTakeout } from "@/entrypoints/match.content/disableTakeout";
 
+let matchActive: boolean = false;
+let matchActiveObserver: MutationObserver;
 let takeoutUI: any;
 let streamingModeUI: any;
 let animationsUI: any;
@@ -51,29 +53,29 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx: any) {
     matchReadyUnwatch = AutodartsToolsUrlStatus.watch(async (url: string) => {
-      const config: IConfig = await AutodartsToolsConfig.getValue();
-
       if (/(?<!history)(\/matches\/|\/boards\/)/.test(url)) {
-        await waitForElement("#ad-ext-turn");
-        console.log("Autodarts Tools: Match Ready");
+        const noActiveMatchElements = document.querySelectorAll("h2");
+        let noActiveMatchElExists = false;
 
-        if (!config.disableTakeout.enabled) {
-          const takeoutDiv = document.querySelector("autodarts-tools-takeout");
-          if (!takeoutDiv) initTakeout(ctx).catch(console.error);
+        for (const el of noActiveMatchElements) {
+          if (el.textContent?.includes("Board has no active match")) {
+            noActiveMatchElExists = true;
+            break;
+          }
+        }
+        matchActive = !noActiveMatchElExists;
+
+        if (!matchActive) {
+          console.log("Autodarts Tools: Match Not Ready");
         }
 
-        if (config.streamingMode.enabled) {
-          const div = document.querySelector("autodarts-tools-streaming-mode");
-          if (!div) initStreamingMode(ctx).catch(console.error);
+        if (matchActive) {
+          initMatch(ctx).catch(console.error);
         }
 
-        if (config.animations.enabled) {
-          const div = document.querySelector("autodarts-tools-animations");
-          if (!div) initAnimations(ctx).catch(console.error);
-        }
-
-        initMatch().catch(console.error);
+        matchActiveObserver = startMatchReadyObserver(ctx);
       } else {
+        matchActiveObserver?.disconnect();
         throwsObserver?.disconnect();
         boardStatusObserver?.disconnect();
         takeoutUI?.remove();
@@ -89,6 +91,44 @@ export default defineContentScript({
     });
   },
 });
+
+function startMatchReadyObserver(ctx) {
+  const targetNode = document.querySelector("#root");
+  const observer = new MutationObserver(() => {
+    // Check if the "Board has no active match" element no longer exists
+    const noActiveMatchElements = document.querySelectorAll("h2");
+    let noActiveMatchElExists = false;
+
+    for (const el of noActiveMatchElements) {
+      if (el.textContent?.includes("Board has no active match")) {
+        noActiveMatchElExists = true;
+        break;
+      }
+    }
+
+    if (!noActiveMatchElExists && !matchActive) {
+      // Check if match has become active
+      waitForElement("#ad-ext-turn").then(() => {
+        console.log("Autodarts Tools: Match Became Active");
+        matchActive = true;
+
+        // Initialize match components
+        initMatch(ctx).catch(console.error);
+      }).catch(console.error);
+    } else if (noActiveMatchElExists && matchActive) {
+      // Match has become inactive
+      console.log("Autodarts Tools: Match Became Inactive");
+      matchActive = false;
+    }
+  });
+
+  observer.observe(targetNode, {
+    childList: true,
+    subtree: true,
+  });
+
+  return observer;
+}
 
 async function initTakeout(ctx) {
   takeoutUI = await createShadowRootUi(ctx, {
@@ -110,10 +150,27 @@ async function initTakeout(ctx) {
   takeoutUI.mount();
 }
 
-async function initMatch() {
-  const config = await AutodartsToolsConfig.getValue();
+async function initMatch(ctx) {
+  const config: IConfig = await AutodartsToolsConfig.getValue();
   await AutodartsToolsMatchStatus.setValue(defaultMatchStatus);
   const globalStatus = await AutodartsToolsGlobalStatus.getValue();
+
+  await waitForElement("#ad-ext-turn");
+
+  if (!config.disableTakeout.enabled) {
+    const takeoutDiv = document.querySelector("autodarts-tools-takeout");
+    if (!takeoutDiv) initTakeout(ctx).catch(console.error);
+  }
+
+  if (config.streamingMode.enabled) {
+    const div = document.querySelector("autodarts-tools-streaming-mode");
+    if (!div) initStreamingMode(ctx).catch(console.error);
+  }
+
+  if (config.animations.enabled) {
+    const div = document.querySelector("autodarts-tools-animations");
+    if (!div) initAnimations(ctx).catch(console.error);
+  }
 
   startThrowsObserver();
 
@@ -161,6 +218,7 @@ async function initStreamingMode(ctx) {
     position: "inline",
     anchor: "#root",
     onMount: (container: any) => {
+      console.log("Autodarts Tools: Streaming Mode");
       const app = createApp(StreamingMode);
       app.mount(container);
       if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
@@ -169,6 +227,7 @@ async function initStreamingMode(ctx) {
       return app;
     },
     onRemove: (app: any) => {
+      console.log("Autodarts Tools: Remove Streaming Mode");
       app?.unmount();
     },
   });

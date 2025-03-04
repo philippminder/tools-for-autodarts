@@ -18,8 +18,8 @@ export async function setPlayerInfo() {
     const playerInfo: IPlayerInfo[] = [ ...document.querySelectorAll(".ad-ext-player") ].map((playerCardEl) => {
       const playerStatsEl = playerCardEl?.children[0] as HTMLElement;
 
-      const matchhasLegs = playerStatsEl.children[0].children.length > 0;
-      const matchhasSets = playerStatsEl.children[0].children.length > 1;
+      const matchhasLegs = playerStatsEl.querySelector("div.chakra-stack > div:first-of-type > div:first-of-type")!.children.length >= 1;
+      const matchhasSets = playerStatsEl.querySelector("div.chakra-stack > div:first-of-type > div:first-of-type")!.children.length >= 2;
 
       let playerLegs, playerSets;
 

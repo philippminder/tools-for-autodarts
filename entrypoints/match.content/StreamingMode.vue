@@ -208,7 +208,6 @@
 </template>
 
 <script setup lang="ts">
-// https://cdn.discordapp.com/attachments/1204187269293019146/1214536247993962506/image.png?ex=65f97806&is=65e70306&hm=093003542526fd254295af85a5f7efc02f14390e1492567c0eec0928f41a49d7&
 import { twMerge } from "tailwind-merge";
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from "radix-vue";
 import type { Ref } from "vue";
@@ -270,7 +269,6 @@ onMounted(async () => {
   const matchStatus: IMatchStatus = await AutodartsToolsMatchStatus.getValue();
 
   try {
-    // console.log(config.value.streamingMode);
     await setGameData(matchStatus);
     await initStreamModeButton();
 
