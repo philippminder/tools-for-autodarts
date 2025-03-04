@@ -17,6 +17,7 @@ import { colorChange, onRemove as onRemoveColorChange } from "@/entrypoints/matc
 import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
 
 import { sounds } from "@/entrypoints/match.content/sounds";
+import { animations } from "@/entrypoints/match.content/animations";
 import { getBoardStatusEl, getMenu } from "@/utils/getElements";
 import { BoardStatus } from "@/utils/types";
 import { isBullOff, isCricket, isValidGameMode, isX01 } from "@/utils/helpers";
@@ -204,6 +205,7 @@ async function throwsChange() {
 
   await scoreSmaller();
   await sounds();
+  await animations();
 
   if (isCricket()) await setCricketClosedPoints(matchStatus.playerCount).catch(console.error);
 
