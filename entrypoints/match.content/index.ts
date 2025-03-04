@@ -52,20 +52,10 @@ export default defineContentScript({
   async main(ctx: any) {
     matchReadyUnwatch = AutodartsToolsUrlStatus.watch(async (url: string) => {
       const config: IConfig = await AutodartsToolsConfig.getValue();
+
       if (/(?<!history)(\/matches\/|\/boards\/)/.test(url)) {
         await waitForElement("#ad-ext-turn");
         console.log("Autodarts Tools: Match Ready");
-
-        if (config.dartZoom?.enabled) {
-          const zoomBar = document.querySelector("#zoom-bar");
-          if (!zoomBar) {
-            const script = document.createElement("script");
-            script.src = browser.runtime.getURL("dart-zoom.js");
-            (document.head || document.documentElement).appendChild(script);
-
-            console.log("Autodarts Tools: Dart Zoom for Autodarts injected");
-          }
-        }
 
         if (!config.disableTakeout.enabled) {
           const takeoutDiv = document.querySelector("autodarts-tools-takeout");

@@ -57,16 +57,6 @@ export interface IConfig {
   sounds: {
     enabled: boolean;
   };
-  animations: {
-    enabled: boolean;
-    startDelay?: number;
-    endDelay?: number;
-    winner: { data?: string; info: string }[];
-    bull: { data?: string; info: string }[];
-    oneEighty: { data?: string; info: string }[];
-    miss: { data?: string; info: string }[];
-    bust: { data?: string; info: string }[];
-  };
   externalBoards: {
     enabled: boolean;
     boards: {
@@ -112,8 +102,15 @@ export interface IConfig {
   teamLobby: {
     enabled: boolean;
   };
-  dartZoom: {
+  animations: {
     enabled: boolean;
+    startDelay?: number;
+    endDelay?: number;
+    winner: { data?: string; info: string }[];
+    bull: { data?: string; info: string }[];
+    oneEighty: { data?: string; info: string }[];
+    miss: { data?: string; info: string }[];
+    bust: { data?: string; info: string }[];
   };
 }
 
@@ -228,9 +225,6 @@ export const defaultConfig: IConfig = {
     enabled: false,
   },
   teamLobby: {
-    enabled: false,
-  },
-  dartZoom: {
     enabled: false,
   },
   animations: {

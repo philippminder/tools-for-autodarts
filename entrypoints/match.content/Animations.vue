@@ -88,9 +88,7 @@ async function playAnimation(configKey: string): Promise<void> {
 
     const startDelay = Number(config.value.animations.startDelay) * 1000;
     const endDelay = Number(config.value.animations.endDelay) * 1000;
-    const url = animations[getRandomInt(animations.length)].info;
-
-    currentAnimationUrl.value = url;
+    currentAnimationUrl.value = animations[getRandomInt(animations.length)].info;
 
     // Show animation with fade in
     setTimeout(() => {

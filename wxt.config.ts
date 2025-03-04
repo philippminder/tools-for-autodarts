@@ -24,16 +24,16 @@ export default defineConfig({
     ],
     name: "Tools for Autodarts",
     description: "Tools for Autodarts enhances the gaming experience on autodarts.io",
-    content_scripts: [
-      {
-        matches: [ "*://play.autodarts.io/*" ],
-        js: [ "dart-zoom.js" ],
-      },
-    ],
-    web_accessible_resources: [ {
-      resources: [ "dart-zoom.js" ],
-      matches: [ "<all_urls>" ],
-    } ],
+    // content_scripts: [
+    //   {
+    //     matches: [ "*://play.autodarts.io/*" ],
+    //     js: [ "dart-zoom.js" ],
+    //   },
+    // ],
+    // web_accessible_resources: [ {
+    //   resources: [ "dart-zoom.js" ],
+    //   matches: [ "<all_urls>" ],
+    // } ],
   },
   dev: {
     reloadCommand: "Alt+T",
