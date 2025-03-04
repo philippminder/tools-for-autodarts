@@ -15,9 +15,9 @@ import {
 import { scoreSmaller } from "@/entrypoints/match.content/scoreSmaller";
 import { colorChange, onRemove as onRemoveColorChange } from "@/entrypoints/match.content/color-change";
 import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
+import Animations from "@/entrypoints/match.content/Animations.vue";
 
 import { sounds } from "@/entrypoints/match.content/sounds";
-import { animations } from "@/entrypoints/match.content/animations";
 import { getBoardStatusEl, getMenu } from "@/utils/getElements";
 import { BoardStatus } from "@/utils/types";
 import { isBullOff, isCricket, isValidGameMode, isX01 } from "@/utils/helpers";
@@ -41,6 +41,7 @@ import { disableTakeout } from "@/entrypoints/match.content/disableTakeout";
 
 let takeoutUI: any;
 let streamingModeUI: any;
+let animationsUI: any;
 let matchReadyUnwatch: any;
 let throwsObserver: MutationObserver;
 let boardStatusObserver: MutationObserver;
@@ -76,6 +77,11 @@ export default defineContentScript({
           if (!div) initStreamingMode(ctx).catch(console.error);
         }
 
+        if (config.animations.enabled) {
+          const div = document.querySelector("autodarts-tools-animations");
+          if (!div) initAnimations(ctx).catch(console.error);
+        }
+
         initMatch().catch(console.error);
       } else {
         throwsObserver?.disconnect();
@@ -84,6 +90,8 @@ export default defineContentScript({
         takeoutUI = null;
         streamingModeUI?.remove();
         streamingModeUI = null;
+        animationsUI?.remove();
+        animationsUI = null;
         await onRemoveColorChange();
         const menu = getMenu();
         if (menu) menu.style.display = "flex";
@@ -177,6 +185,27 @@ async function initStreamingMode(ctx) {
   streamingModeUI.mount();
 }
 
+async function initAnimations(ctx) {
+  await waitForElement("#ad-ext-player-display");
+  animationsUI = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-animations",
+    position: "inline",
+    anchor: "#root",
+    onMount: (container: any) => {
+      const app = createApp(Animations);
+      app.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return app;
+    },
+    onRemove: (app: any) => {
+      app?.unmount();
+    },
+  });
+  animationsUI.mount();
+}
+
 async function throwsChange() {
   await setPlayerInfo();
 
@@ -205,7 +234,6 @@ async function throwsChange() {
 
   await scoreSmaller();
   await sounds();
-  await animations();
 
   if (isCricket()) await setCricketClosedPoints(matchStatus.playerCount).catch(console.error);
 
