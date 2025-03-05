@@ -1,13 +1,37 @@
-import { AutodartsToolsConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, AutodartsToolsSoundAutoplayStatus } from "@/utils/storage";
 import { AutodartsToolsCallerConfig } from "@/utils/callerStorage";
 import { AutodartsToolsSoundsConfig } from "@/utils/soundsStorage";
 import { playPointsSound, playSound } from "@/utils/playSound";
 import { getWinnerPlayerCard } from "@/utils/getElements";
+import { isSafari } from "@/utils/helpers";
 
 export async function soundsWinner() {
   try {
     const isSoundsEnabled = (await AutodartsToolsConfig.getValue()).sounds.enabled;
     const isCallerEnabled = (await AutodartsToolsConfig.getValue()).caller.enabled;
+
+    // Check if we're in Safari and if we've had user interaction
+    const soundAutoplayStatus = await AutodartsToolsSoundAutoplayStatus.getValue();
+
+    // If we're in Safari and haven't had user interaction yet, set up a one-time listener
+    if (isSafari() && !soundAutoplayStatus) {
+      const handleUserInteraction = async () => {
+        await AutodartsToolsSoundAutoplayStatus.setValue(true);
+        // Re-run the soundsWinner function after user interaction
+        soundsWinner();
+
+        // Remove the event listeners after first interaction
+        document.removeEventListener("click", handleUserInteraction);
+        document.removeEventListener("touchstart", handleUserInteraction);
+      };
+
+      // Add event listeners for user interaction
+      document.addEventListener("click", handleUserInteraction, { once: true });
+      document.addEventListener("touchstart", handleUserInteraction, { once: true });
+
+      console.log("Safari detected: waiting for user interaction to play winner sounds");
+      return; // Exit early, we'll re-run after user interaction
+    }
 
     const winnerPlayerCard = getWinnerPlayerCard();
     const winnerPlayerName = (winnerPlayerCard?.querySelector(".ad-ext-player-name") as HTMLElement)?.innerText;

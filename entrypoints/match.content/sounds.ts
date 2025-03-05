@@ -1,9 +1,9 @@
-import { AutodartsToolsConfig, AutodartsToolsCricketClosedPoints, AutodartsToolsMatchStatus } from "@/utils/storage";
+import { AutodartsToolsConfig, AutodartsToolsCricketClosedPoints, AutodartsToolsMatchStatus, AutodartsToolsSoundAutoplayStatus } from "@/utils/storage";
 import { AutodartsToolsCallerConfig } from "@/utils/callerStorage";
 import { AutodartsToolsSoundsConfig } from "@/utils/soundsStorage";
 
 import { playPointsSound, playSound } from "@/utils/playSound";
-import { isCricket, isValidGameMode } from "@/utils/helpers";
+import { isCricket, isSafari, isValidGameMode } from "@/utils/helpers";
 
 export async function sounds() {
   const isCallerEnabled = (await AutodartsToolsConfig.getValue()).caller.enabled && isValidGameMode();
@@ -13,6 +13,29 @@ export async function sounds() {
   const matchStatus = (await AutodartsToolsMatchStatus.getValue());
 
   const cricketClosedPoints = await AutodartsToolsCricketClosedPoints.getValue();
+
+  // Check if we're in Safari and if we've had user interaction
+  const soundAutoplayStatus = await AutodartsToolsSoundAutoplayStatus.getValue();
+
+  // If we're in Safari and haven't had user interaction yet, set up a one-time listener
+  if (isSafari() && !soundAutoplayStatus) {
+    const handleUserInteraction = async () => {
+      await AutodartsToolsSoundAutoplayStatus.setValue(true);
+      // Re-run the sounds function after user interaction
+      sounds();
+
+      // Remove the event listeners after first interaction
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("touchstart", handleUserInteraction);
+    };
+
+    // Add event listeners for user interaction
+    document.addEventListener("click", handleUserInteraction, { once: true });
+    document.addEventListener("touchstart", handleUserInteraction, { once: true });
+
+    console.log("Safari detected: waiting for user interaction to play sounds");
+    return; // Exit early, we'll re-run after user interaction
+  }
 
   // if (!isCallerEnabled || !callerActive) return;
 
