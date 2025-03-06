@@ -57,7 +57,12 @@ async function handleShuffle() {
 
   let shuffledArrayIsDifferent = playerNames.length < 2;
   while (!shuffledArrayIsDifferent) {
-    shuffledPlayerNames.sort(() => Math.random() - 0.5);
+    // Fisher-Yates (Knuth) shuffle algorithm
+    for (let i = shuffledPlayerNames.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      // Swap elements at indices i and j
+      [ shuffledPlayerNames[i], shuffledPlayerNames[j] ] = [ shuffledPlayerNames[j], shuffledPlayerNames[i] ];
+    }
     shuffledArrayIsDifferent = !playerNames.every((value, index) => value === shuffledPlayerNames[index]);
   }
 
