@@ -257,11 +257,11 @@ async function initAnimations(ctx) {
 
 async function throwsChange() {
   await setPlayerInfo();
-
   const matchStatus: IMatchStatus = await AutodartsToolsMatchStatus.getValue();
 
   if (isValidGameMode()) {
     if (matchStatus.hasWinner) {
+      console.log("TEST");
       if (matchStatus.isInEditMode) {
         await removeWinnerAnimationOnEdit();
       } else {

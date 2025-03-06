@@ -18,32 +18,19 @@ export async function setPlayerInfo() {
     const playerInfo: IPlayerInfo[] = [ ...document.querySelectorAll(".ad-ext-player") ].map((playerCardEl) => {
       const playerStatsEl = playerCardEl?.children[0] as HTMLElement;
 
-      const matchhasLegs = playerStatsEl.querySelector("div.chakra-stack > div:first-of-type > div:first-of-type")!.children.length >= 1;
-      const matchhasSets = playerStatsEl.querySelector("div.chakra-stack > div:first-of-type > div:first-of-type")!.children.length >= 2;
-
-      let playerLegs, playerSets;
-
-      const playerPTags = playerCardEl.querySelectorAll("p");
-
-      try {
-        playerLegs = playerPTags[playerPTags.length >= 4 ? 2 : 1].textContent?.trim();
-        if (playerPTags.length >= 4) {
-          playerSets = playerPTags[1].textContent?.trim();
-        }
-      } catch (e) {
-        console.error("Autodarts Tools: Set Player Info - Error: ", e);
-      }
+      const matchHasLegs = playerStatsEl.querySelector("div.chakra-stack:first-of-type > div > div")!.children.length >= 1;
+      const matchHasSets = playerStatsEl.querySelector("div.chakra-stack:first-of-type > div > div")!.children.length >= 2;
 
       return {
         name: playerCardEl.querySelector(".ad-ext-player-name")?.textContent || "",
         score: playerCardEl.querySelector(".ad-ext-player-score")?.textContent?.trim() ?? "0",
         isActive: playerCardEl.classList.contains("ad-ext-player-active"),
-        ...(matchhasLegs && { legs: playerStatsEl?.children[0]?.children[matchhasSets ? 1 : 0]?.textContent?.trim() }),
-        ...(matchhasSets && { sets: playerStatsEl?.children[0]?.children[0]?.textContent?.trim() }),
+        ...(matchHasLegs && { legs: playerStatsEl.querySelector("div.chakra-stack:first-of-type > div > div")?.children[matchHasSets ? 1 : 0]?.textContent?.trim() }),
+        ...(matchHasSets && { sets: playerStatsEl.querySelector("div.chakra-stack:first-of-type > div > div")?.children[0]?.textContent?.trim() }),
         darts: getDartsThrown(playerCardEl as HTMLElement),
         stats: getStats(playerCardEl as HTMLElement),
-        legs: playerLegs && Number.parseInt(playerLegs) ? Number.parseInt(playerLegs) : 0,
-        sets: playerSets && Number.parseInt(playerSets) ? Number.parseInt(playerSets) : undefined,
+        matchHasLegs,
+        matchHasSets,
       };
     });
 

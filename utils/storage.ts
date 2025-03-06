@@ -129,6 +129,8 @@ export interface IPlayerInfo {
   sets?: string;
   darts?: string;
   stats?: string;
+  matchHasLegs?: boolean;
+  matchHasSets?: boolean;
 }
 
 export interface IMatchStatus {
