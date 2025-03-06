@@ -1162,6 +1162,20 @@
                   !!config.animations.startDelay && 'text-white/40',
                 )"
               >
+              <div>Image fit</div>
+              <select
+                v-model="config.animations.objectFit"
+                :class="twMerge(
+                  'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
+                )"
+              >
+                <option value="cover">
+                  Cover (fill screen, may crop)
+                </option>
+                <option value="contain">
+                  Contain (show full image)
+                </option>
+              </select>
               <div class="mt-1.5">
                 <span class="font-semibold">Winner animations</span>
               </div>

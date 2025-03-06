@@ -106,6 +106,7 @@ export interface IConfig {
     enabled: boolean;
     startDelay?: number;
     endDelay?: number;
+    objectFit?: string;
     winner: { data?: string; info: string }[];
     bull: { data?: string; info: string }[];
     oneEighty: { data?: string; info: string }[];
@@ -233,6 +234,7 @@ export const defaultConfig: IConfig = {
     enabled: false,
     startDelay: 1,
     endDelay: 4,
+    objectFit: "cover",
     winner: [
       { info: "https://media1.tenor.com/m/uhkDiMdcP44AAAAd/rapid-darts-darts.gif" },
       { info: "https://media1.tenor.com/m/QriSf7Rc78cAAAAd/darts-niner.gif" },
