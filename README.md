@@ -57,6 +57,10 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Custom Sounds**: Various sound effects for different game events
 - **Sound Upload**: Add your own custom sounds for personalized feedback
 
+### 🔄 Utility Features
+- **Settings Import/Export**: Transfer your configuration between devices or create backups
+- **Clipboard Support**: Copy and paste settings for easy sharing
+
 ## ⚙️ Configuration
 
 The extension provides a comprehensive settings panel where you can configure all features according to your preferences:
@@ -67,6 +71,21 @@ The extension provides a comprehensive settings panel where you can configure al
 - Configure Discord webhook integration
 - Adjust sound settings and upload custom sounds
 - Customize streaming mode settings
+
+### 📤 Settings Import/Export
+
+The extension allows you to easily transfer your settings between devices or create backups:
+
+- **Export Settings**: Download your current configuration as a file
+- **Import Settings**: Load settings from a previously exported file
+- **Copy to Clipboard**: Copy your settings to the clipboard for easy sharing
+- **Paste from Clipboard**: Apply settings that were copied from another installation
+
+This makes it simple to:
+- Back up your perfect configuration
+- Share your setup with friends
+- Transfer settings between browsers or devices
+- Restore settings after reinstalling the extension
 
 ## 👨‍💻 Development
 
@@ -114,4 +133,8 @@ Give a star if this project helped you.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE) - see the [LICENSE](LICENSE) file for details.
+
+Under this license:
+- **Attribution** — You must give appropriate credit, provide a link to this project, and indicate if changes were made.
+- **NonCommercial** — You may not use this project for commercial purposes or monetary compensation.
