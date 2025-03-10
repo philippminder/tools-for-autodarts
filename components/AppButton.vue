@@ -22,7 +22,7 @@
       >
         <div
           :class="twMerge(
-            'relative w-full truncate',
+            'relative w-full truncate flex items-center gap-2',
           )"
         >
           <slot />
