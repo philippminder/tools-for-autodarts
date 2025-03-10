@@ -1622,7 +1622,11 @@ function handleImportFile(event: Event) {
             ...JSON.parse(JSON.stringify(importedData.soundsConfig)),
           };
 
-          showNotification("Settings imported successfully");
+          showNotification("Settings imported successfully.<br>Reloading page to apply settings...");
+          // Add a small delay before reloading to allow the notification to be seen
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         },
       );
     } catch (error) {
@@ -1704,7 +1708,11 @@ function pasteFromClipboard() {
               ...JSON.parse(JSON.stringify(importedData.soundsConfig)),
             };
 
-            showNotification("Settings imported successfully");
+            showNotification("Settings imported successfully.<br>Reloading page to apply settings...");
+            // Add a small delay before reloading to allow the notification to be seen
+            setTimeout(() => {
+              window.location.reload();
+            }, 1500);
           },
         );
       } catch (error) {

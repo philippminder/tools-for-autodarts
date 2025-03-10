@@ -8,13 +8,17 @@
     leave-to-class="transform translate-y-8 opacity-0"
   >
     <div v-if="show" class="fixed bottom-4 right-8 z-50 max-w-md rounded-md p-4 shadow-lg backdrop-blur-sm" :class="type === 'success' ? 'success-overlay' : 'error-overlay'">
-      <div class="flex items-center">
-        <AppIcon v-if="type === 'success'" icon="mdi-light:check-circle" class="mr-2 text-xl" />
-        <AppIcon v-else icon="mdi-light:alert-circle" class="mr-2 text-xl" />
-        <div>{{ message }}</div>
-        <button @click="$emit('close')" class="ml-4 text-xl opacity-70 hover:opacity-100">
-          <AppIcon icon="mdi-light:close" />
-        </button>
+      <div class="flex">
+        <div class="mr-2 shrink-0">
+          <AppIcon v-if="type === 'success'" icon="mdi-light:check-circle" class="text-xl" />
+          <AppIcon v-else icon="mdi-light:alert-circle" class="text-xl" />
+        </div>
+        <div class="mr-4 grow" v-html="message" />
+        <div class="shrink-0">
+          <button @click="$emit('close')" class="text-xl opacity-70 hover:opacity-100">
+            <AppIcon icon="mdi-light:close" />
+          </button>
+        </div>
       </div>
     </div>
   </Transition>
