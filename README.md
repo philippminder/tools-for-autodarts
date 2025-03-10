@@ -108,6 +108,16 @@ Give a star if this project helped you.
   <img width="270px" src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_stroke.png" alt="Support me on Ko-fi">
 </a>
 
+## 🤝 Contributing
+Feel free to fork and make a Pull Request to this plugin project. All the input is warmly welcome!
+
+## ⭐️ Show your support
+Give a star if this project helped you.
+
+<a href="https://ko-fi.com/creazy231">
+  <img width="270px" src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_stroke.png" alt="Support me on Ko-fi">
+</a>
+
 ## Credits
 
 🎯 [Autodarts](https://autodarts.io) - The original platform this extension enhances
