@@ -1,4 +1,4 @@
-# Tools for Autodarts
+# 🎯 Tools for Autodarts
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/creazy231/tools-for-autodarts/release.yml)
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/creazy231/tools-for-autodarts)
@@ -16,34 +16,34 @@
 > [!CAUTION]
 > **Tools for Autodarts** is developed by the community and is not an integral part of the official Autodarts platform.
 
-## Overview
+## 📋 Overview
 
 Tools for Autodarts is a browser extension that enhances your gaming experience on [autodarts.io](https://autodarts.io). It adds numerous quality-of-life features, customization options, and advanced functionality to make your Autodarts experience more enjoyable and personalized.
 
-## Installation
+## 💾 Installation
 
-### Browser Extensions
+### 🌐 Browser Extensions
 - [Chrome Web Store](https://chromewebstore.google.com/detail/tools-for-autodarts/oolfddhehmbpdnlmoljmllcdggmkgihh)
 - [Firefox Add-ons](https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts)
 - [MacOS & iOS App Store](https://apps.apple.com/de/app/tools-for-autodarts/id6479754594)
 
-## Features
+## ✨ Features
 
-### Lobby Enhancements
+### 🚪 Lobby Enhancements
 - **Auto-Start**: Automatically starts the game 3 seconds after a player joins the lobby
 - **Discord Webhook Integration**: Sends invitation links for private lobbies to your Discord server
 - **Shuffle Players**: Randomly reorder players in the lobby
 - **Extended Recent Players List**: Increase the number of recent local players beyond the default limit of 5
 - **Team Lobby Mode**: Removes initial player and auto-selects board for team games
 
-### Match Customization
+### 🎨 Match Customization
 - **Color Customization**: Change the colors of dart throws and scores
 - **Streaming Mode**: Includes green screen support, board visualization, and thrown darts display
 - **Virtual Board Surround**: Adds a customizable surround to the dartboard
 - **Hide Menu**: Provides more space for the game view
 - **Adjustable UI Elements**: Modify the size of legs, sets, and match information
 
-### Gameplay Features
+### 🎮 Gameplay Features
 - **Takeout Visualization**: Visual notification when takeout is in progress
 - **Disable Takeout Recognition**: Requires manual confirmation after takeout
 - **Automatic Next Player**: Switches to the next player after a configurable delay when takeout is stuck
@@ -52,12 +52,12 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **External Boards Support**: Easily follow games on external boards
 - **Fancy Gameshot Animation**: Celebratory animation when a player wins
 
-### Audio Features
+### 🔊 Audio Features
 - **Caller**: Voice announcements for scores
 - **Custom Sounds**: Various sound effects for different game events
 - **Sound Upload**: Add your own custom sounds for personalized feedback
 
-## Configuration
+## ⚙️ Configuration
 
 The extension provides a comprehensive settings panel where you can configure all features according to your preferences:
 
@@ -68,7 +68,7 @@ The extension provides a comprehensive settings panel where you can configure al
 - Adjust sound settings and upload custom sounds
 - Customize streaming mode settings
 
-## Development
+## 👨‍💻 Development
 
 This project is built using:
 - Vue.js 3
@@ -76,7 +76,7 @@ This project is built using:
 - Tailwind CSS
 - WXT (Web Extension Toolbox)
 
-### Getting Started
+### 🚀 Getting Started
 
 ```bash
 # Install dependencies
@@ -95,11 +95,10 @@ yarn build:firefox
 yarn zip
 ```
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request or create an issue if you have ideas for improvements or have found a bug.
 
-## 🤝 Contributing
 Feel free to fork and make a Pull Request to this plugin project. All the input is warmly welcome!
 
 ## ⭐️ Show your support
@@ -109,10 +108,10 @@ Give a star if this project helped you.
   <img width="270px" src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_stroke.png" alt="Support me on Ko-fi">
 </a>
 
-## Credits
+## 👏 Credits
 
 🎯 [Autodarts](https://autodarts.io) - The original platform this extension enhances
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

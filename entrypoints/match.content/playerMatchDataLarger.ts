@@ -9,13 +9,25 @@ export async function playerMatchDataLarger() {
     const legsSetsLargerSize = config.legsSetsLarger.value || 3;
     const playerMatchDataSize = config.playerMatchData.value || 1.5;
     document.querySelectorAll(".ad-ext-player").forEach((playerCardEl) => {
-      playerCardEl?.querySelectorAll("div > div > div > span").forEach((playerMatchDataEl) => {
-        if (config.legsSetsLarger.enabled && playerMatchDataEl) {
-          playerMatchDataEl.querySelector("p")!.style.fontSize = `${legsSetsLargerSize}rem`;
+      playerCardEl?.querySelectorAll(".chakra-stack span").forEach((spanEl) => {
+        if (spanEl.classList.contains("ad-ext-player-name")
+            || spanEl.querySelector(".ad-ext-player-name")
+            || spanEl.closest(".ad-ext-player-name")
+            || spanEl.parentElement?.classList.contains("ad-ext-player-name")) {
+          return;
+        }
+
+        const paragraph = spanEl.querySelector("p");
+        if (config.legsSetsLarger.enabled && paragraph) {
+          paragraph.style.fontSize = `${legsSetsLargerSize}rem`;
         }
       });
+
       if (config.playerMatchData.enabled) {
-        (playerCardEl?.querySelector("div:last-of-type > p") as HTMLElement | null)!.style.fontSize = `${playerMatchDataSize}rem`;
+        const matchDataElement = playerCardEl?.querySelector("div:last-of-type > p") as HTMLElement | null;
+        if (matchDataElement) {
+          matchDataElement.style.fontSize = `${playerMatchDataSize}rem`;
+        }
       }
     });
   } catch (e) {
