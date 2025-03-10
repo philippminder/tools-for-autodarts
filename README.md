@@ -99,13 +99,6 @@ yarn zip
 
 Contributions are welcome! Please feel free to submit a Pull Request or create an issue if you have ideas for improvements or have found a bug.
 
-## ⭐️ Show your support
-Give a star if this project helped you.
-
-<a href="https://ko-fi.com/creazy231">
-  <img width="270px" src="https://storage.ko-fi.com/cdn/brandasset/kofi_button_stroke.png" alt="Support me on Ko-fi">
-</a>
-
 ## 🤝 Contributing
 Feel free to fork and make a Pull Request to this plugin project. All the input is warmly welcome!
 
