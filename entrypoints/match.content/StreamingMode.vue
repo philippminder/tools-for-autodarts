@@ -3,14 +3,16 @@
     v-if="enabled && config"
     class="fixed inset-0 z-[200] font-sans"
   >
-    <div v-if="settings" class="absolute inset-0 z-10 flex items-center justify-center bg-black/70">
+    <div v-if="settings" class="absolute inset-0 z-10 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <OnClickOutside
         @trigger="handleToggleSettings"
-        class="settings relative w-full max-w-sm overflow-hidden rounded-md bg-[#13212C]/80 p-4"
+        class="gradient-bg relative w-full max-w-sm overflow-hidden rounded-md border border-white/10 p-6 shadow-lg"
       >
         <div class="space-y-8">
           <div v-if="config.streamingMode.board" class="space-y-2">
-            <p>Board Scale: ({{ 100 / 5 * coordsElementScale }} %)</p>
+            <p class="font-semibold">
+              Board Scale: ({{ 100 / 5 * coordsElementScale }} %)
+            </p>
             <SliderRoot
               @update:model-value="handleSliderUpdate('coords', $event)"
               class="relative flex h-5 w-full touch-none select-none items-center"
@@ -29,7 +31,9 @@
             </SliderRoot>
           </div>
           <div class="space-y-2">
-            <p>Score Scale: ({{ 100 / 5 * scoreBoardScale }} %)</p>
+            <p class="font-semibold">
+              Score Scale: ({{ 100 / 5 * scoreBoardScale }} %)
+            </p>
             <SliderRoot
               @update:model-value="handleSliderUpdate('score', $event)"
               class="relative flex h-5 w-full touch-none select-none items-center"
@@ -47,14 +51,17 @@
               />
             </SliderRoot>
           </div>
-          <div
-            @click="handleToggleSettings"
-            class="grid grid-cols-[25%_auto] gap-4"
-          >
-            <AppButton @click="handleResetSettings">
+          <div class="flex justify-end gap-3">
+            <AppButton
+              @click="handleResetSettings"
+              class="rounded-md border border-white/10 bg-transparent px-4 py-2 hover:bg-white/10"
+            >
               Reset
             </AppButton>
-            <AppButton @click="handleCloseSettings">
+            <AppButton
+              @click="handleCloseSettings"
+              class="rounded-md bg-cyan-600 px-4 py-2 hover:bg-cyan-700"
+            >
               Save
             </AppButton>
           </div>
@@ -197,7 +204,7 @@
         >
           <div class="grid grid-cols-[auto_2rem]">
             <div>{{ game.footer }}</div>
-            <div @click="handleToggleSettings" class="flex cursor-pointer items-center justify-end opacity-20">
+            <div @click="handleToggleSettings" class="flex cursor-pointer items-center justify-end opacity-20 hover:opacity-50">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"><path fill="currentColor" d="M12 20H4q-.825 0-1.412-.587T2 18V6q0-.825.588-1.412T4 4h16q.825 0 1.413.588T22 6v5h-2V6H4v12h8zm-2.5-3.5v-9l7 4.5zm8.35 6.5l-.3-1.5q-.3-.125-.562-.262t-.538-.338l-1.45.45l-1-1.7l1.15-1q-.05-.35-.05-.65t.05-.65l-1.15-1l1-1.7l1.45.45q.275-.2.538-.337t.562-.263l.3-1.5h2l.3 1.5q.3.125.563.275t.537.375l1.45-.5l1 1.75l-1.15 1q.05.3.05.625t-.05.625l1.15 1l-1 1.7l-1.45-.45q-.275.2-.537.338t-.563.262l-.3 1.5zm1-3q.825 0 1.413-.587T20.85 18q0-.825-.587-1.412T18.85 16q-.825 0-1.412.588T16.85 18q0 .825.588 1.413T18.85 20" /></svg>
             </div>
           </div>
@@ -411,12 +418,14 @@ async function handleResetSettings() {
 </script>
 
 <style scoped>
-.settings::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(217deg, rgba(32, 48, 81, 0.2), rgba(32, 48, 81, 0) 70.71%) fixed, linear-gradient(127deg, rgba(29, 113, 184, 0.2), rgba(29, 113, 184, 0) 70.71%), linear-gradient(336deg, rgba(46, 235, 248, 0.2), rgba(46, 235, 248, 0) 70.71%);
-  z-index: -1;
-  pointer-events: none;
+.gradient-bg {
+  background-image: radial-gradient(50% 30% at 86% 0%, rgba(49, 51, 112, 0.89) 0%, rgba(64, 52, 134, 0) 100%),
+                    radial-gradient(50% 70% at 70% 22%, rgba(38, 89, 154, 0.9) 0%, rgba(64, 52, 134, 0) 100%),
+                    radial-gradient(50% 70% at 112% 44%, rgba(44, 67, 108, 0.85) 0%, rgba(64, 52, 134, 0) 100%),
+                    radial-gradient(90% 90% at -12% 89%, rgba(15, 47, 80, 0.88) 0%, rgba(64, 52, 134, 0) 100%),
+                    radial-gradient(50% 70% at -2% 53%, rgba(52, 32, 95, 0.89) 0%, rgba(64, 52, 134, 0) 100%),
+                    radial-gradient(50% 70% at 36% 22%, rgba(64, 52, 134, 0.83) 0%, rgba(64, 52, 134, 0) 100%),
+                    radial-gradient(50% 40% at 66% 59%, rgba(32, 111, 185, 0.87) 7%, rgba(32, 111, 185, 0) 100%),
+                    radial-gradient(75% 75% at 50% 50%, rgb(54, 98, 185) 1%, rgb(45, 40, 91) 100%);
 }
 </style>

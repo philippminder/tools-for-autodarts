@@ -21,50 +21,50 @@
 
     <div class="mb-16 space-y-8">
       <div class="space-y-4">
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div class="flex items-center">
             <AppButton
               @click="goBack()"
-              class="mr-4 h-9 w-8 rounded-md border border-white/10 bg-transparent p-0 pt-[0.2rem] text-xl hover:bg-white/10"
+              class="mr-4 flex size-10 items-center justify-center rounded-md border border-white/10 bg-transparent p-0 text-xl hover:bg-white/10"
             >
               <AppIcon icon="mdi-light:chevron-left" />
             </AppButton>
-            <h1 class="text-3xl font-bold">
+            <h1 class="text-xl font-bold sm:text-2xl md:text-3xl">
               Autodarts Tools
             </h1>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="mt-2 grid grid-cols-2 items-center gap-2 sm:mt-0 sm:grid-cols-4">
             <AppButton
               @click="exportSettings"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-3 py-1 hover:bg-white/10"
+              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Download settings as file"
             >
-              <AppIcon icon="mingcute:file-export-line" />
-              Export
+              <AppIcon class="mr-2" icon="mingcute:file-export-line" />
+              <span>Export</span>
             </AppButton>
             <AppButton
               @click="importSettings"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-3 py-1 hover:bg-white/10"
+              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Import settings from file"
             >
-              <AppIcon icon="mingcute:file-import-line" />
-              Import
+              <AppIcon class="mr-2" icon="mingcute:file-import-line" />
+              <span>Import</span>
             </AppButton>
             <AppButton
               @click="copyToClipboard"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-3 py-1 hover:bg-white/10"
+              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Copy settings to clipboard"
             >
-              <AppIcon icon="mingcute:copy-2-line" />
-              Copy
+              <AppIcon class="mr-2" icon="mingcute:copy-2-line" />
+              <span>Copy</span>
             </AppButton>
             <AppButton
               @click="pasteFromClipboard"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-3 py-1 hover:bg-white/10"
+              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Paste settings from clipboard"
             >
-              <AppIcon icon="mingcute:paste-line" />
-              Paste
+              <AppIcon class="mr-2" icon="mingcute:paste-line" />
+              <span>Paste</span>
             </AppButton>
             <input
               @change="handleImportFile"
