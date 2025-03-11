@@ -1,4 +1,4 @@
-import { soundEffectArray } from "@/utils/helpers";
+import { isiOS, soundEffectArray } from "@/utils/helpers";
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { AutodartsToolsSoundsConfig } from "@/utils/soundsStorage";
 
@@ -30,6 +30,30 @@ export function initializeAudioContext() {
 
 // Helper function to safely play audio in Safari
 function safePlay(audioElement: HTMLAudioElement) {
+  // Special handling for iOS devices
+  if (isiOS()) {
+    // Check if the audio element is already playing
+    if (!audioElement.paused || audioElement.currentTime > 0) {
+      // Create a new temporary audio element for this sound
+      const tempAudio = new Audio(audioElement.src);
+      tempAudio.autoplay = true;
+      tempAudio.onended = () => {
+        // Clean up the temporary audio element after it finishes playing
+        tempAudio.src = "";
+      };
+
+      // Play the temporary audio element
+      const playPromise = tempAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.log("iOS audio playback error:", error);
+        });
+      }
+      return;
+    }
+  }
+
+  // Standard behavior for non-iOS devices or if the audio element is not playing
   // Safari requires explicit play() call after user interaction
   const playPromise = audioElement.play();
 
