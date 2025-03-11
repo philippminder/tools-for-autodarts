@@ -6,6 +6,28 @@ soundEffectArray[0].autoplay = true;
 soundEffectArray[1].autoplay = true;
 soundEffectArray[2].autoplay = true;
 
+// Create a global variable to track if audio context has been initialized
+let audioContextInitialized = false;
+
+// Function to initialize AudioContext after user interaction
+export function initializeAudioContext() {
+  if (audioContextInitialized) return;
+
+  // This will help with any third-party libraries that use AudioContext
+  document.addEventListener("click", function initAudioContext() {
+    // Create and immediately suspend a temporary AudioContext
+    const tempContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    tempContext.resume().then(() => {
+      audioContextInitialized = true;
+      console.log("AudioContext initialized after user interaction");
+      tempContext.close(); // Clean up the temporary context
+    });
+
+    // Remove the listener after first click
+    document.removeEventListener("click", initAudioContext);
+  }, { once: true });
+}
+
 // Helper function to safely play audio in Safari
 function safePlay(audioElement: HTMLAudioElement) {
   // Safari requires explicit play() call after user interaction

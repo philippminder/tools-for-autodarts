@@ -1,12 +1,15 @@
 import { AutodartsToolsConfig, AutodartsToolsSoundAutoplayStatus } from "@/utils/storage";
 import { AutodartsToolsSoundsConfig } from "@/utils/soundsStorage";
-import { playSound } from "@/utils/playSound";
+import { initializeAudioContext, playSound } from "@/utils/playSound";
 import { isSafari } from "@/utils/helpers";
 
 export async function soundsStart() {
   const config = await AutodartsToolsConfig.getValue();
   const soundConfig = await AutodartsToolsSoundsConfig.getValue();
   if (!config.sounds.enabled) return;
+
+  // Initialize AudioContext first
+  initializeAudioContext();
 
   // Check if we're in Safari and if we've already had user interaction
   const soundAutoplayStatus = await AutodartsToolsSoundAutoplayStatus.getValue();

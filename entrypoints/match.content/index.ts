@@ -38,6 +38,8 @@ import { nextPlayerAfter3darts } from "@/entrypoints/match.content/nextPlayerAft
 import { handleUndoMode } from "@/entrypoints/match.content/handleUndoMode";
 import { nextPlayerOnTakeOutStuck } from "@/entrypoints/match.content/nextPlayerOnTakeOutStuck";
 import { disableTakeout } from "@/entrypoints/match.content/disableTakeout";
+import { initializeAudioContext } from "@/utils/playSound";
+import "@/utils/audioContextFix";
 
 let matchActive: boolean = false;
 let matchActiveObserver: MutationObserver;
@@ -52,6 +54,9 @@ export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
   cssInjectionMode: "ui",
   async main(ctx: any) {
+    // Initialize AudioContext on page load to handle user interaction requirement
+    initializeAudioContext();
+
     matchReadyUnwatch = AutodartsToolsUrlStatus.watch(async (url: string) => {
       if (/(?<!history)(\/matches\/|\/boards\/)/.test(url)) {
         const noActiveMatchElements = document.querySelectorAll("h2");
@@ -122,10 +127,13 @@ function startMatchReadyObserver(ctx) {
     }
   });
 
-  observer.observe(targetNode, {
-    childList: true,
-    subtree: true,
-  });
+  // Add null check before observing
+  if (targetNode) {
+    observer.observe(targetNode, {
+      childList: true,
+      subtree: true,
+    });
+  }
 
   return observer;
 }
@@ -172,7 +180,7 @@ async function initMatch(ctx) {
     if (!div) initAnimations(ctx).catch(console.error);
   }
 
-  startThrowsObserver();
+  startThrowsObserver(ctx);
 
   if (isValidGameMode()
       && !config.disableTakeout.enabled
@@ -208,7 +216,7 @@ async function initMatch(ctx) {
 
   await handleUndoMode();
 
-  throwsChange().catch(console.error);
+  throwsChange(ctx).catch(console.error);
 }
 
 async function initStreamingMode(ctx) {
@@ -255,7 +263,7 @@ async function initAnimations(ctx) {
   animationsUI.mount();
 }
 
-async function throwsChange() {
+async function throwsChange(ctx) {
   await setPlayerInfo();
   const matchStatus: IMatchStatus = await AutodartsToolsMatchStatus.getValue();
 
@@ -274,10 +282,10 @@ async function throwsChange() {
     await nextPlayerAfter3darts();
   }
 
-  if (isBullOff() && matchStatus.hasWinner) {
+  if (isBullOff()) {
     const bullOffInterval = setInterval(() => {
       clearInterval(bullOffInterval);
-      initMatch().catch(console.error);
+      initMatch(ctx).catch(console.error);
     }, 1000);
   }
 
@@ -299,19 +307,22 @@ async function throwsChange() {
   });
 }
 
-function startThrowsObserver() {
-  const targetNode = document.getElementById("ad-ext-turn");
-  if (!targetNode) {
-    console.error("Target node not found");
-    return;
-  }
-  throwsObserver = new MutationObserver((m) => {
-    if (m[0].attributeName === "class") {
-      // timeout to get correct values after edit
-      setTimeout(() => throwsChange().catch(console.error), 500);
+function startThrowsObserver(ctx) {
+  const targetNode = document.querySelector("#ad-ext-turn");
+  throwsObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "childList") {
+        throwsChange(ctx).catch(console.error);
+      }
     }
   });
-  throwsObserver.observe(targetNode, { childList: false, subtree: true, attributes: true });
+
+  if (targetNode) {
+    throwsObserver.observe(targetNode, {
+      childList: true,
+      subtree: true,
+    });
+  }
 }
 
 function startBoardStatusObserver() {
