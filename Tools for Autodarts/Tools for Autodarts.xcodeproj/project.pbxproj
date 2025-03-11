@@ -17,8 +17,6 @@
 		691D3EFB2BABD13200CA29AF /* Tools for Autodarts Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 691D3EFA2BABD13200CA29AF /* Tools for Autodarts Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		691D3F012BABD13200CA29AF /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 691D3EC52BABD13100CA29AF /* Base */; };
 		691D3F022BABD13200CA29AF /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 691D3EC52BABD13100CA29AF /* Base */; };
-		691D3F032BABD13200CA29AF /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 691D3EC62BABD13100CA29AF /* Icon.png */; };
-		691D3F042BABD13200CA29AF /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 691D3EC62BABD13100CA29AF /* Icon.png */; };
 		691D3F052BABD13200CA29AF /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 691D3EC72BABD13100CA29AF /* Style.css */; };
 		691D3F062BABD13200CA29AF /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 691D3EC72BABD13100CA29AF /* Style.css */; };
 		691D3F072BABD13200CA29AF /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 691D3EC82BABD13100CA29AF /* Script.js */; };
@@ -37,6 +35,8 @@
 		691D3F292BABD13200CA29AF /* content-scripts in Resources */ = {isa = PBXBuildFile; fileRef = 691D3F212BABD13200CA29AF /* content-scripts */; };
 		691D3F2A2BABD13200CA29AF /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 691D3F222BABD13200CA29AF /* manifest.json */; };
 		691D3F2B2BABD13200CA29AF /* icon in Resources */ = {isa = PBXBuildFile; fileRef = 691D3F232BABD13200CA29AF /* icon */; };
+		6952EA382D8099E200707846 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6952EA372D8099E200707846 /* Icon.png */; };
+		6952EA392D8099E200707846 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 6952EA372D8099E200707846 /* Icon.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,7 +83,6 @@
 
 /* Begin PBXFileReference section */
 		691D3EC52BABD13100CA29AF /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = ../Base.lproj/Main.html; sourceTree = "<group>"; };
-		691D3EC62BABD13100CA29AF /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		691D3EC72BABD13100CA29AF /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
 		691D3EC82BABD13100CA29AF /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
 		691D3EC92BABD13100CA29AF /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -109,6 +108,7 @@
 		691D3F212BABD13200CA29AF /* content-scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "content-scripts"; path = "../../.output/safari-mv2/content-scripts"; sourceTree = "<group>"; };
 		691D3F222BABD13200CA29AF /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = "../../.output/safari-mv2/manifest.json"; sourceTree = "<group>"; };
 		691D3F232BABD13200CA29AF /* icon */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icon; path = "../../.output/safari-mv2/icon"; sourceTree = "<group>"; };
+		6952EA372D8099E200707846 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -169,8 +169,8 @@
 		691D3EC32BABD13100CA29AF /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				6952EA372D8099E200707846 /* Icon.png */,
 				691D3EC42BABD13100CA29AF /* Main.html */,
-				691D3EC62BABD13100CA29AF /* Icon.png */,
 				691D3EC72BABD13100CA29AF /* Style.css */,
 				691D3EC82BABD13100CA29AF /* Script.js */,
 			);
@@ -374,12 +374,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				691D3F032BABD13200CA29AF /* Icon.png in Resources */,
 				691D3EDA2BABD13200CA29AF /* Base in Resources */,
 				691D3F012BABD13200CA29AF /* Base in Resources */,
 				691D3F072BABD13200CA29AF /* Script.js in Resources */,
 				691D3F0B2BABD13200CA29AF /* Assets.xcassets in Resources */,
 				691D3EDD2BABD13200CA29AF /* Base in Resources */,
+				6952EA382D8099E200707846 /* Icon.png in Resources */,
 				691D3F052BABD13200CA29AF /* Style.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -388,7 +388,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				691D3F042BABD13200CA29AF /* Icon.png in Resources */,
+				6952EA392D8099E200707846 /* Icon.png in Resources */,
 				691D3F062BABD13200CA29AF /* Style.css in Resources */,
 				691D3EE92BABD13200CA29AF /* Base in Resources */,
 				691D3F082BABD13200CA29AF /* Script.js in Resources */,
@@ -692,7 +692,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_TEAM = BXYGXAJ99T;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (App)/Info.plist";
@@ -708,7 +708,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -731,7 +731,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_TEAM = BXYGXAJ99T;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "iOS (App)/Info.plist";
@@ -747,7 +747,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -836,7 +836,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/Tools for Autodarts.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_TEAM = BXYGXAJ99T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -850,7 +850,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,
@@ -873,7 +873,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/Tools for Autodarts.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 36;
+				CURRENT_PROJECT_VERSION = 40;
 				DEVELOPMENT_TEAM = BXYGXAJ99T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -887,7 +887,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				MARKETING_VERSION = 1.6.1;
+				MARKETING_VERSION = 1.6.4;
 				OTHER_LDFLAGS = (
 					"-framework",
 					SafariServices,

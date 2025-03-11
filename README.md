@@ -1,17 +1,39 @@
-# 🎯 Tools for Autodarts
+<p align="center">
+  <img src="assets/autodarts-tools-logo.png" alt="Tools for Autodarts Logo" width="300">
+</p>
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/creazy231/tools-for-autodarts/release.yml)
-![GitHub package.json version](https://img.shields.io/github/package-json/v/creazy231/tools-for-autodarts)
-[![GitHub Release](https://img.shields.io/github/v/release/creazy231/tools-for-autodarts)](https://github.com/creazy231/tools-for-autodarts/releases)
+<h1 align="center">
+Tools for Autodarts
+</h1>
 
+<p align="center">
+  <img src="https://img.shields.io/github/actions/workflow/status/creazy231/tools-for-autodarts/release.yml" alt="GitHub Actions Workflow Status">
+  <img src="https://img.shields.io/github/package-json/v/creazy231/tools-for-autodarts" alt="GitHub package.json version">
+  <a href="https://github.com/creazy231/tools-for-autodarts/releases">
+    <img src="https://img.shields.io/github/v/release/creazy231/tools-for-autodarts" alt="GitHub Release">
+  </a>
+</p>
 
-[![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/oolfddhehmbpdnlmoljmllcdggmkgihh?logo=google-chrome&logoColor=%23FFFFFF&label=Chrome)](https://chromewebstore.google.com/detail/tools-for-autodarts/oolfddhehmbpdnlmoljmllcdggmkgihh)
-[![Mozilla Add-on Version](https://img.shields.io/amo/v/tools-for-autodarts?logo=firefox&logoColor=%23FFFFFF&label=Firefox)](https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts)
-[![](https://img.shields.io/itunes/v/6479754594?logo=apple&label=MacOS%20%26%20iOS
-)](https://apps.apple.com/de/app/tools-for-autodarts/id6479754594)
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/tools-for-autodarts/oolfddhehmbpdnlmoljmllcdggmkgihh">
+    <img src="https://img.shields.io/chrome-web-store/v/oolfddhehmbpdnlmoljmllcdggmkgihh?logo=google-chrome&logoColor=%23FFFFFF&label=Chrome" alt="Chrome Web Store Version">
+  </a>
+  <a href="https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts">
+    <img src="https://img.shields.io/amo/v/tools-for-autodarts?logo=firefox&logoColor=%23FFFFFF&label=Firefox" alt="Mozilla Add-on Version">
+  </a>
+  <a href="https://apps.apple.com/de/app/tools-for-autodarts/id6479754594">
+    <img src="https://img.shields.io/itunes/v/6479754594?logo=apple&label=MacOS%20%26%20iOS" alt="Apple App Store Version">
+  </a>
+</p>
 
-[![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/oolfddhehmbpdnlmoljmllcdggmkgihh?logo=google-chrome&logoColor=%23FFFFFF&label=Chrome%20Users)](https://chromewebstore.google.com/detail/tools-for-autodarts/oolfddhehmbpdnlmoljmllcdggmkgihh)
-[![Mozilla Add-on Users](https://img.shields.io/amo/users/tools-for-autodarts?logo=firefox&logoColor=%23FFFFFF&label=Firefox%20Users&color=4c1)](https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts)
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/tools-for-autodarts/oolfddhehmbpdnlmoljmllcdggmkgihh">
+    <img src="https://img.shields.io/chrome-web-store/users/oolfddhehmbpdnlmoljmllcdggmkgihh?logo=google-chrome&logoColor=%23FFFFFF&label=Chrome%20Users" alt="Chrome Web Store Users">
+  </a>
+  <a href="https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts">
+    <img src="https://img.shields.io/amo/users/tools-for-autodarts?logo=firefox&logoColor=%23FFFFFF&label=Firefox%20Users&color=4c1" alt="Mozilla Add-on Users">
+  </a>
+</p>
 
 > [!CAUTION]
 > **Tools for Autodarts** is developed by the community and is not an integral part of the official Autodarts platform.
@@ -129,7 +151,8 @@ Give a star if this project helped you.
 
 ## 👏 Credits
 
-🎯 [Autodarts](https://autodarts.io) - The original platform this extension enhances
+🎯 [Autodarts](https://autodarts.io) - The original platform this extension enhances<br>
+🎨 Benjamin Zehentner (Discord: ben_1987) - Creator of the Tools for Autodarts logo
 
 ## 📄 License
 
