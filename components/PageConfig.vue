@@ -19,13 +19,13 @@
       :type="notification.type"
     />
 
-    <div class="mb-16 space-y-8">
+    <div class="mx-auto mb-16 max-w-[1366px] space-y-8">
       <div class="space-y-4">
         <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div class="flex items-center">
             <AppButton
               @click="goBack()"
-              class="mr-4 flex size-10 items-center justify-center rounded-md border border-white/10 bg-transparent p-0 text-xl hover:bg-white/10"
+              class="mr-4 aspect-square size-10 p-0"
             >
               <span class="icon-[pixelarticons--arrow-left]" />
             </AppButton>
@@ -36,7 +36,6 @@
           <div class="mt-2 grid grid-cols-2 items-center gap-2 sm:mt-0 sm:grid-cols-4">
             <AppButton
               @click="exportSettings"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Download settings as file"
             >
               <span class="icon-[pixelarticons--calendar-export] mr-2" />
@@ -44,7 +43,6 @@
             </AppButton>
             <AppButton
               @click="importSettings"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Import settings from file"
             >
               <span class="icon-[pixelarticons--calendar-import] mr-2" />
@@ -52,7 +50,6 @@
             </AppButton>
             <AppButton
               @click="copyToClipboard"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Copy settings to clipboard"
             >
               <span class="icon-[pixelarticons--copy] mr-2" />
@@ -60,7 +57,6 @@
             </AppButton>
             <AppButton
               @click="pasteFromClipboard"
-              class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Paste settings from clipboard"
             >
               <span class="icon-[pixelarticons--calendar-import] mr-2" />
@@ -69,6 +65,39 @@
             <input @change="handleImportFile" ref="importFileInput" type="file" accept=".json,.txt" class="hidden">
           </div>
         </div>
+
+        <template v-if="false">
+          <!-- Tabs Component -->
+          <AppTabs
+            v-model="activeTab"
+            :tabs="tabs"
+          />
+
+          <template v-if="config">
+            <div class="grid grid-cols-2 gap-5">
+              <div class="adt-container h-56">
+                <div class="relative z-10 flex h-full flex-col justify-between">
+                  <div>
+                    <h3 class="mb-1 font-bold">
+                      DISCORD WEBHOOKS
+                    </h3>
+                    <p class="w-1/2 text-white/70">
+                      Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a
+                      webhook.
+                    </p>
+                  </div>
+                  <AppButton>
+                    <span class="icon-[pixelarticons--copy] mr-2" />
+                    <span>Copy</span>
+                  </AppButton>
+                </div>
+                <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+                  <img src="@/assets/images/discord-webhook.png" alt="Discord Webhook" class="size-full object-cover">
+                </div>
+              </div>
+            </div>
+          </template>
+        </template>
 
         <template v-if="config">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -1473,6 +1502,7 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppNotification from "@/components/AppNotification.vue";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { useNotification } from "@/composables/useNotification";
+import AppTabs from "@/components/AppTabs.vue";
 
 const config = ref<IConfig>();
 const callerConfig = ref<ICallerConfig>();
@@ -1480,6 +1510,10 @@ const soundsConfig = ref<ISoundsConfig>();
 const streamingModeBackgroundFileSelect = ref() as Ref<HTMLInputElement>;
 const importFileInput = ref() as Ref<HTMLInputElement>;
 const tripleCountArr = [ 15, 16, 17, 18, 19, 20 ];
+
+// Tabs component data
+const tabs = ref([ "Lobbies", "Matches", "Boards", "Miscellaneous" ]);
+const activeTab = ref(0);
 
 // Use the composables
 const { confirmDialog, showConfirmDialog, confirmDialogConfirm, confirmDialogCancel } = useConfirmDialog();
@@ -1785,5 +1819,10 @@ input[type="color"]::-webkit-color-swatch-wrapper {
 
 input[type="color"]::-webkit-color-swatch {
   border: none;
+}
+
+.gradient-mask-left {
+  mask-image: linear-gradient(to right, transparent 10%, black 60%);
+  -webkit-mask-image: linear-gradient(to right, transparent 10%, black 60%);
 }
 </style>

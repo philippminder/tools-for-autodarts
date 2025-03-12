@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.adt-container {
+  @apply rounded-md bg-[var(--chakra-colors-card-background)] p-5 relative overflow-hidden;
+}

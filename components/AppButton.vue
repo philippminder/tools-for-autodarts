@@ -3,11 +3,34 @@
     @click="handleClick"
     v-bind="_.omit($attrs, 'class')"
     :class="twMerge(
-      'group relative flex w-full items-center rounded-md px-5 py-1 outline-none transition-all ease-in-out bg-white/15 font-bold text-white enabled:hover:bg-white/20',
+      'user-select-none position-relative white-space-nowrap vertical-align-middle line-height-1.2 transition-property-common transition-duration-normal group relative inline-flex appearance-none items-center justify-center border-none outline-offset-2 outline-transparent',
+      'rounded-[var(--chakra-radii-md)] font-[var(--chakra-fontWeights-semibold)]',
+
+      // Default style
+      type === 'default' && 'bg-[var(--chakra-colors-whiteAlpha-200)] text-[var(--chakra-colors-whiteAlpha-900)] enabled:hover:bg-[var(--chakra-colors-whiteAlpha-300)] enabled:active:bg-[var(--chakra-colors-whiteAlpha-300)]',
+
+      // Success style
+      type === 'success' && 'border border-solid border-[var(--chakra-colors-borderGreen)] bg-[var(--chakra-colors-glassGreen)] text-[var(--chakra-colors-white)] enabled:hover:bg-[rgba(58,255,0,0.3)] enabled:active:bg-[rgba(58,255,0,0.3)]',
+
+      // Danger style
+      type === 'danger' && 'border border-solid border-[var(--chakra-colors-borderRed)] bg-[var(--chakra-colors-glassRed)] text-[var(--chakra-colors-white)] enabled:hover:bg-[rgba(255,0,0,0.3)] enabled:active:bg-[rgba(255,0,0,0.3)]',
+
+      // Default size (md)
+      size === 'md' && 'h-[var(--chakra-sizes-10)] min-w-[var(--chakra-sizes-10)] pe-[var(--chakra-space-4)] ps-[var(--chakra-space-4)] text-[var(--chakra-fontSizes-md)]',
+
+      // Small size
+      size === 'sm' && 'h-8 max-h-8 min-w-8 pe-[var(--chakra-space-3)] ps-[var(--chakra-space-3)] text-[14px]',
+
+      // Extra small size
+      size === 'xs' && 'h-6 max-h-6 min-w-6 pe-[var(--chakra-space-2)] ps-[var(--chakra-space-2)] text-[14px]',
+
+      // Large sizes
+      size === 'lg' && 'h-[var(--chakra-sizes-12)] min-w-[var(--chakra-sizes-12)] pe-[var(--chakra-space-6)] ps-[var(--chakra-space-6)] text-[var(--chakra-fontSizes-lg)]',
+      size === 'xl' && 'h-[var(--chakra-sizes-16)] min-w-[var(--chakra-sizes-16)] pe-[var(--chakra-space-8)] ps-[var(--chakra-space-8)] text-[var(--chakra-fontSizes-xl)]',
+
+      'transition-colors',
+      !auto && 'w-full',
       (disabled && !loading) && 'cursor-not-allowed opacity-50',
-      (type === 'danger') && 'bg-red-300 enabled:hover:bg-red-400 text-gray-900',
-      (type === 'success') && 'bg-green-300 enabled:hover:bg-green-400 text-gray-900',
-      auto && 'w-auto',
       $attrs.class?.toString(),
     )"
     :disabled="disabled || loading"
@@ -22,7 +45,7 @@
       >
         <div
           :class="twMerge(
-            'relative w-full truncate flex items-center justify-center',
+            'relative flex w-full items-center justify-center truncate',
           )"
         >
           <slot />
