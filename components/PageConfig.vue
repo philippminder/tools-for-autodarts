@@ -74,25 +74,57 @@
           />
 
           <template v-if="config">
-            <div class="grid grid-cols-2 gap-5">
-              <div class="adt-container h-56">
-                <div class="relative z-10 flex h-full flex-col justify-between">
-                  <div>
-                    <h3 class="mb-1 font-bold">
-                      DISCORD WEBHOOKS
-                    </h3>
-                    <p class="w-1/2 text-white/70">
-                      Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a
-                      webhook.
-                    </p>
+            <div class="grid grid-cols-2 gap-x-1">
+              <div class="space-y-5">
+                <div class="adt-container h-56">
+                  <div class="relative z-10 flex h-full flex-col justify-between">
+                    <div>
+                      <h3 class="mb-1 font-bold uppercase">
+                        Discord Webhooks
+                      </h3>
+                      <p class="w-1/2 text-white/70">
+                        Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a
+                        webhook.
+                      </p>
+                    </div>
+                    <div class="flex">
+                      <div class="absolute inset-0 cursor-pointer " />
+                      <AppButton
+                        @click="config.discord.enabled = !config.discord.enabled"
+                        :type="config.discord.enabled ? 'success' : 'default'"
+                        class="aspect-square !size-10 rounded-full p-0"
+                      >
+                        <span v-if="config.discord.enabled" class="icon-[pixelarticons--check]" />
+                        <span v-else class="icon-[pixelarticons--close]" />
+                      </AppButton>
+                    </div>
                   </div>
-                  <AppButton>
-                    <span class="icon-[pixelarticons--copy] mr-2" />
-                    <span>Copy</span>
-                  </AppButton>
+                  <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+                    <img src="@/assets/images/discord-webhook.png" alt="Discord Webhook" class="size-full object-cover">
+                  </div>
                 </div>
-                <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-                  <img src="@/assets/images/discord-webhook.png" alt="Discord Webhook" class="size-full object-cover">
+              </div>
+
+              <div class="space-y-5">
+                <div class="adt-container">
+                  <div class="relative z-10 flex h-full flex-col justify-between">
+                    <div>
+                      <h3 class="mb-1 font-bold uppercase">
+                        Settings - Discord Webhooks
+                      </h3>
+                      <div class="grid grid-cols-[5rem_auto] items-center gap-4 text-white/70">
+                        <AppRadioGroup
+                          v-model="config.discord.manually"
+                          :options="[
+                            { label: 'Automatic', value: false },
+                            { label: 'Manual', value: true },
+                          ]"
+                          button-size="sm"
+                        />
+                        <p>Toggles between sending the invitation link automatically or manually.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
