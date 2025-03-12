@@ -27,7 +27,7 @@
               @click="goBack()"
               class="mr-4 flex size-10 items-center justify-center rounded-md border border-white/10 bg-transparent p-0 text-xl hover:bg-white/10"
             >
-              <span class="icon-[mdi-light--chevron-left]" />
+              <span class="icon-[pixelarticons--arrow-left]" />
             </AppButton>
             <h1 class="text-xl font-bold sm:text-2xl md:text-3xl">
               Autodarts Tools
@@ -567,7 +567,7 @@
                       )"
                     >
                       <span
-                        class="icon-[mdi-light--check] text-xl"
+                        class="icon-[pixelarticons--check] text-xl"
                         :class="twMerge(!callerConfig.caller[index].url && 'text-white/30')"
                       />
                     </button>
@@ -618,7 +618,7 @@
                       @click="callerConfig.caller.push({ url: '' })"
                       class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                     >
-                      <span class="icon-[mdi-light--plus]" />
+                      <span class="icon-[pixelarticons--plus]" />
                     </button>
                     <div />
                     <div />
@@ -951,7 +951,7 @@
                     @click="soundsConfig.miss.push({ info: '' })"
                     class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <span class="icon-[mdi-light--plus]" />
+                    <span class="icon-[pixelarticons--plus]" />
                   </button>
                 </div>
                 <div class="mt-1.5">
@@ -1206,7 +1206,7 @@
                     @click="soundsConfig.winner.push({ name: '', info: '' })"
                     class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <span class="icon-[mdi-light--plus]" />
+                    <span class="icon-[pixelarticons--plus]" />
                   </button>
                   <div />
                   <div>Play winner sound after every leg</div>
@@ -1297,7 +1297,7 @@
                     @click="config.animations.winner.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <span class="icon-[mdi-light--plus]" />
+                    <span class="icon-[pixelarticons--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1334,7 +1334,7 @@
                     @click="config.animations.bull.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <span class="icon-[mdi-light--plus]" />
+                    <span class="icon-[pixelarticons--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1371,7 +1371,7 @@
                     @click="config.animations.oneEighty.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <span class="icon-[mdi-light--plus]" />
+                    <span class="icon-[pixelarticons--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1408,7 +1408,7 @@
                     @click="config.animations.miss.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <span class="icon-[mdi-light--plus]" />
+                    <span class="icon-[pixelarticons--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1445,7 +1445,7 @@
                     @click="config.animations.bust.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <span class="icon-[mdi-light--plus]" />
+                    <span class="icon-[pixelarticons--plus]" />
                   </button>
                   <div />
                 </div>
