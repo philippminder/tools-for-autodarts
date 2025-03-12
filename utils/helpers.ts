@@ -13,37 +13,29 @@ soundEffect1.preload = "auto";
 soundEffect2.preload = "auto";
 soundEffect3.preload = "auto";
 
-// Add event listeners to handle Safari's playback restrictions
+// Modified event listeners to prevent automatic playback which could cause double sounds
+// These listeners are now only for debugging purposes
 soundEffect1.addEventListener("canplaythrough", () => {
+  // Removed automatic play to prevent double sounds
   if (soundEffect1.paused && soundEffect1.autoplay) {
-    const playPromise = soundEffect1.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log("Safari playback error:", error);
-      });
-    }
+    console.log("Sound 1 loaded and ready to play");
+    // Removed automatic play call
   }
 });
 
 soundEffect2.addEventListener("canplaythrough", () => {
+  // Removed automatic play to prevent double sounds
   if (soundEffect2.paused && soundEffect2.autoplay) {
-    const playPromise = soundEffect2.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log("Safari playback error:", error);
-      });
-    }
+    console.log("Sound 2 loaded and ready to play");
+    // Removed automatic play call
   }
 });
 
 soundEffect3.addEventListener("canplaythrough", () => {
+  // Removed automatic play to prevent double sounds
   if (soundEffect3.paused && soundEffect3.autoplay) {
-    const playPromise = soundEffect3.play();
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log("Safari playback error:", error);
-      });
-    }
+    console.log("Sound 3 loaded and ready to play");
+    // Removed automatic play call
   }
 });
 

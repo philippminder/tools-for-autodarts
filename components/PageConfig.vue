@@ -27,7 +27,7 @@
               @click="goBack()"
               class="mr-4 flex size-10 items-center justify-center rounded-md border border-white/10 bg-transparent p-0 text-xl hover:bg-white/10"
             >
-              <AppIcon icon="mdi-light:chevron-left" />
+              <span class="icon-[mdi-light--chevron-left]" />
             </AppButton>
             <h1 class="text-xl font-bold sm:text-2xl md:text-3xl">
               Autodarts Tools
@@ -39,7 +39,7 @@
               class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Download settings as file"
             >
-              <AppIcon class="mr-2" icon="mingcute:file-export-line" />
+              <span class="icon-[pixelarticons--calendar-export] mr-2" />
               <span>Export</span>
             </AppButton>
             <AppButton
@@ -47,7 +47,7 @@
               class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Import settings from file"
             >
-              <AppIcon class="mr-2" icon="mingcute:file-import-line" />
+              <span class="icon-[pixelarticons--calendar-import] mr-2" />
               <span>Import</span>
             </AppButton>
             <AppButton
@@ -55,7 +55,7 @@
               class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Copy settings to clipboard"
             >
-              <AppIcon class="mr-2" icon="mingcute:copy-2-line" />
+              <span class="icon-[pixelarticons--copy] mr-2" />
               <span>Copy</span>
             </AppButton>
             <AppButton
@@ -63,16 +63,10 @@
               class="flex items-center gap-1 rounded-md border border-white/10 bg-transparent px-2 py-1 hover:bg-white/10 sm:px-3"
               title="Paste settings from clipboard"
             >
-              <AppIcon class="mr-2" icon="mingcute:paste-line" />
+              <span class="icon-[pixelarticons--calendar-import] mr-2" />
               <span>Paste</span>
             </AppButton>
-            <input
-              @change="handleImportFile"
-              ref="importFileInput"
-              type="file"
-              accept=".json,.txt"
-              class="hidden"
-            >
+            <input @change="handleImportFile" ref="importFileInput" type="file" accept=".json,.txt" class="hidden">
           </div>
         </div>
 
@@ -84,7 +78,8 @@
                   Discord Webhooks
                 </h2>
                 <p class="max-w-2xl text-white/40">
-                  Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a webhook.
+                  Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a
+                  webhook.
                 </p>
               </div>
               <div class="grid grid-cols-[5rem_auto] items-center gap-4">
@@ -109,7 +104,9 @@
                   Autostart
                 </h2>
                 <p class="max-w-2xl text-white/40">
-                  Displays a button to enable autostart on the lobby page. If autostart is enabled, it will automatically start the game after <b>3 seconds</b> once a player joins the lobby.
+                  Displays a button to enable autostart on the lobby page. If autostart is enabled, it will
+                  automatically start the
+                  game after <b>3 seconds</b> once a player joins the lobby.
                 </p>
               </div>
               <div class="grid grid-cols-[5rem_auto] items-center gap-4">
@@ -136,7 +133,10 @@
                     type="color"
                     class="size-full overflow-hidden rounded-md border-none border-transparent p-0 outline-none"
                   >
-                  <span class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]">Click here to change color</span>
+                  <span
+                    class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
+                  >Click
+                    here to change color</span>
                 </div>
                 <div class="relative min-h-14 w-full">
                   <input
@@ -144,7 +144,10 @@
                     type="color"
                     class="size-full overflow-hidden rounded-md border-none border-transparent p-0 outline-none"
                   >
-                  <span class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]">Click here to change color</span>
+                  <span
+                    class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
+                  >Click
+                    here to change color</span>
                 </div>
                 <div
                   class="col-span-2 flex h-14 w-full items-center justify-center rounded-md text-5xl font-bold"
@@ -236,7 +239,8 @@
                   Automatic next Leg
                 </h2>
                 <p class="max-w-2xl text-white/40">
-                  Automatically starts the next leg x seconds <span class="font-semibold text-white/60">after takeout</span>.
+                  Automatically starts the next leg x seconds <span class="font-semibold text-white/60">after
+                    takeout</span>.
                 </p>
               </div>
               <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
@@ -285,7 +289,9 @@
                   Streaming Mode
                 </h2>
                 <p class="max-w-2xl text-white/40">
-                  Adds a button to the game page to enable streaming mode. If streaming mode is enabled, it will displays a green overlay with stats and scores which then can be captured by OBS or any other streaming software.
+                  Adds a button to the game page to enable streaming mode. If streaming mode is enabled, it will
+                  displays a green
+                  overlay with stats and scores which then can be captured by OBS or any other streaming software.
                 </p>
               </div>
               <div class="grid grid-cols-[5rem_auto] items-center gap-4">
@@ -315,20 +321,14 @@
                       class="size-full object-cover"
                     >
                     <div class="flex size-full items-center justify-center opacity-15">
-                      <AppIcon icon="mdi:image-plus" width="32" height="32" />
+                      <span class="icon-[mdi--image-plus] size-8" />
                     </div>
                   </div>
                   <div class="flex items-center gap-4">
-                    <AppButton
-                      @click="handleStreamingModeBackgroundFileSelect"
-                      auto
-                    >
+                    <AppButton @click="handleStreamingModeBackgroundFileSelect" auto>
                       Change Image
                     </AppButton>
-                    <AppButton
-                      @click="handleStreamingModeBackgroundReset"
-                      auto
-                    >
+                    <AppButton @click="handleStreamingModeBackgroundReset" auto>
                       Reset
                     </AppButton>
                   </div>
@@ -347,7 +347,10 @@
                   <AppToggle v-model="config.streamingMode.board" />
                   <p>Display the Board</p>
                 </div>
-                <div v-if="config.streamingMode.enabled && config.streamingMode.board" class="grid grid-cols-[5rem_auto] items-center gap-4">
+                <div
+                  v-if="config.streamingMode.enabled && config.streamingMode.board"
+                  class="grid grid-cols-[5rem_auto] items-center gap-4"
+                >
                   <AppToggle v-model="config.streamingMode.boardImage" text-on="LIVE" text-off="IMG" />
                   <p>Toggles the Board between Live and Image mode</p>
                 </div>
@@ -501,7 +504,9 @@
                   Automatic next player after 3 darts
                 </h2>
                 <p class="max-w-2xl text-white/40">
-                  After 3 darts the game automatically switches to the next player. So you can throw 6 darts in a row. Only for 1 or 2 player games.
+                  After 3 darts the game automatically switches to the next player. So you can throw 6 darts in a row.
+                  Only for 1 or
+                  2 player games.
                 </p>
               </div>
               <div class="grid grid-cols-[5rem_auto] items-center gap-4">
@@ -541,12 +546,16 @@
                   v-if="config.caller.enabled"
                   class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                 >
-                  <AppIcon icon="mdi-light:refresh" class="-scale-x-100 text-xl" />
+                  <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                 </button>
               </div>
               <div v-if="config.caller.enabled && callerConfig">
                 <div class="grid gap-4">
-                  <div v-for="(_, index) in callerConfig.caller" :key="index" class="grid items-center gap-4 lg:grid-cols-[5rem_50px_2fr_5fr_1fr_1fr_50px_50px] lg:grid-rows-1">
+                  <div
+                    v-for="(_, index) in callerConfig.caller"
+                    :key="index"
+                    class="grid items-center gap-4 lg:grid-cols-[5rem_50px_2fr_5fr_1fr_1fr_50px_50px] lg:grid-rows-1"
+                  >
                     <div>Caller {{ index + 1 }}</div>
                     <button
                       @click="setActive(index)"
@@ -554,10 +563,13 @@
                       :class="twMerge(
                         'flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10',
                         !callerConfig.caller[index].url && 'bg-white/2 hover:bg-white/2',
-                        callerConfig.caller[index].isActive && 'bg-cyan-600 border-cyan-600',
+                        callerConfig.caller[index].isActive && 'border-cyan-600 bg-cyan-600',
                       )"
                     >
-                      <AppIcon icon="mdi-light:check" :class="twMerge('text-xl', !callerConfig.caller[index].url && 'text-white/30')" />
+                      <span
+                        class="icon-[mdi-light--check] text-xl"
+                        :class="twMerge(!callerConfig.caller[index].url && 'text-white/30')"
+                      />
                     </button>
                     <input
                       v-model="callerConfig.caller[index].name"
@@ -588,13 +600,16 @@
                         !callerConfig.caller[index].url && 'bg-white/2 hover:bg-white/2',
                       )"
                     >
-                      <AppIcon icon="mdi-light:play" :class="twMerge('text-xl', !callerConfig.caller[index].url && 'text-white/30')" />
+                      <span
+                        class="icon-[pixelarticons--play] text-xl"
+                        :class="twMerge(!callerConfig.caller[index].url && 'text-white/30')"
+                      />
                     </button>
                     <button
                       @click="callerConfig.caller.splice(index, 1)"
                       class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                     >
-                      <AppIcon icon="mdi-light:delete" class="text-lg" />
+                      <span class="icon-[pixelarticons--trash] text-lg" />
                     </button>
                   </div>
 
@@ -603,7 +618,7 @@
                       @click="callerConfig.caller.push({ url: '' })"
                       class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                     >
-                      <AppIcon icon="mdi-light:plus" />
+                      <span class="icon-[mdi-light--plus]" />
                     </button>
                     <div />
                     <div />
@@ -629,7 +644,7 @@
                   v-if="config.sounds.enabled"
                   class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                 >
-                  <AppIcon icon="mdi-light:refresh" class="-scale-x-100 text-xl" />
+                  <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                 </button>
               </div>
               <div v-if="config.sounds.enabled && soundsConfig" class="grid gap-4">
@@ -649,31 +664,35 @@
                     title="Play sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <AppIcon icon="mdi-light:play" class="text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('T')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <AppIcon icon="mdi-light:upload" class="text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('T')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <AppIcon icon="mdi-light:refresh" class="-scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('T')"
                     title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
+                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <AppIcon icon="mdi-light:delete" class="text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
-                <div v-for="tripleCount in tripleCountArr" :key="tripleCount" class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
+                <div
+                  v-for="tripleCount in tripleCountArr"
+                  :key="tripleCount"
+                  class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1"
+                >
                   <div>T{{ tripleCount }}</div>
                   <input
                     v-model="soundsConfig[`T${tripleCount}`].info"
@@ -689,28 +708,28 @@
                     title="Play sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload(`T${tripleCount}`)"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset(`T${tripleCount}`)"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove(`T${tripleCount}`)"
                     title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
+                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
@@ -728,28 +747,28 @@
                     @click="playSound('bull')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('bull')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('bull')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('bull')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
@@ -767,28 +786,28 @@
                     @click="playSound('bust')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('bust')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('bust')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('bust')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
 
@@ -808,28 +827,28 @@
                     @click="playSound('gameOn')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('gameOn')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('gameOn')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('gameOn')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
 
@@ -849,28 +868,28 @@
                     @click="playSound('playerStart')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('playerStart')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('playerStart')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('playerStart')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
 
@@ -882,7 +901,11 @@
                     &nbsp;(random)
                   </span>
                 </div>
-                <div v-for="(_, index) in soundsConfig.miss" :key="index" class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
+                <div
+                  v-for="(_, index) in soundsConfig.miss"
+                  :key="index"
+                  class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1"
+                >
                   <div>Miss {{ index + 1 }}</div>
                   <input
                     v-model="soundsConfig.miss[index].info"
@@ -897,14 +920,14 @@
                     @click="playSound('miss', 1, index)"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('miss', index)"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('miss', index)"
@@ -912,7 +935,7 @@
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <div v-else />
                   <button
@@ -920,7 +943,7 @@
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[50px_auto] lg:grid-rows-1">
@@ -949,28 +972,28 @@
                     @click="playSound('bot')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('bot')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('bot')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('bot')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
@@ -988,28 +1011,28 @@
                     @click="playSound('botOutside')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('botOutside')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('botOutside')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('botOutside')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="mt-1.5">
@@ -1030,28 +1053,28 @@
                     @click="playSound('cricketHit')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('cricketHit')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('cricketHit')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('cricketHit')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
@@ -1069,34 +1092,38 @@
                     @click="playSound('cricketMiss')"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('cricketMiss')"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('cricketMiss')"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('cricketMiss')"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="mt-1.5">
                   <span class="font-semibold">Winner sounds</span>
                 </div>
-                <div v-for="(_, index) in soundsConfig.winner.slice(1)" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px_50px_50px_50px] lg:grid-rows-1">
+                <div
+                  v-for="(_, index) in soundsConfig.winner.slice(1)"
+                  :key="index"
+                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px_50px_50px_50px] lg:grid-rows-1"
+                >
                   <input
                     v-model="soundsConfig.winner[index + 1].name"
                     placeholder="Player name"
@@ -1117,21 +1144,21 @@
                     @click="playSound('winner', 1, index + 1)"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('winner', index + 1)"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <div />
                   <button
                     @click="soundsConfig.winner.splice(index + 1, 1)"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px_50px_50px_50px] lg:grid-rows-1">
@@ -1149,28 +1176,28 @@
                     @click="playSound('winner', 1, 0)"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--play] text-xl" />
+                    <span class="icon-[pixelarticons--play] text-xl" />
                   </button>
                   <button
                     @click="handleSoundUpload('winner', 0)"
                     title="Upload sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--upload] text-lg" />
+                    <span class="icon-[pixelarticons--upload] text-lg" />
                   </button>
                   <button
                     @click="handleSoundReset('winner', 0)"
                     title="Reset sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                   >
-                    <span class="icon-[mdi-light--refresh] -scale-x-100 text-xl" />
+                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                   </button>
                   <button
                     @click="handleSoundRemove('winner', 0)"
                     title="Remove sound"
                     class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <span class="icon-[mdi-light--delete] text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
 
@@ -1201,7 +1228,7 @@
                   v-if="config.animations.enabled"
                   class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
                 >
-                  <AppIcon icon="mdi-light:refresh" class="-scale-x-100 text-xl" />
+                  <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
                 </button>
               </div>
               <div v-if="config.animations.enabled" class="grid gap-4">
@@ -1242,7 +1269,11 @@
                 <div class="mt-1.5">
                   <span class="font-semibold">Winner animations</span>
                 </div>
-                <div v-for="(animation, index) in config.animations.winner" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+                <div
+                  v-for="(animation, index) in config.animations.winner"
+                  :key="index"
+                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
+                >
                   <img :src="animation.info">
                   <input
                     v-model="animation.info"
@@ -1258,7 +1289,7 @@
                     @click="config.animations.winner.splice(index, 1)"
                     class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <AppIcon icon="mdi-light:delete" class="text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
@@ -1266,7 +1297,7 @@
                     @click="config.animations.winner.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <AppIcon icon="mdi-light:plus" />
+                    <span class="icon-[mdi-light--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1275,7 +1306,11 @@
                 <div class="mt-1.5">
                   <span class="font-semibold">Bull animations</span>
                 </div>
-                <div v-for="(animation, index) in config.animations.bull" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+                <div
+                  v-for="(animation, index) in config.animations.bull"
+                  :key="index"
+                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
+                >
                   <img :src="animation.info">
                   <input
                     v-model="animation.info"
@@ -1291,7 +1326,7 @@
                     @click="config.animations.bull.splice(index, 1)"
                     class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <AppIcon icon="mdi-light:delete" class="text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
@@ -1299,7 +1334,7 @@
                     @click="config.animations.bull.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <AppIcon icon="mdi-light:plus" />
+                    <span class="icon-[mdi-light--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1308,7 +1343,11 @@
                 <div class="mt-1.5">
                   <span class="font-semibold">180 animations</span>
                 </div>
-                <div v-for="(animation, index) in config.animations.oneEighty" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+                <div
+                  v-for="(animation, index) in config.animations.oneEighty"
+                  :key="index"
+                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
+                >
                   <img :src="animation.info">
                   <input
                     v-model="animation.info"
@@ -1324,7 +1363,7 @@
                     @click="config.animations.oneEighty.splice(index, 1)"
                     class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <AppIcon icon="mdi-light:delete" class="text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
@@ -1332,7 +1371,7 @@
                     @click="config.animations.oneEighty.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <AppIcon icon="mdi-light:plus" />
+                    <span class="icon-[mdi-light--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1341,7 +1380,11 @@
                 <div class="mt-1.5">
                   <span class="font-semibold">Miss animations</span>
                 </div>
-                <div v-for="(animation, index) in config.animations.miss" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+                <div
+                  v-for="(animation, index) in config.animations.miss"
+                  :key="index"
+                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
+                >
                   <img :src="animation.info">
                   <input
                     v-model="animation.info"
@@ -1357,7 +1400,7 @@
                     @click="config.animations.miss.splice(index, 1)"
                     class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <AppIcon icon="mdi-light:delete" class="text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
@@ -1365,7 +1408,7 @@
                     @click="config.animations.miss.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <AppIcon icon="mdi-light:plus" />
+                    <span class="icon-[mdi-light--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1374,7 +1417,11 @@
                 <div class="mt-1.5">
                   <span class="font-semibold">Bust animations</span>
                 </div>
-                <div v-for="(animation, index) in config.animations.bust" :key="index" class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1">
+                <div
+                  v-for="(animation, index) in config.animations.bust"
+                  :key="index"
+                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
+                >
                   <img :src="animation.info">
                   <input
                     v-model="animation.info"
@@ -1390,7 +1437,7 @@
                     @click="config.animations.bust.splice(index, 1)"
                     class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
                   >
-                    <AppIcon icon="mdi-light:delete" class="text-lg" />
+                    <span class="icon-[pixelarticons--trash] text-lg" />
                   </button>
                 </div>
                 <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
@@ -1398,7 +1445,7 @@
                     @click="config.animations.bust.push({ info: '' })"
                     class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
                   >
-                    <AppIcon icon="mdi-light:plus" />
+                    <span class="icon-[mdi-light--plus]" />
                   </button>
                   <div />
                 </div>
@@ -1414,7 +1461,6 @@
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
 import AppToggle from "@/components/AppToggle.vue";
-import AppIcon from "@/components/AppIcon.vue";
 import type { IConfig } from "@/utils/storage";
 import type { ICallerConfig } from "@/utils/callerStorage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
@@ -1732,9 +1778,11 @@ input[type="color"] {
   -webkit-appearance: none;
   border: none;
 }
+
 input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
 }
+
 input[type="color"]::-webkit-color-swatch {
   border: none;
 }

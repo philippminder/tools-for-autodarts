@@ -5,10 +5,5 @@ module.exports = {
     es2021: true,
   },
   overrides: [],
-  extends: [ "@creazy231", "plugin:tailwindcss/recommended" ],
-  rules: {
-    "no-restricted-globals": "off",
-    "antfu/if-newline": "off",
-    "n/prefer-global/process": "off",
-  },
-}
+  extends: [ "@creazy231/eslint-config" ],
+};

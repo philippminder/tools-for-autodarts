@@ -32,10 +32,8 @@
     "vue-i18n": "^9.13.1"
   },
   "devDependencies": {
-    "@creazy231/eslint-config": "^1.0.14",
-    "@iconify/json": "^2.2.224",
-    "@iconify/tailwind": "^1.1.1",
-    "@iconify/vue": "^4.3.0",
+    "@creazy231/eslint-config": "^1.0.15",
+    "@iconify/tailwind": "^1.2.0",
     "@intlify/unplugin-vue-i18n": "^4.0.0",
     "@types/eslint": "^8.56.10",
     "@types/lodash": "^4.17.6",
