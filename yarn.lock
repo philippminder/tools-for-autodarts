@@ -601,6 +601,13 @@
   resolved "https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-2.0.3.tgz"
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
 
+"@iconify-json/material-symbols@^1.2.15":
+  version "1.2.15"
+  resolved "https://registry.yarnpkg.com/@iconify-json/material-symbols/-/material-symbols-1.2.15.tgz#b03f239056ac04ec45d21a687d21e099d884467b"
+  integrity sha512-KkHRnMh1s08N1Olf3xk+z3ZIrke/7Ys3uUIMfKuSkZPbNssG4IApKkJOV5po6mg6oxMooXdNpab4PS0S5LMSOA==
+  dependencies:
+    "@iconify/types" "*"
+
 "@iconify-json/pixelarticons@^1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@iconify-json/pixelarticons/-/pixelarticons-1.2.2.tgz#0e8e47a4e2f82de617592659b109ceba96a968ab"

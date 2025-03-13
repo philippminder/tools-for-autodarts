@@ -33,7 +33,7 @@
               Autodarts Tools
             </h1>
           </div>
-          <div class="mt-2 grid grid-cols-2 items-center gap-2 sm:mt-0 sm:grid-cols-4">
+          <div class="mt-2 grid grid-cols-2 items-center gap-2 sm:mt-0 sm:grid-cols-[1fr_1fr_1fr_1fr_auto]">
             <AppButton
               @click="exportSettings"
               title="Download settings as file"
@@ -62,19 +62,63 @@
               <span class="icon-[pixelarticons--calendar-import] mr-2" />
               <span>Paste</span>
             </AppButton>
+            <AppButton
+              @click="toggleDangerZone"
+              title="Advanced settings"
+              class="aspect-square size-10 p-0"
+            >
+              <span class="icon-[material-symbols--settings-suggest-outline]" />
+            </AppButton>
             <input @change="handleImportFile" ref="importFileInput" type="file" accept=".json,.txt" class="hidden">
           </div>
         </div>
 
         <!-- Tabs Component -->
         <AppTabs
+          v-if="!showDangerZone"
           v-model="activeTab"
           :tabs="tabs"
         />
 
+        <!-- Danger Zone -->
+        <div v-if="showDangerZone" class="adt-container space-y-6">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-red-400">
+              Danger Zone
+            </h2>
+            <AppButton @click="toggleDangerZone" auto class="text-white/70 hover:text-white">
+              <span class="icon-[pixelarticons--close]" />
+            </AppButton>
+          </div>
+          <div class="space-y-4">
+            <p class="text-white/70">
+              These actions are destructive and cannot be undone. Please proceed with caution and may export your settings before proceeding.
+            </p>
+            <div class="rounded border border-red-500/30 bg-red-500/5 p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-semibold text-red-300">
+                    Reset All Settings
+                  </h3>
+                  <p class="text-sm text-white/60">
+                    This will reset all settings to their default values. All your customizations will be lost.
+                  </p>
+                </div>
+                <AppButton
+                  @click="resetAllSettings"
+                  auto
+                  class="border-red-500/30 bg-red-500/20 hover:bg-red-500/40"
+                >
+                  Reset All Settings
+                </AppButton>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Feature cards and settings grid for Lobbies tab -->
         <div
-          v-if="activeTab === 0"
+          v-if="activeTab === 0 && !showDangerZone"
           class="grid grid-cols-1 gap-5 lg:grid-cols-2"
         >
           <!-- First row of feature cards -->
@@ -118,7 +162,7 @@
 
         <!-- Feature cards and settings grid for Matches tab -->
         <div
-          v-if="activeTab === 1"
+          v-if="activeTab === 1 && !showDangerZone"
           class="grid grid-cols-1 gap-5 lg:grid-cols-2"
         >
           <!-- First row of feature cards -->
@@ -215,7 +259,7 @@
 
         <!-- Feature cards and settings grid for Boards tab -->
         <div
-          v-if="activeTab === 2"
+          v-if="activeTab === 2 && !showDangerZone"
           class="grid grid-cols-1 gap-5 lg:grid-cols-2"
         >
           <!-- First row of feature cards -->
@@ -231,7 +275,7 @@
         </div>
 
         <div
-          v-if="activeTab === 3 && config"
+          v-if="activeTab === 3 && config && !showDangerZone"
         >
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
@@ -1625,6 +1669,30 @@ const winnerSoundOnLegWin = computed({
     }
   },
 });
+
+// State for danger zone
+const showDangerZone = ref(false);
+
+function toggleDangerZone() {
+  showDangerZone.value = !showDangerZone.value;
+}
+
+function resetAllSettings() {
+  showConfirmDialog(
+    "Reset All Settings",
+    "This will reset all settings to their default values. All your customizations will be lost. Are you sure you want to continue?",
+    () => {
+      config.value = JSON.parse(JSON.stringify(defaultConfig));
+      callerConfig.value = JSON.parse(JSON.stringify(defaultCallerConfig));
+      soundsConfig.value = JSON.parse(JSON.stringify(defaultSoundsConfig));
+      showNotification("All settings have been reset to default.<br>Reloading page to apply settings...");
+      // Add a small delay before reloading to allow the notification to be seen
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    },
+  );
+}
 </script>
 
 <style>

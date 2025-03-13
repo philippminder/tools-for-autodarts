@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@creazy231/eslint-config": "^1.0.15",
+    "@iconify-json/material-symbols": "^1.2.15",
     "@iconify/tailwind": "^1.2.0",
     "@intlify/unplugin-vue-i18n": "^4.0.0",
     "@types/eslint": "^8.56.10",
