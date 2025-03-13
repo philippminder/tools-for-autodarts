@@ -230,7 +230,9 @@
           </div>
         </div>
 
-        <template v-if="config">
+        <div
+          v-if="activeTab === 3 && config"
+        >
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
               <div>
@@ -1155,7 +1157,7 @@
               </div>
             </div>
           </div>
-        </template>
+        </div>
       </div>
     </div>
   </div>

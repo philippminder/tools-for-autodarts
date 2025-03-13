@@ -2,6 +2,7 @@
   <template v-if="!$attrs['data-feature-index']">
     <!-- Settings Panel -->
     <div
+      v-if="config"
       class="adt-container min-h-56"
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
@@ -26,6 +27,7 @@
     <!-- Feature Card -->
     <div
       @click="activeSettings = 'smaller-scores'"
+      v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
@@ -40,17 +42,17 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="toggleSmallerScores"
-            :type="smallerScoresEnabled ? 'success' : 'default'"
+            @click="config.inactiveSmall.enabled = !config.inactiveSmall.enabled"
+            :type="config.inactiveSmall.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="smallerScoresEnabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.inactiveSmall.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="@/assets/images/discord-webhooks.png" alt="Smaller Scores" class="size-full object-cover">
+        <img src="@/assets/images/smaller-scores.png" alt="Smaller Scores" class="size-full object-cover">
       </div>
     </div>
   </template>
@@ -59,11 +61,19 @@
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
+import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "smaller-scores");
-const smallerScoresEnabled = useStorage("adt:smaller-scores", false);
+const config = ref<IConfig>();
 
-function toggleSmallerScores() {
-  smallerScoresEnabled.value = !smallerScoresEnabled.value;
-}
+onMounted(async () => {
+  config.value = await AutodartsToolsConfig.getValue();
+});
+
+watch(config, async () => {
+  await AutodartsToolsConfig.setValue({
+    ...JSON.parse(JSON.stringify(defaultConfig)),
+    ...JSON.parse(JSON.stringify(config.value)),
+  });
+}, { deep: true });
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="mt-16 space-y-6">
+  <div class="mt-16 space-y-5">
     <h2 class="text-4xl font-bold">
       External Boards
     </h2>
@@ -7,7 +7,7 @@
       <div
         v-for="board in config.externalBoards.boards"
         :key="board.id"
-        class="flex flex-col justify-between space-y-4 rounded-md bg-[#90cdf4]/10 p-5 shadow"
+        class="adt-container flex flex-col justify-between"
       >
         <h3 class="mb-4 truncate text-xl font-bold">
           {{ board.name }}
@@ -20,7 +20,7 @@
               class="aspect-square p-3"
               type="danger"
             >
-              <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z" /><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
+              <span class="icon-[pixelarticons--trash]" />
             </AppButton>
           </div>
           <div class="flex items-center gap-1">
@@ -42,20 +42,16 @@
         </div>
       </div>
 
-      <div class="space-y-4 rounded-md bg-[#90cdf4]/10 p-5 shadow">
+      <div class="adt-container space-y-4">
         <div class="space-y-2">
-          <input
+          <AppInput
             v-model="newBoard.name"
-            type="text"
             placeholder="External Board Name"
-            class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-          >
-          <input
+          />
+          <AppInput
             v-model="newBoard.id"
-            type="text"
             placeholder="External Board ID"
-            class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-          >
+          />
         </div>
         <div class="flex items-center justify-between gap-1">
           <div />
@@ -66,7 +62,7 @@
               class="aspect-square p-2"
               type="success"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m10 16.4l-4-4L7.4 11l2.6 2.6L16.6 7L18 8.4z" /></svg>
+              <span class="icon-[pixelarticons--check]" />
             </AppButton>
           </div>
         </div>
@@ -77,6 +73,7 @@
 
 <script setup lang="ts">
 import AppButton from "@/components/AppButton.vue";
+import AppInput from "@/components/AppInput.vue";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
 
 const config = ref();
@@ -95,6 +92,8 @@ watch(config, async () => {
 
 onBeforeMount(async () => {
   config.value = await AutodartsToolsConfig.getValue();
+
+  console.log(config.value.externalBoards);
 });
 
 async function handleAddBoard() {

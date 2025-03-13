@@ -102,6 +102,9 @@ export interface IConfig {
   teamLobby: {
     enabled: boolean;
   };
+  ring: {
+    enabled: boolean;
+  };
   animations: {
     enabled: boolean;
     startDelay?: number;

@@ -72,9 +72,6 @@
           </AppButton>
         </div>
       </div>
-      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="@/assets/images/discord-webhooks.png" alt="Ring" class="size-full object-cover">
-      </div>
     </div>
   </template>
 </template>
