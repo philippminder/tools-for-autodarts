@@ -1,0 +1,75 @@
+<template>
+  <template v-if="!$attrs['data-feature-index']">
+    <!-- Empty settings panel since this feature doesn't need settings -->
+    <div class="adt-container min-h-56">
+      <div class="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <h3 class="mb-1 font-bold uppercase">
+            Team Lobby
+          </h3>
+          <div class="space-y-3 text-white/70">
+            <p>This feature doesn't have any additional settings.</p>
+            <p>When enabled, the first player is removed from the lobby and every following player is added to the board.</p>
+            <p class="italic text-white/50">
+              This feature only works in private lobbies.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template v-else>
+    <!-- Feature Card -->
+    <div
+      @click="activeSettings = 'team-lobby'"
+      v-if="config"
+      class="adt-container h-56 transition-transform hover:-translate-y-0.5"
+    >
+      <div class="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <h3 class="mb-1 font-bold uppercase">
+            Team Lobby
+          </h3>
+          <p class="w-2/3 text-white/70">
+            Removes first player from the lobby and adds every following player to the board. Works only in <b>private lobbies</b>.
+          </p>
+        </div>
+        <div class="flex">
+          <div class="absolute inset-0 cursor-pointer " />
+          <AppButton
+            @click="config.teamLobby.enabled = !config.teamLobby.enabled"
+            :type="config.teamLobby.enabled ? 'success' : 'default'"
+            class="aspect-square !size-10 rounded-full p-0"
+          >
+            <span v-if="config.teamLobby.enabled" class="icon-[pixelarticons--check]" />
+            <span v-else class="icon-[pixelarticons--close]" />
+          </AppButton>
+        </div>
+      </div>
+      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+        <img src="@/assets/images/team-lobby.png" alt="Team Lobby" class="size-full object-cover opacity-70">
+      </div>
+    </div>
+  </template>
+</template>
+
+<script setup lang="ts">
+import { useStorage } from "@vueuse/core";
+import AppButton from "../AppButton.vue";
+import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+
+const activeSettings = useStorage("adt:active-settings", "team-lobby");
+const config = ref<IConfig>();
+
+onMounted(async () => {
+  config.value = await AutodartsToolsConfig.getValue();
+});
+
+watch(config, async () => {
+  await AutodartsToolsConfig.setValue({
+    ...JSON.parse(JSON.stringify(defaultConfig)),
+    ...JSON.parse(JSON.stringify(config.value)),
+  });
+}, { deep: true });
+</script>

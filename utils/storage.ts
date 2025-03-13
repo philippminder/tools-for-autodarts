@@ -230,6 +230,9 @@ export const defaultConfig: IConfig = {
   teamLobby: {
     enabled: false,
   },
+  ring: {
+    enabled: false,
+  },
   animations: {
     enabled: false,
     startDelay: 1,

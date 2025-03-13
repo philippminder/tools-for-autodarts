@@ -66,530 +66,172 @@
           </div>
         </div>
 
-        <template v-if="false">
-          <!-- Tabs Component -->
-          <AppTabs
-            v-model="activeTab"
-            :tabs="tabs"
-          />
+        <!-- Tabs Component -->
+        <AppTabs
+          v-model="activeTab"
+          :tabs="tabs"
+        />
 
-          <template v-if="config">
-            <div class="grid grid-cols-2 gap-x-1">
-              <div class="space-y-5">
-                <div class="adt-container h-56">
-                  <div class="relative z-10 flex h-full flex-col justify-between">
-                    <div>
-                      <h3 class="mb-1 font-bold uppercase">
-                        Discord Webhooks
-                      </h3>
-                      <p class="w-1/2 text-white/70">
-                        Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a
-                        webhook.
-                      </p>
-                    </div>
-                    <div class="flex">
-                      <div class="absolute inset-0 cursor-pointer " />
-                      <AppButton
-                        @click="config.discord.enabled = !config.discord.enabled"
-                        :type="config.discord.enabled ? 'success' : 'default'"
-                        class="aspect-square !size-10 rounded-full p-0"
-                      >
-                        <span v-if="config.discord.enabled" class="icon-[pixelarticons--check]" />
-                        <span v-else class="icon-[pixelarticons--close]" />
-                      </AppButton>
-                    </div>
-                  </div>
-                  <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-                    <img src="@/assets/images/discord-webhook.png" alt="Discord Webhook" class="size-full object-cover">
-                  </div>
-                </div>
-              </div>
+        <!-- Feature cards and settings grid for Lobbies tab -->
+        <div
+          v-if="activeTab === 0"
+          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+        >
+          <!-- First row of feature cards -->
+          <DiscordWebhooks class="feature-card" data-feature-index="1" />
+          <!-- Settings panel for DiscordWebhooks (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[0]) && getComponentForSetting(activeSettings) && activeSettings === 'discord-webhooks'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+          <AutoStart class="feature-card" data-feature-index="2" />
 
-              <div class="space-y-5">
-                <div class="adt-container">
-                  <div class="relative z-10 flex h-full flex-col justify-between">
-                    <div>
-                      <h3 class="mb-1 font-bold uppercase">
-                        Settings - Discord Webhooks
-                      </h3>
-                      <div class="grid grid-cols-[5rem_auto] items-center gap-4 text-white/70">
-                        <AppRadioGroup
-                          v-model="config.discord.manually"
-                          :options="[
-                            { label: 'Automatic', value: false },
-                            { label: 'Manual', value: true },
-                          ]"
-                          button-size="sm"
-                        />
-                        <p>Toggles between sending the invitation link automatically or manually.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </template>
-        </template>
+          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[0]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Second row of feature cards -->
+          <RecentLocalPlayers class="feature-card" data-feature-index="3" />
+          <!-- Settings panel for RecentLocalPlayers (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[1]) && getComponentForSetting(activeSettings) && activeSettings === 'recent-local-players'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <ShufflePlayers class="feature-card" data-feature-index="4" />
+
+          <!-- Settings panel for second row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[1]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Third row of feature cards -->
+          <TeamLobby class="feature-card" data-feature-index="5" />
+          <div class="feature-card" data-feature-index="6">
+            <!-- Placeholder for future feature -->
+          </div>
+
+          <!-- Settings panel for third row (only if active setting has settings) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[2]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+        </div>
+
+        <!-- Feature cards and settings grid for Matches tab -->
+        <div
+          v-if="activeTab === 1"
+          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+        >
+          <!-- First row of feature cards -->
+          <DisableTakeoutRecognition class="feature-card" data-feature-index="7" />
+          <Colors class="feature-card" data-feature-index="8" />
+          <!-- Settings panel for Colors (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[3]) && getComponentForSetting(activeSettings) && activeSettings === 'colors'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[3]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Second row of feature cards -->
+          <TakeoutNotification class="feature-card" data-feature-index="9" />
+          <NextPlayerOnTakeoutStuck class="feature-card" data-feature-index="10" />
+          <!-- Settings panel for NextPlayerOnTakeoutStuck (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[4]) && getComponentForSetting(activeSettings) && activeSettings === 'next-player-on-takeout-stuck'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Settings panel for second row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[4]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Third row of feature cards -->
+          <AutomaticNextLeg class="feature-card" data-feature-index="11" />
+          <!-- Settings panel for AutomaticNextLeg (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[5]) && getComponentForSetting(activeSettings) && activeSettings === 'automatic-next-leg'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+          <SmallerScores class="feature-card" data-feature-index="12" />
+
+          <!-- Settings panel for third row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[5]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Fourth row of feature cards -->
+          <HideMenuInMatch class="feature-card" data-feature-index="13" />
+          <StreamingMode class="feature-card" data-feature-index="14" />
+          <!-- Settings panel for StreamingMode (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[6]) && getComponentForSetting(activeSettings) && activeSettings === 'streaming-mode'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Settings panel for fourth row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[6]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Fifth row of feature cards -->
+          <LargerLegsSets class="feature-card" data-feature-index="15" />
+          <!-- Settings panel for LargerLegsSets (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-legs-sets'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+          <LargerPlayerMatchData class="feature-card" data-feature-index="16" />
+          <!-- Settings panel for LargerPlayerMatchData (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-match-data'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Settings panel for fifth row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Sixth row of feature cards -->
+          <WinnerAnimation class="feature-card" data-feature-index="17" />
+          <ShowThrownDarts class="feature-card" data-feature-index="18" />
+
+          <!-- Settings panel for sixth row (only if active setting has settings) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Seventh row of feature cards -->
+          <AutomaticNextPlayerAfter3Darts class="feature-card" data-feature-index="19" />
+          <Ring class="feature-card" data-feature-index="20" />
+          <!-- Settings panel for Ring (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings) && activeSettings === 'ring'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Settings panel for seventh row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+        </div>
+
+        <!-- Feature cards and settings grid for Boards tab -->
+        <div
+          v-if="activeTab === 2"
+          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+        >
+          <!-- First row of feature cards -->
+          <ExternalBoards class="feature-card" data-feature-index="21" />
+          <div class="feature-card" data-feature-index="22">
+            <!-- Placeholder for future feature -->
+          </div>
+
+          <!-- Settings panel for first row (only if active setting has settings) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[10]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+        </div>
 
         <template v-if="config">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Discord Webhooks
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a
-                  webhook.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.discord.enabled" />
-                <input
-                  v-model="config.discord.url"
-                  type="text"
-                  class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-                >
-              </div>
-              <template v-if="config.discord.enabled">
-                <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                  <AppToggle v-model="config.discord.manually" text-on="MAN" text-off="AUT" />
-                  <p>Toggles between sending the invitation link automatically or manually.</p>
-                </div>
-              </template>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Autostart
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Displays a button to enable autostart on the lobby page. If autostart is enabled, it will
-                  automatically start the
-                  game after <b>3 seconds</b> once a player joins the lobby.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.autoStart.enabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Colors
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Changes the colors of dart throws and scores.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.colors.enabled" />
-              </div>
-              <div v-if="config.colors.enabled" class="grid grid-cols-2 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div class="relative min-h-14 w-full">
-                  <input
-                    v-model="config.colors.background"
-                    type="color"
-                    class="size-full overflow-hidden rounded-md border-none border-transparent p-0 outline-none"
-                  >
-                  <span
-                    class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
-                  >Click
-                    here to change color</span>
-                </div>
-                <div class="relative min-h-14 w-full">
-                  <input
-                    v-model="config.colors.text"
-                    type="color"
-                    class="size-full overflow-hidden rounded-md border-none border-transparent p-0 outline-none"
-                  >
-                  <span
-                    class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
-                  >Click
-                    here to change color</span>
-                </div>
-                <div
-                  class="col-span-2 flex h-14 w-full items-center justify-center rounded-md text-5xl font-bold"
-                  :style="{
-                    backgroundColor: config.colors.background,
-                    color: config.colors.text,
-                  }"
-                >
-                  501
-                </div>
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Extend recent Local Players
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Default recent local players capped at 5, this will extend it to infinite.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.recentLocalPlayers.enabled" />
-              </div>
-              <div v-if="config.recentLocalPlayers.enabled" class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <input
-                  v-model="config.recentLocalPlayers.cap"
-                  placeholder="10"
-                  type="number"
-                  class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none placeholder:opacity-50"
-                >
-                <p>Maximum recent players you want to store</p>
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Disable takeout recognition
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Disables the takeout recognition. So you have to manually click 'Next' after takeout.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.disableTakeout.enabled" />
-              </div>
-            </div>
-
-            <div v-if="!config.disableTakeout.enabled" class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Takeout Notification
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Displays a notification when ever takeout of darts is in progress.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.takeout.enabled" />
-              </div>
-            </div>
-
-            <div v-if="!config.disableTakeout.enabled" class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Automatic next player on takeout
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Automatically reset board and switch to next player if takeout stucks for x seconds.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.nextPlayerOnTakeOutStuck.enabled" />
-                <input
-                  v-if="config.nextPlayerOnTakeOutStuck.enabled"
-                  v-model="config.nextPlayerOnTakeOutStuck.sec"
-                  type="text"
-                  class="rounded-md border border-white/10 bg-transparent px-2 py-1 text-center outline-none"
-                >
-                <span v-if="config.nextPlayerOnTakeOutStuck.enabled">seconds</span>
-              </div>
-            </div>
-
-            <div v-if="!config.disableTakeout.enabled" class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Automatic next Leg
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Automatically starts the next leg x seconds <span class="font-semibold text-white/60">after
-                    takeout</span>.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.automaticNextLeg.enabled" />
-                <input
-                  v-if="config.automaticNextLeg.enabled"
-                  v-model="config.automaticNextLeg.sec"
-                  type="text"
-                  class="rounded-md border border-white/10 bg-transparent px-2 py-1 text-center outline-none"
-                >
-                <span v-if="config.automaticNextLeg.enabled">seconds</span>
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Smaller Scores
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Reduces the font-size of the score of inactive players.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.inactiveSmall.enabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Shuffle Players
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Adds a button to the lobby page to shuffle the players in the lobby.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.shufflePlayers.enabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Streaming Mode
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Adds a button to the game page to enable streaming mode. If streaming mode is enabled, it will
-                  displays a green
-                  overlay with stats and scores which then can be captured by OBS or any other streaming software.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.streamingMode.enabled" />
-              </div>
-              <template v-if="config.streamingMode.enabled">
-                <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                  <AppToggle v-model="config.streamingMode.backgroundImage" text-on="IMG" text-off="CK" />
-                  <p>Toggles the Background between Chrome Key and Image</p>
-                </div>
-                <div v-if="!config.streamingMode.backgroundImage" class="grid grid-cols-[5rem_auto] items-center gap-4">
-                  <input
-                    v-model="config.streamingMode.chromaKeyColor"
-                    type="color"
-                    class="size-full overflow-hidden rounded border-none border-transparent p-0 outline-none"
-                  >
-                  <p>Chroma Key Color</p>
-                </div>
-                <div v-else class="grid grid-cols-[5rem_auto] items-center gap-4">
-                  <div
-                    @click="handleStreamingModeBackgroundFileSelect"
-                    class="aspect-square w-full cursor-pointer overflow-hidden rounded-md border border-dashed border-white/15"
-                  >
-                    <img
-                      v-if="config.streamingMode.image"
-                      :src="config.streamingMode.image"
-                      class="size-full object-cover"
-                    >
-                    <div class="flex size-full items-center justify-center opacity-15">
-                      <span class="icon-[mdi--image-plus] size-8" />
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-4">
-                    <AppButton @click="handleStreamingModeBackgroundFileSelect" auto>
-                      Change Image
-                    </AppButton>
-                    <AppButton @click="handleStreamingModeBackgroundReset" auto>
-                      Reset
-                    </AppButton>
-                  </div>
-                  <input
-                    @change="handleStreamingModeBackgroundFileSelected"
-                    ref="streamingModeBackgroundFileSelect"
-                    class="hidden"
-                    type="file"
-                  >
-                </div>
-                <div v-if="config.streamingMode.enabled" class="grid grid-cols-[5rem_auto] items-center gap-4">
-                  <AppToggle v-model="config.streamingMode.throws" />
-                  <p>Display Throws</p>
-                </div>
-                <div v-if="config.streamingMode.enabled" class="grid grid-cols-[5rem_auto] items-center gap-4">
-                  <AppToggle v-model="config.streamingMode.board" />
-                  <p>Display the Board</p>
-                </div>
-                <div
-                  v-if="config.streamingMode.enabled && config.streamingMode.board"
-                  class="grid grid-cols-[5rem_auto] items-center gap-4"
-                >
-                  <AppToggle v-model="config.streamingMode.boardImage" text-on="LIVE" text-off="IMG" />
-                  <p>Toggles the Board between Live and Image mode</p>
-                </div>
-                <div v-if="config.streamingMode.enabled" class="grid grid-cols-[5rem_auto] items-center gap-4">
-                  <AppToggle v-model="config.streamingMode.avg" />
-                  <p>Display AVG</p>
-                </div>
-                <input
-                  v-model="config.streamingMode.footerText"
-                  placeholder="Bottom text of the streaming overlay"
-                  class="col-span-2 w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none placeholder:opacity-50"
-                >
-              </template>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  External Boards
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Allows you to save external Boards to easily follow them.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.externalBoards.enabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Hide Menu in Match
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Hide the menu during the match to have more space.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.menuDisabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Larger Legs & Sets
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Increases the font-size of the legs and sets on the match page.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_5rem] items-center gap-4">
-                <AppToggle v-model="config.legsSetsLarger.enabled" />
-                <span v-if="config.legsSetsLarger.enabled" class="text-right">size</span>
-                <input
-                  v-if="config.legsSetsLarger.enabled"
-                  v-model="config.legsSetsLarger.value"
-                  type="text"
-                  class="rounded-md border border-white/10 bg-transparent px-2 py-1 text-center outline-none"
-                >
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Larger Player Match Data
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Increases the font-size of the player match data on the match page.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_5rem] items-center gap-4">
-                <AppToggle v-model="config.playerMatchData.enabled" />
-                <span v-if="config.playerMatchData.enabled" class="text-right">size</span>
-                <input
-                  v-if="config.playerMatchData.enabled"
-                  v-model="config.playerMatchData.value"
-                  type="text"
-                  class="rounded-md border border-white/10 bg-transparent px-2 py-1 text-center outline-none"
-                >
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Winner animation
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Shows an animation around player card when a player wins a leg.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.winnerAnimation.enabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Show thrown darts
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Shows number of thrown darts after a player wins a leg.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.thrownDartsOnWin.enabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Show ring
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Shows a ring with numbers around the live view.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.liveViewRing.enabled" />
-              </div>
-              <div v-if="config.liveViewRing.enabled" class="grid grid-cols-[5rem_5rem_5rem_auto] items-center gap-4">
-                <p>Ring color</p>
-                <AppToggle v-model="config.liveViewRing.colorEnabled" />
-                <input
-                  v-if="config.liveViewRing.colorEnabled"
-                  v-model="config.liveViewRing.color"
-                  type="color"
-                  class="size-full overflow-hidden rounded border-none border-transparent p-0 outline-none"
-                >
-              </div>
-              <div v-if="config.liveViewRing.enabled" class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
-                <p>Ring size</p>
-                <input
-                  v-model="config.liveViewRing.size"
-                  type="number"
-                  min="1"
-                  max="9"
-                  class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-                >
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Automatic next player after 3 darts
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  After 3 darts the game automatically switches to the next player. So you can throw 6 darts in a row.
-                  Only for 1 or
-                  2 player games.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.nextPlayerAfter3darts.enabled" />
-              </div>
-            </div>
-
-            <div class="space-y-4 rounded border border-white/10 p-4">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Team lobby
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Removes first player from the lobby and adds every following player to the board.
-                  Works only in private Lobbies.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
-                <AppToggle v-model="config.teamLobby.enabled" />
-              </div>
-            </div>
-
             <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
               <div>
                 <h2 class="text-lg font-semibold">
@@ -1271,7 +913,7 @@
                   </button>
                   <div />
                   <div>Play winner sound after every leg</div>
-                  <AppToggle v-model="soundsConfig.winnerSoundOnLegWin" />
+                  <AppToggle v-model="winnerSoundOnLegWin" />
                 </div>
               </div>
             </div>
@@ -1521,6 +1163,27 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
+import { useStorage } from "@vueuse/core";
+import DiscordWebhooks from "./Settings/DiscordWebhooks.vue";
+import AutoStart from "./Settings/AutoStart.vue";
+import RecentLocalPlayers from "./Settings/RecentLocalPlayers.vue";
+import ShufflePlayers from "./Settings/ShufflePlayers.vue";
+import TeamLobby from "./Settings/TeamLobby.vue";
+import DisableTakeoutRecognition from "./Settings/DisableTakeoutRecognition.vue";
+import Colors from "./Settings/Colors.vue";
+import TakeoutNotification from "./Settings/TakeoutNotification.vue";
+import NextPlayerOnTakeoutStuck from "./Settings/NextPlayerOnTakeoutStuck.vue";
+import AutomaticNextLeg from "./Settings/AutomaticNextLeg.vue";
+import SmallerScores from "./Settings/SmallerScores.vue";
+import StreamingMode from "./Settings/StreamingMode.vue";
+import HideMenuInMatch from "./Settings/HideMenuInMatch.vue";
+import LargerLegsSets from "./Settings/LargerLegsSets.vue";
+import LargerPlayerMatchData from "./Settings/LargerPlayerMatchData.vue";
+import WinnerAnimation from "./Settings/WinnerAnimation.vue";
+import ShowThrownDarts from "./Settings/ShowThrownDarts.vue";
+import AutomaticNextPlayerAfter3Darts from "./Settings/AutomaticNextPlayerAfter3Darts.vue";
+import Ring from "./Settings/Ring.vue";
+import ExternalBoards from "@/components/Settings/ExternalBoards.vue";
 import AppToggle from "@/components/AppToggle.vue";
 import type { IConfig } from "@/utils/storage";
 import type { ICallerConfig } from "@/utils/callerStorage";
@@ -1536,16 +1199,151 @@ import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { useNotification } from "@/composables/useNotification";
 import AppTabs from "@/components/AppTabs.vue";
 
+// Define feature groups
+const featureGroups = [
+  {
+    // First row - Lobbies tab
+    id: "row1",
+    tab: 0,
+    features: [
+      { id: "discord-webhooks", component: DiscordWebhooks, hasSettings: true },
+      { id: "auto-start", component: AutoStart, hasSettings: false },
+    ],
+    settingIds: [ "discord-webhooks" ],
+  },
+  {
+    // Second row - Lobbies tab
+    id: "row2",
+    tab: 0,
+    features: [
+      { id: "recent-local-players", component: RecentLocalPlayers, hasSettings: true },
+      { id: "shuffle-players", component: ShufflePlayers, hasSettings: false },
+    ],
+    settingIds: [ "recent-local-players" ],
+  },
+  {
+    // Third row - Lobbies tab
+    id: "row3",
+    tab: 0,
+    features: [
+      { id: "team-lobby", component: TeamLobby, hasSettings: false },
+      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+    ],
+    settingIds: [],
+  },
+  {
+    // First row - Matches tab
+    id: "matches-row1",
+    tab: 1,
+    features: [
+      { id: "disable-takeout-recognition", component: DisableTakeoutRecognition, hasSettings: false },
+      { id: "colors", component: Colors, hasSettings: true },
+    ],
+    settingIds: [ "colors" ],
+  },
+  {
+    // Second row - Matches tab
+    id: "matches-row2",
+    tab: 1,
+    features: [
+      { id: "takeout-notification", component: TakeoutNotification, hasSettings: false },
+      { id: "next-player-on-takeout-stuck", component: NextPlayerOnTakeoutStuck, hasSettings: true },
+    ],
+    settingIds: [ "next-player-on-takeout-stuck" ],
+  },
+  {
+    // Third row - Matches tab
+    id: "matches-row3",
+    tab: 1,
+    features: [
+      { id: "automatic-next-leg", component: AutomaticNextLeg, hasSettings: true },
+      { id: "smaller-scores", component: SmallerScores, hasSettings: false },
+    ],
+    settingIds: [ "automatic-next-leg" ],
+  },
+  {
+    // Fourth row - Matches tab
+    id: "matches-row4",
+    tab: 1,
+    features: [
+      { id: "hide-menu-in-match", component: HideMenuInMatch, hasSettings: false },
+      { id: "streaming-mode", component: StreamingMode, hasSettings: true },
+    ],
+    settingIds: [ "streaming-mode" ],
+  },
+  {
+    // Fifth row - Matches tab
+    id: "matches-row5",
+    tab: 1,
+    features: [
+      { id: "larger-legs-sets", component: LargerLegsSets, hasSettings: true },
+      { id: "larger-player-match-data", component: LargerPlayerMatchData, hasSettings: true },
+    ],
+    settingIds: [ "larger-legs-sets", "larger-player-match-data" ],
+  },
+  {
+    // Sixth row - Matches tab
+    id: "matches-row6",
+    tab: 1,
+    features: [
+      { id: "winner-animation", component: WinnerAnimation, hasSettings: false },
+      { id: "show-thrown-darts", component: ShowThrownDarts, hasSettings: false },
+    ],
+    settingIds: [],
+  },
+  {
+    // Seventh row - Matches tab
+    id: "matches-row7",
+    tab: 1,
+    features: [
+      { id: "automatic-next-player-after-3-darts", component: AutomaticNextPlayerAfter3Darts, hasSettings: false },
+      { id: "ring", component: Ring, hasSettings: true },
+    ],
+    settingIds: [ "ring" ],
+  },
+  {
+    // First row - Boards tab
+    id: "boards-row1",
+    tab: 2,
+    features: [
+      { id: "external-boards", component: ExternalBoards, hasSettings: false },
+      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+    ],
+    settingIds: [],
+  },
+];
+
+// Tabs component data
+const tabs = ref([ "Lobbies", "Matches", "Boards", "Sounds & Animations" ]);
+const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const activeTab = useStorage("adt:active-tab", 0);
+
+// Add refs for settings sections
+const settingsSections = ref({});
+
+// Function to check if a setting belongs to a group
+function isSettingInGroup(settingId, group) {
+  return group.settingIds.includes(settingId) && group.tab === activeTab.value;
+}
+
+// Function to get the component for a setting
+function getComponentForSetting(settingId) {
+  for (const group of featureGroups) {
+    if (group.tab === activeTab.value) {
+      const feature = group.features.find(f => f.id === settingId && f.hasSettings);
+      if (feature) {
+        return feature.component;
+      }
+    }
+  }
+  return null;
+}
+
 const config = ref<IConfig>();
 const callerConfig = ref<ICallerConfig>();
 const soundsConfig = ref<ISoundsConfig>();
-const streamingModeBackgroundFileSelect = ref() as Ref<HTMLInputElement>;
 const importFileInput = ref() as Ref<HTMLInputElement>;
 const tripleCountArr = [ 15, 16, 17, 18, 19, 20 ];
-
-// Tabs component data
-const tabs = ref([ "Lobbies", "Matches", "Boards", "Miscellaneous" ]);
-const activeTab = ref(0);
 
 // Use the composables
 const { confirmDialog, showConfirmDialog, confirmDialogConfirm, confirmDialogCancel } = useConfirmDialog();
@@ -1597,28 +1395,6 @@ watch(soundsConfig, async () => {
     ...JSON.parse(JSON.stringify(soundsConfig.value)),
   });
 }, { deep: true });
-
-function handleStreamingModeBackgroundFileSelect() {
-  streamingModeBackgroundFileSelect.value.click();
-}
-
-function handleStreamingModeBackgroundFileSelected() {
-  const file = streamingModeBackgroundFileSelect.value.files?.[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = () => {
-    config.value!.streamingMode.image = reader.result as string;
-    console.log(reader.result);
-  };
-  reader.readAsDataURL(file);
-
-  streamingModeBackgroundFileSelect.value.value = "";
-}
-
-function handleStreamingModeBackgroundReset() {
-  config.value!.streamingMode.image = "";
-}
 
 function getSoundConfig(configKey: string, arrIndex?: number): TSoundData | null {
   let soundConfig = soundsConfig.value![configKey];
@@ -1837,6 +1613,16 @@ function pasteFromClipboard() {
       showNotification("Failed to read from clipboard", "error");
     });
 }
+
+// Computed property for winnerSoundOnLegWin
+const winnerSoundOnLegWin = computed({
+  get: () => soundsConfig.value?.winnerSoundOnLegWin || false,
+  set: (value) => {
+    if (soundsConfig.value) {
+      soundsConfig.value.winnerSoundOnLegWin = value;
+    }
+  },
+});
 </script>
 
 <style>

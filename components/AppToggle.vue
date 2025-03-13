@@ -1,39 +1,28 @@
 <template>
-  <Switch
-    v-model="enabled"
-    :class="enabled ? 'h-8 bg-cyan-600 border border-cyan-600' : 'h-8 bg-white/5 border border-white/10'"
-    class="relative inline-flex size-full w-20 items-center rounded"
+  <button
+    @click="toggle"
+    :class="twMerge(
+      'flex aspect-square !size-10 items-center justify-center rounded-full p-0 transition-colors',
+      modelValue
+        ? 'border border-solid border-[var(--chakra-colors-borderGreen)] bg-[var(--chakra-colors-glassGreen)] text-[var(--chakra-colors-white)] enabled:hover:bg-[rgba(58,255,0,0.3)] enabled:active:bg-[rgba(58,255,0,0.3)]'
+        : 'bg-[var(--chakra-colors-whiteAlpha-200)] text-[var(--chakra-colors-whiteAlpha-900)] enabled:hover:bg-[var(--chakra-colors-whiteAlpha-300)] enabled:active:bg-[var(--chakra-colors-whiteAlpha-300)]',
+    )"
   >
-    <span
-      :class="enabled ? 'translate-x-12' : 'translate-x-1.5'"
-      class="inline-block size-6 rounded bg-white transition"
-    />
-    <span
-      :class="enabled ? 'text-sm -translate-x-4' : 'text-sm translate-x-5'"
-    >
-      {{ enabled ? textOn : textOff }}
-    </span>
-  </Switch>
+    <span v-if="modelValue" class="icon-[pixelarticons--check]" />
+    <span v-else class="icon-[pixelarticons--close]" />
+  </button>
 </template>
 
 <script setup lang="ts">
-import { Switch } from "@headlessui/vue";
+import { twMerge } from "tailwind-merge";
 
-const props = withDefaults(defineProps<{
-  modelValue?: boolean;
-  textOn?: string;
-  textOff?: string;
-}>(), {
-  modelValue: false,
-  textOn: "ON",
-  textOff: "OFF",
-});
+const props = defineProps<{
+  modelValue: boolean;
+}>();
 
 const emit = defineEmits([ "update:modelValue" ]);
 
-const enabled = ref(props.modelValue);
-
-watch(enabled, (value) => {
-  emit("update:modelValue", value);
-});
+function toggle() {
+  emit("update:modelValue", !props.modelValue);
+}
 </script>

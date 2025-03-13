@@ -13,6 +13,7 @@ export async function discordWebhooks() {
     const lobbyBoardSelectParentElement = lobbyBoardSelectElement.parentElement?.parentElement;
     if (!lobbyBoardSelectParentElement) return;
     const refreshButton = lobbyBoardSelectParentElement.querySelector("button");
+
     if (!refreshButton) return;
 
     // create a copy of the refresh button and add "D" as text content
@@ -21,15 +22,75 @@ export async function discordWebhooks() {
     discordButton.innerHTML = iconDiscord;
     discordButton.title = "Send Discord Webhook";
 
+    // Apply AppButton styling
+    discordButton.classList.add(
+      "user-select-none", "position-relative", "white-space-nowrap", "vertical-align-middle",
+      "line-height-1.2", "transition-property-common", "transition-duration-normal",
+      "group", "relative", "inline-flex", "appearance-none", "items-center",
+      "justify-center", "border-none", "outline-offset-2", "outline-transparent",
+      "transition-colors",
+    );
+
+    // Apply rounded corners and font weight
+    discordButton.style.borderRadius = "var(--chakra-radii-md)";
+    discordButton.style.fontWeight = "var(--chakra-fontWeights-semibold)";
+
+    // Apply default style
+    discordButton.style.backgroundColor = "var(--chakra-colors-whiteAlpha-200)";
+    discordButton.style.color = "var(--chakra-colors-whiteAlpha-900)";
+
+    // Apply size (md)
+    discordButton.style.height = "var(--chakra-sizes-10)";
+    discordButton.style.minWidth = "var(--chakra-sizes-10)";
+    discordButton.style.paddingLeft = "var(--chakra-space-4)";
+    discordButton.style.paddingRight = "var(--chakra-space-4)";
+    discordButton.style.fontSize = "var(--chakra-fontSizes-md)";
+
     discordButton.addEventListener("click", () => {
       discordButton.setAttribute("disabled", "true");
+
+      // Apply disabled style
+      discordButton.style.cursor = "not-allowed";
+      discordButton.style.opacity = "0.5";
+
       sendWebhook();
       discordButton.innerHTML = iconCheck;
+
+      // Apply success style when clicked
+      discordButton.style.border = "1px solid var(--chakra-colors-borderGreen)";
+      discordButton.style.backgroundColor = "var(--chakra-colors-glassGreen)";
+      discordButton.style.color = "var(--chakra-colors-white)";
+
       setTimeout(() => {
         discordButton.innerHTML = iconDiscord;
         discordButton.removeAttribute("disabled");
+
+        // Restore default style
+        discordButton.style.border = "none";
+        discordButton.style.backgroundColor = "var(--chakra-colors-whiteAlpha-200)";
+        discordButton.style.color = "var(--chakra-colors-whiteAlpha-900)";
       }, 5000);
     });
+
+    // Add hover and active states
+    discordButton.addEventListener("mouseover", () => {
+      if (!discordButton.hasAttribute("disabled")) {
+        discordButton.style.backgroundColor = "var(--chakra-colors-whiteAlpha-300)";
+      }
+    });
+
+    discordButton.addEventListener("mouseout", () => {
+      if (!discordButton.hasAttribute("disabled")) {
+        discordButton.style.backgroundColor = "var(--chakra-colors-whiteAlpha-200)";
+      }
+    });
+
+    discordButton.addEventListener("mousedown", () => {
+      if (!discordButton.hasAttribute("disabled")) {
+        discordButton.style.backgroundColor = "var(--chakra-colors-whiteAlpha-300)";
+      }
+    });
+
     lobbyBoardSelectParentElement.appendChild(discordButton);
   } else {
     await sendWebhook();

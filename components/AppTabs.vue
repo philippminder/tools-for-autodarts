@@ -6,7 +6,7 @@
         v-for="(tab, index) in tabs"
         :key="index"
         :class="twMerge(
-          'flex-1 rounded-md border-b-2 border-transparent bg-[var(--chakra-colors-whiteAlpha-200)] px-6 py-4 text-center font-semibold transition-colors duration-200',
+          'flex-1 whitespace-nowrap rounded-md border-b-2 border-transparent bg-[var(--chakra-colors-whiteAlpha-200)] px-6 py-4 text-center font-semibold transition-colors duration-200',
           activeTab === index
             ? 'active-tab border-blue-400 bg-[var(--chakra-colors-whiteAlpha-300)] text-white'
             : 'inactive-tab text-white/70 hover:bg-[var(--chakra-colors-whiteAlpha-300)]',

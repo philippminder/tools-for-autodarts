@@ -1,32 +1,36 @@
 <template>
   <div
-    class="flex gap-2"
-    :class="[
-      vertical ? 'flex-col' : 'flex-wrap',
+    :class="twMerge(
+      'flex gap-2',
+      vertical ? 'flex-col' : 'flex-wrap gap-5',
       className,
-    ]"
+    )"
   >
     <div
       v-for="(option, index) in options"
       :key="index"
-      class="flex items-center"
-      :class="{ 'cursor-not-allowed opacity-50': option.disabled }"
+      :class="twMerge(
+        'flex items-center',
+        option.disabled ? 'cursor-not-allowed opacity-50' : '',
+      )"
     >
       <AppButton
         @click="!option.disabled && selectOption(option.value)"
         :type="modelValue === option.value ? 'success' : 'default'"
-        class="aspect-square rounded-full p-0"
-        :class="[
+        :class="twMerge(
+          'aspect-square min-w-8 rounded-full p-0',
           buttonSize === 'sm' ? '!size-8' : buttonSize === 'lg' ? '!size-12' : '!size-10',
-        ]"
+        )"
         :disabled="option.disabled"
       >
         <span v-if="modelValue === option.value" class="icon-[pixelarticons--check]" />
       </AppButton>
       <span
         v-if="option.label"
-        class="ml-2"
-        :class="{ 'text-white/50': option.disabled }"
+        :class="twMerge(
+          'ml-2',
+          option.disabled ? 'text-white/50' : '',
+        )"
       >
         {{ option.label }}
       </span>
@@ -35,16 +39,17 @@
 </template>
 
 <script setup lang="ts">
+import { twMerge } from "tailwind-merge";
 import AppButton from "@/components/AppButton.vue";
 
 interface RadioOption {
   label?: string;
-  value: string | number;
+  value: string | number | boolean;
   disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<{
-  modelValue: string | number;
+  modelValue: string | number | boolean;
   options: RadioOption[];
   name?: string;
   vertical?: boolean;
@@ -58,7 +63,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits([ "update:modelValue" ]);
 
-function selectOption(value: string | number) {
+function selectOption(value: string | number | boolean) {
   emit("update:modelValue", value);
 }
 </script>

@@ -1,0 +1,138 @@
+<template>
+  <template v-if="!$attrs['data-feature-index']">
+    <!-- Settings Panel -->
+    <div
+      v-if="config"
+      class="adt-container min-h-56"
+    >
+      <div class="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <h3 class="mb-1 font-bold uppercase">
+            Settings - Recent Local Players
+          </h3>
+          <div class="space-y-3 text-white/70">
+            <p>Configure recent local players settings here.</p>
+
+            <div class="mt-4 space-y-4">
+              <!-- Maximum Players Cap -->
+              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
+                <AppInput
+                  @update:model-value="config.recentLocalPlayers.cap = Number($event)"
+                  :model-value="String(config.recentLocalPlayers.cap)"
+                  placeholder="10"
+                  type="number"
+                  size="sm"
+                  input-class="w-full"
+                />
+                <p>Maximum recent players you want to store</p>
+              </div>
+
+              <!-- Current Players List -->
+              <div v-if="config.recentLocalPlayers.players.length > 0" class="mt-4">
+                <h4 class="mb-2 font-semibold">
+                  Current Players List
+                </h4>
+                <div class="mb-2 flex flex-wrap gap-2">
+                  <div
+                    v-for="(player, index) in config.recentLocalPlayers.players"
+                    :key="index"
+                  >
+                    <AppButton
+                      @click="removePlayer(index)"
+                      class="text-white/70 hover:text-white"
+                      size="sm"
+                    >
+                      {{ player }}
+                      <span class="icon-[pixelarticons--close] ml-2" />
+                    </AppButton>
+                  </div>
+                </div>
+                <AppButton
+                  @click="clearAllPlayers"
+                  size="sm"
+                  auto
+                >
+                  <span class="icon-[pixelarticons--trash] mr-2" />
+                  Clear All Players
+                </AppButton>
+              </div>
+
+              <div v-else-if="config.recentLocalPlayers.enabled" class="mt-4 italic text-white/50">
+                No players stored yet. Players will be added automatically when you add them in the lobby.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template v-else>
+    <!-- Feature Card -->
+    <div
+      @click="activeSettings = 'recent-local-players'"
+      v-if="config"
+      class="adt-container h-56 transition-transform hover:-translate-y-0.5"
+    >
+      <div class="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <h3 class="mb-1 font-bold uppercase">
+            Recent Local Players
+          </h3>
+          <p class="w-2/3 text-white/70">
+            Default recent local players capped at 5, this will extend it to infinite.
+          </p>
+        </div>
+        <div class="flex">
+          <div class="absolute inset-0 cursor-pointer " />
+          <AppButton
+            @click="config.recentLocalPlayers.enabled = !config.recentLocalPlayers.enabled"
+            :type="config.recentLocalPlayers.enabled ? 'success' : 'default'"
+            class="aspect-square !size-10 rounded-full p-0"
+          >
+            <span v-if="config.recentLocalPlayers.enabled" class="icon-[pixelarticons--check]" />
+            <span v-else class="icon-[pixelarticons--close]" />
+          </AppButton>
+        </div>
+      </div>
+      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+        <img src="@/assets/images/recent-local-players.png" alt="Recent Local Players" class="size-full object-cover opacity-70">
+      </div>
+    </div>
+  </template>
+</template>
+
+<script setup lang="ts">
+import { useStorage } from "@vueuse/core";
+import AppButton from "../AppButton.vue";
+import AppInput from "../AppInput.vue";
+import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+
+const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const config = ref<IConfig>();
+
+onMounted(async () => {
+  config.value = await AutodartsToolsConfig.getValue();
+});
+
+watch(config, async () => {
+  await AutodartsToolsConfig.setValue({
+    ...JSON.parse(JSON.stringify(defaultConfig)),
+    ...JSON.parse(JSON.stringify(config.value)),
+  });
+}, { deep: true });
+
+// Function to remove a player from the list
+function removePlayer(index: number) {
+  if (config.value && config.value.recentLocalPlayers.players) {
+    config.value.recentLocalPlayers.players.splice(index, 1);
+  }
+}
+
+// Function to clear all players
+function clearAllPlayers() {
+  if (config.value) {
+    config.value.recentLocalPlayers.players = [];
+  }
+}
+</script>

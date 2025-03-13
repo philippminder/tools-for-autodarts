@@ -13,16 +13,14 @@ export async function autoStart() {
 
     button.id = "adt-autostart-button";
     button.innerText = "Autostart OFF";
-    button.style.color = "var(--chakra-colors-green-500)";
-    button.style.color = "var(--chakra-colors-red-500)";
-    button.style.background = "var(--chakra-colors-whiteAlpha-200)";
-    button.style.borderColor = "var(--chakra-colors-whiteAlpha-200)";
+    updateButtonStyle(button, false);
     button.style.maxWidth = "10rem";
 
     button.addEventListener("click", () => {
-      button.textContent = button.textContent === "Autostart ON" ? "Autostart OFF" : "Autostart ON";
-      button.style.color = button.textContent === "Autostart ON" ? "var(--chakra-colors-green-500)" : "var(--chakra-colors-red-500)";
-      autostartEnabled = !autostartEnabled;
+      const isOn = button.textContent === "Autostart OFF";
+      button.textContent = isOn ? "Autostart ON" : "Autostart OFF";
+      updateButtonStyle(button, isOn);
+      autostartEnabled = isOn;
 
       if (autostartEnabled) {
         checkAutoStartInterval = setInterval(checkAutoStart, 1000);
@@ -34,6 +32,20 @@ export async function autoStart() {
     buttonsContainer.appendChild(button);
   } catch (e) {
     console.error("Autodarts Tools: Auto Start - Error adding auto start button: ", e);
+  }
+}
+
+function updateButtonStyle(button: HTMLButtonElement, isSuccess: boolean) {
+  if (isSuccess) {
+    // Success style
+    button.style.border = "1px solid var(--chakra-colors-borderGreen)";
+    button.style.background = "var(--chakra-colors-glassGreen)";
+    button.style.color = "var(--chakra-colors-white)";
+  } else {
+    // Danger style
+    button.style.border = "1px solid var(--chakra-colors-borderRed)";
+    button.style.background = "var(--chakra-colors-glassRed)";
+    button.style.color = "var(--chakra-colors-white)";
   }
 }
 

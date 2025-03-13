@@ -1,0 +1,95 @@
+<template>
+  <template v-if="!$attrs['data-feature-index']">
+    <!-- Settings Panel -->
+    <div
+      v-if="config"
+      class="adt-container min-h-56"
+    >
+      <div class="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <h3 class="mb-1 font-bold uppercase">
+            Settings - Automatic Next Leg
+          </h3>
+          <div class="space-y-3 text-white/70">
+            <p>Configure how long to wait before automatically starting the next leg after a takeout.</p>
+
+            <div class="mt-4 space-y-4">
+              <!-- Seconds Input -->
+              <div class="grid grid-cols-[5rem_auto] items-center gap-4">
+                <AppInput
+                  @update:model-value="config.automaticNextLeg.sec = Number($event)"
+                  :model-value="String(config.automaticNextLeg.sec)"
+                  placeholder="5"
+                  type="number"
+                  size="sm"
+                  input-class="w-full"
+                />
+                <p>Seconds to wait before automatically starting the next leg</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template v-else>
+    <!-- Feature Card -->
+    <div
+      @click="activeSettings = 'automatic-next-leg'"
+      v-if="config"
+      class="adt-container h-56 transition-transform hover:-translate-y-0.5"
+      :class="{ 'opacity-50': config.disableTakeout.enabled }"
+    >
+      <div class="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <h3 class="mb-1 font-bold uppercase">
+            Automatic Next Leg
+          </h3>
+          <p class="w-2/3 text-white/70">
+            Automatically starts the next leg {{ config?.automaticNextLeg?.sec || '5' }} seconds after takeout.
+          </p>
+          <p v-if="config.disableTakeout.enabled" class="mt-2 text-sm italic text-amber-400">
+            Requires takeout recognition to be enabled
+          </p>
+        </div>
+        <div class="flex">
+          <div class="absolute inset-0 cursor-pointer " />
+          <AppButton
+            @click="config.automaticNextLeg.enabled = !config.automaticNextLeg.enabled"
+            :type="config.automaticNextLeg.enabled ? 'success' : 'default'"
+            class="aspect-square !size-10 rounded-full p-0"
+            :disabled="config.disableTakeout.enabled"
+          >
+            <span v-if="config.automaticNextLeg.enabled" class="icon-[pixelarticons--check]" />
+            <span v-else class="icon-[pixelarticons--close]" />
+          </AppButton>
+        </div>
+      </div>
+      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+        <img src="@/assets/images/discord-webhooks.png" alt="Automatic Next Leg" class="size-full object-cover">
+      </div>
+    </div>
+  </template>
+</template>
+
+<script setup lang="ts">
+import { useStorage } from "@vueuse/core";
+import AppButton from "../AppButton.vue";
+import AppInput from "../AppInput.vue";
+import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+
+const activeSettings = useStorage("adt:active-settings", "automatic-next-leg");
+const config = ref<IConfig>();
+
+onMounted(async () => {
+  config.value = await AutodartsToolsConfig.getValue();
+});
+
+watch(config, async () => {
+  await AutodartsToolsConfig.setValue({
+    ...JSON.parse(JSON.stringify(defaultConfig)),
+    ...JSON.parse(JSON.stringify(config.value)),
+  });
+}, { deep: true });
+</script>
