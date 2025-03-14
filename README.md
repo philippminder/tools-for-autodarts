@@ -81,12 +81,14 @@ The extension allows you to easily transfer your settings between devices or cre
 - **Import Settings**: Load settings from a previously exported file
 - **Copy to Clipboard**: Copy your settings to the clipboard for easy sharing
 - **Paste from Clipboard**: Apply settings that were copied from another installation
+- **Reset Settings**: Restore all settings to their default values through the Danger Zone section
 
 This makes it simple to:
 - Back up your perfect configuration
 - Share your setup with friends
 - Transfer settings between browsers or devices
 - Restore settings after reinstalling the extension
+- Start fresh with default settings when needed
 
 ## 👨‍💻 Development
 
