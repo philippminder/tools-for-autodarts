@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-      <img src="@/assets/images/auto-start.png" alt="Auto Start" class="size-full object-cover opacity-70">
+      <img :src="imageUrl" alt="Auto Start" class="size-full object-cover opacity-70">
     </div>
   </div>
 </template>
@@ -39,6 +39,7 @@ import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/stora
 
 const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("images/auto-start.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

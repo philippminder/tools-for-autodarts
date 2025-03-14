@@ -56,7 +56,7 @@
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="@/assets/images/takeout-notification.png" alt="Takeout Notification" class="size-full object-cover">
+        <img :src="imageUrl" alt="Takeout Notification" class="size-full object-cover">
       </div>
     </div>
   </template>
@@ -69,6 +69,7 @@ import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/stora
 
 const activeSettings = useStorage("adt:active-settings", "takeout-notification");
 const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("/images/takeout-notification.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

@@ -63,7 +63,7 @@
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="@/assets/images/larger-legs-sets.png" alt="Larger Legs & Sets" class="size-full object-cover">
+        <img :src="imageUrl" alt="Larger Legs & Sets" class="size-full object-cover">
       </div>
     </div>
   </template>
@@ -78,6 +78,7 @@ import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/stora
 const activeSettings = useStorage("adt:active-settings", "larger-legs-sets");
 const config = ref<IConfig>();
 const sizeValue = ref("");
+const imageUrl = browser.runtime.getURL("/images/larger-legs-sets.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

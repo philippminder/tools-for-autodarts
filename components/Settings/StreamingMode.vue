@@ -167,7 +167,7 @@
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="@/assets/images/streaming-mode.png" alt="Streaming Mode" class="size-full object-cover">
+        <img :src="imageUrl" alt="Streaming Mode" class="size-full object-cover">
       </div>
     </div>
   </template>
@@ -185,6 +185,7 @@ const streamingModeEnabled = useStorage("adt:streaming-mode-enabled", false);
 const config = ref<IConfig>();
 const streamingModeBackgroundFileSelect = ref() as Ref<HTMLInputElement>;
 const backgroundMode = ref(true);
+const imageUrl = browser.runtime.getURL("/images/streaming-mode.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

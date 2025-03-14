@@ -48,7 +48,7 @@
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="@/assets/images/shuffle-players.png" alt="Shuffle Players" class="size-full object-cover opacity-70">
+        <img :src="imageUrl" alt="Shuffle Players" class="size-full object-cover opacity-70">
       </div>
     </div>
   </template>
@@ -61,6 +61,7 @@ import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/stora
 
 const activeSettings = useStorage("adt:active-settings", "shuffle-players");
 const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("/images/shuffle-players.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

@@ -34,6 +34,10 @@ export default defineConfig({
     //   resources: [ "dart-zoom.js" ],
     //   matches: [ "<all_urls>" ],
     // } ],
+    web_accessible_resources: [ {
+      resources: [ "images/*" ],
+      matches: [ "*://play.autodarts.io/*" ],
+    } ],
   },
   dev: {
     reloadCommand: "Alt+T",

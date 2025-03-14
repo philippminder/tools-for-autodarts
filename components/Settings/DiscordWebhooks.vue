@@ -65,7 +65,7 @@
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="@/assets/images/discord-webhooks.png" alt="Discord Webhooks" class="size-full object-cover opacity-70">
+        <img :src="imageUrl" alt="Discord Webhooks" class="size-full object-cover opacity-70">
       </div>
     </div>
   </template>
@@ -80,6 +80,7 @@ import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/stora
 
 const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("/images/discord-webhooks.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
