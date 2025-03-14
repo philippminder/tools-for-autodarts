@@ -74,7 +74,7 @@ defineProps({
 defineEmits([ "confirm", "cancel" ]);
 </script>
 
-<style scoped>
+<style>
 .dialog-bg {
   background-color: rgba(25, 32, 71, 0.95);
   background-image:

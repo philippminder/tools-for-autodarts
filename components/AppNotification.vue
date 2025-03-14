@@ -48,7 +48,7 @@ defineProps({
 defineEmits([ "close" ]);
 </script>
 
-<style scoped>
+<style>
 .success-overlay::after {
   content: '';
   position: absolute;
