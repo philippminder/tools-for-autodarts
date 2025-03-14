@@ -39,10 +39,11 @@ import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/stora
 
 const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
-const imageUrl = browser.runtime.getURL("images/auto-start.png");
+const imageUrl = ref<string>();
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
+  imageUrl.value = browser.runtime.getURL("images/auto-start.png");
 });
 
 watch(config, async () => {
