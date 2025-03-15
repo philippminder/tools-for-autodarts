@@ -118,14 +118,14 @@
           )"
         >
           <div class="grid grid-cols-4 divide-x-2 divide-black text-center text-5xl font-bold">
-            <div class="relative flex items-center justify-center p-2">
-              {{ gameData?.match?.turns?.[0]?.points }}
+            <div class="relative flex items-center justify-center p-2 uppercase">
+              {{ gameData.match.turnBusted ? "Bust" : gameData?.match?.turns?.[0]?.points }}
             </div>
             <div
               v-for="n in 3"
               :key="n"
               :class="twMerge(
-                'relative flex items-center justify-center p-2',
+                'relative flex items-center justify-center p-2 uppercase',
                 'bg-gray-300 text-black',
                 gameData?.match?.turns?.[0]?.throws?.[n - 1] && 'bg-cyan-600 text-white',
               )"
