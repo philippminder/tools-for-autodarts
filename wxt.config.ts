@@ -17,7 +17,10 @@ export default defineConfig({
     },
   },
   manifest: {
-    host_permissions: [ "*://play.autodarts.io/*" ],
+    host_permissions: [
+      "*://play.autodarts.io/*",
+      "*://api.autodarts.io/*",
+    ],
     permissions: [
       "storage",
       "*://discord.com/api/webhooks/*",
@@ -34,10 +37,16 @@ export default defineConfig({
     //   resources: [ "dart-zoom.js" ],
     //   matches: [ "<all_urls>" ],
     // } ],
-    web_accessible_resources: [ {
-      resources: [ "images/*" ],
-      matches: [ "*://play.autodarts.io/*" ],
-    } ],
+    web_accessible_resources: [
+      {
+        resources: [ "images/*" ],
+        matches: [ "*://play.autodarts.io/*" ],
+      },
+      {
+        resources: [ "websocket-capture.js", "auth-cookie.js" ],
+        matches: [ "*://play.autodarts.io/*" ],
+      },
+    ],
   },
   dev: {
     reloadCommand: "Alt+T",
@@ -49,6 +58,9 @@ export default defineConfig({
         "~": fileURLToPath(new URL("./", import.meta.url)),
         "src": fileURLToPath(new URL("./", import.meta.url)),
       },
+    },
+    ssr: {
+      noExternal: [ "webextension-polyfill" ],
     },
     plugins: [
       vue(),
@@ -66,6 +78,7 @@ export default defineConfig({
               "defineContentScript",
               "createShadowRootUi",
               "createIntegratedUi",
+              "defineUnlistedScript",
             ],
           },
         ],

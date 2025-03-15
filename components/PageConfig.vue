@@ -1244,6 +1244,7 @@ import AppNotification from "@/components/AppNotification.vue";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { useNotification } from "@/composables/useNotification";
 import AppTabs from "@/components/AppTabs.vue";
+import { fetchWithAuth } from "@/utils/helpers";
 
 // Define feature groups
 const featureGroups = [
@@ -1693,6 +1694,27 @@ function resetAllSettings() {
     },
   );
 }
+
+// Example function to demonstrate using the auth token
+async function makeAuthenticatedRequest() {
+  try {
+    const response = await fetchWithAuth("https://play.autodarts.io/api/v1/user/profile");
+    if (response.ok) {
+      const data = await response.json();
+      console.log("User profile data:", data);
+      return data;
+    } else {
+      console.error("Failed to fetch user profile:", response.status);
+    }
+  } catch (error) {
+    console.error("Error making authenticated request:", error);
+  }
+}
+
+// You can call this function when needed, for example:
+// onMounted(() => {
+//   makeAuthenticatedRequest();
+// });
 </script>
 
 <style>

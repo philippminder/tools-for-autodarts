@@ -13,6 +13,9 @@ import { autoStart, onRemove as onAutoStartRemove } from "@/entrypoints/lobby.co
 import { onRemove as onShufflePlayersRemove, shufflePlayers } from "@/entrypoints/lobby.content/shuffle-players";
 import { nextPlayerAfter3dartsButton } from "@/entrypoints/lobby.content/nextPlayerAfter3dartsButton";
 import RecentLocalPlayers from "@/entrypoints/lobby.content/RecentLocalPlayers.vue";
+import type { GameMode, IGameData } from "@/utils/game-data-storage";
+import { AutodartsToolsGameData } from "@/utils/game-data-storage";
+import { fetchWithAuth } from "@/utils/helpers";
 
 let recentLocalPlayersUI: any;
 let lobbyReadyUnwatch: any;
@@ -27,6 +30,67 @@ export default defineContentScript({
       const config: IConfig = await AutodartsToolsConfig.getValue();
       if (/\/lobbies\/(?!.*new\/)/.test(url)) {
         console.log("Autodarts Tools: Lobby Ready");
+
+        // Extract lobby ID from URL and fetch lobby data
+        const lobbyIdMatch = url.match(/\/lobbies\/([0-9a-f-]+)/);
+        if (lobbyIdMatch && lobbyIdMatch[1]) {
+          const lobbyId = lobbyIdMatch[1];
+          console.log("Autodarts Tools: Lobby ID:", lobbyId);
+
+          try {
+            console.log("Autodarts Tools: Fetching lobby data with cookie authentication...");
+            const apiUrl = `https://api.autodarts.io/gs/v0/lobbies/${lobbyId}`;
+            const response = await fetchWithAuth(apiUrl);
+
+            console.log("Autodarts Tools: Response status:", response.status);
+
+            if (response.ok) {
+              const lobbyData = await response.json();
+              console.log("Autodarts Tools: Lobby Data:", lobbyData);
+            } else {
+              console.error("Autodarts Tools: Failed to fetch lobby data", response.status, response.statusText);
+            }
+          } catch (error) {
+            console.error("Autodarts Tools: Error fetching lobby data:", error);
+          }
+        }
+
+        const gameData: IGameData = await AutodartsToolsGameData.getValue();
+
+        // Extract game mode from the lobby details table
+        const extractGameMode = async () => {
+          try {
+            await waitForElementWithTextContent("h2", "Lobby details");
+
+            // Find all table rows
+            const tableRows = document.querySelectorAll("table tbody tr");
+
+            // Find the row containing "Type"
+            for (const row of tableRows) {
+              const cells = row.querySelectorAll("td");
+              if (cells.length >= 2 && cells[0].textContent?.trim() === "Type") {
+                // Get the game mode from the adjacent cell
+                const gameModeText = cells[1].textContent?.trim();
+                console.log("Autodarts Tools: Game mode detected:", gameModeText);
+
+                // Only update if we have a valid game mode text
+                if (gameModeText) {
+                  await AutodartsToolsGameData.setValue({
+                    ...gameData,
+                    gameMode: gameModeText as GameMode,
+                  });
+                }
+
+                break;
+              }
+            }
+          } catch (error) {
+            console.error("Autodarts Tools: Failed to extract game mode", error);
+          }
+        };
+
+        // Execute the game mode extraction
+        extractGameMode().catch(console.error);
 
         if (config.discord.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");

@@ -6,7 +6,7 @@
         v-for="player in config.recentLocalPlayers.players"
         :key="player"
         :class="twMerge(
-          'uppercase cursor-pointer rounded-md bg-white/10 px-3 py-1 text-sm font-bold transition-colors hover:bg-white/15 flex justify-center items-center',
+          'flex cursor-pointer items-center justify-center rounded-md bg-white/10 px-3 py-1 text-sm font-bold uppercase transition-colors hover:bg-white/15',
         )"
       >
         {{ player }}
@@ -14,7 +14,7 @@
       <div
         @click="handleClearAll"
         :class="twMerge(
-          'cursor-pointer rounded-md px-3 py-1 text-sm font-bold transition-colors hover:bg-white/15 flex justify-center items-center',
+          'flex cursor-pointer items-center justify-center rounded-md px-3 py-1 text-sm font-bold transition-colors hover:bg-white/15',
         )"
         v-html="clearAllSVG"
       />

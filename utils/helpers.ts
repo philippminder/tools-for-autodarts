@@ -1,4 +1,6 @@
-export const isX01 = () => document.getElementById("ad-ext-game-variant")?.textContent === "X01";
+import { GameMode } from "@/utils/game-data-storage";
+
+export const isX01 = () => document.getElementById("ad-ext-game-variant")?.textContent === GameMode.X01;
 export const isBullOff = () => document.getElementById("ad-ext-game-variant")?.textContent === "Bull-off";
 export const isCricket = () => document.getElementById("ad-ext-game-variant")?.textContent?.split(" ")[0] === "Cricket";
 
@@ -51,4 +53,28 @@ export function isiOS() {
 export function isSafari() {
   return /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
          || (navigator.userAgent.includes("AppleWebKit") && !navigator.userAgent.includes("Chrome"));
+}
+
+// Function to get the authorization token from storage
+export async function getAuthToken() {
+  const { AutodartsToolsGlobalStatus } = await import("./storage");
+  const globalStatus = await AutodartsToolsGlobalStatus.getValue();
+  return globalStatus.auth?.token || "";
+}
+
+// Function to make authenticated API requests
+export async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  const token = await getAuthToken();
+
+  const headers = new Headers(options.headers || {});
+  if (token) {
+    // Set the Cookie header with the Authorization token
+    headers.set("Cookie", `Authorization=${token}`);
+  }
+
+  return fetch(url, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 }

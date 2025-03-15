@@ -19,7 +19,10 @@ const navigationCheckInterval = ref();
 const isMobileNav = ref();
 
 watch(currentUrl, async (newURL, oldURL) => {
-  await AutodartsToolsUrlStatus.setValue(newURL.split("#")[0]);
+  // Only update AutodartsToolsUrlStatus if URL starts with https
+  if (newURL && newURL.startsWith("https")) {
+    await AutodartsToolsUrlStatus.setValue(newURL.split("#")[0] || "undefined");
+  }
 
   if (newURL !== oldURL && oldURL) {
     useGlobalEvent("url:changed", newURL);

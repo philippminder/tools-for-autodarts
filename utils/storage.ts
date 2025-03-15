@@ -123,6 +123,9 @@ export interface IGlobalStatus {
   user: {
     name: string;
   };
+  auth?: {
+    token: string;
+  };
 }
 
 export interface IPlayerInfo {
@@ -286,6 +289,9 @@ export const defaultGlobalStatus: IGlobalStatus = {
   user: {
     name: "",
   },
+  auth: {
+    token: "",
+  },
 };
 
 export const AutodartsToolsGlobalStatus: WxtStorageItem<IGlobalStatus, any> = storage.defineItem(
@@ -340,7 +346,7 @@ export const AutodartsToolsSoundAutoplayStatus: WxtStorageItem<boolean, any> = s
 export const AutodartsToolsUrlStatus: WxtStorageItem<string, any> = storage.defineItem(
   "local:urlstatus",
   {
-    defaultValue: window.location.href.split("#")[0],
+    defaultValue: window.location.href.split("#")[0] || "undefined",
   },
 );
 
