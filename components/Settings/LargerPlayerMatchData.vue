@@ -73,7 +73,7 @@
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "larger-player-match-data");
 const config = ref<IConfig>();
@@ -97,9 +97,7 @@ watch(sizeValue, (newValue) => {
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await updateConfigIfChanged(currentConfig, config.value, "playerMatchData");
 }, { deep: true });
 </script>

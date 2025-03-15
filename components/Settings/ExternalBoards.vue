@@ -35,7 +35,7 @@
 import { onMounted, ref, watch } from "vue";
 import { useStorage } from "@vueuse/core";
 import AppButton from "@/components/AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "external-boards");
 const config = ref<IConfig>();
@@ -46,9 +46,7 @@ onMounted(async () => {
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await updateConfigIfChanged(currentConfig, config.value, "externalBoards");
 }, { deep: true });
 </script>

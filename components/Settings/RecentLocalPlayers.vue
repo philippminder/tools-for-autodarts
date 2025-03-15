@@ -106,7 +106,7 @@
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
@@ -117,10 +117,8 @@ onMounted(async () => {
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await updateConfigIfChanged(currentConfig, config.value, "recentLocalPlayers");
 }, { deep: true });
 
 // Function to remove a player from the list

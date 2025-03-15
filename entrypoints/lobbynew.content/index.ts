@@ -1,6 +1,6 @@
 import type { IConfig } from "@/utils/storage";
 import {
-  AutodartsToolsConfig, AutodartsToolsLobbyStatus,
+  AutodartsToolsConfig,
   AutodartsToolsUrlStatus,
 } from "@/utils/storage";
 import type { GameMode, IGameData } from "@/utils/game-data-storage";
@@ -57,30 +57,6 @@ export default defineContentScript({
             private: true,
           });
           console.log("Autodarts Tools: Lobby is Private");
-        }
-
-        // Old Stuff
-        if (config.teamLobby.enabled) {
-          const lobbyStatus = await AutodartsToolsLobbyStatus.getValue();
-          const privateButton = [ ...document.querySelectorAll("button") ].find(btn => (btn as HTMLElement).innerText === "Private");
-          const publicButton = [ ...document.querySelectorAll("button") ].find(btn => (btn as HTMLElement).innerText === "Public");
-
-          const setPrivateState = async (isPrivate: boolean) => {
-            await AutodartsToolsLobbyStatus.setValue({
-              ...lobbyStatus,
-              isPrivate,
-            });
-          };
-
-          await setPrivateState(privateButton?.hasAttribute("data-active") || false);
-
-          privateButton?.addEventListener("click", async () => {
-            await setPrivateState(true);
-          });
-
-          publicButton?.addEventListener("click", async () => {
-            await setPrivateState(false);
-          });
         }
       }
     });

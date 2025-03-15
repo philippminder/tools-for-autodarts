@@ -27,10 +27,9 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
-import "./styles.css";
 import { AutodartsToolsBoardStatus, AutodartsToolsConfig, type TBoardStatus } from "@/utils/storage";
-import { getResetBtn } from "@/utils/getElements";
 import { BoardStatus } from "@/utils/types";
+import { waitForElementWithTextContent } from "@/utils";
 
 const show = ref<boolean>(false);
 
@@ -39,6 +38,8 @@ AutodartsToolsBoardStatus.watch(() => {
 });
 
 onMounted(async () => {
+  console.warn("Autodarts Tools: Takeout - TEST THIS WITH LIVE BOARD");
+
   checkStatus().catch(console.error);
 });
 
@@ -46,6 +47,7 @@ async function checkStatus() {
   const config = await AutodartsToolsConfig.getValue();
 
   if (config.takeout.enabled) {
+    // TODO: Rework this to be used with the websocket data
     const boardstatus: TBoardStatus = await AutodartsToolsBoardStatus.getValue();
     show.value = boardstatus === BoardStatus.TAKEOUT;
   }
@@ -53,7 +55,30 @@ async function checkStatus() {
 
 async function handleBackdropClick() {
   show.value = false;
-  const resetButton = getResetBtn();
-  resetButton?.click();
+  await (await waitForElementWithTextContent("button", "Reset"))?.click();
 }
 </script>
+
+<style>
+.adt-remove:after {
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    -webkit-animation: ellipsis steps(4,end) 900ms infinite;
+    animation: ellipsis steps(4,end) 900ms infinite;
+    content: "\2026";
+    width: 0px;
+}
+
+@keyframes ellipsis {
+    to {
+        width: 1.25em;
+    }
+}
+
+@-webkit-keyframes ellipsis {
+    to {
+        width: 1.25em;
+    }
+}
+</style>

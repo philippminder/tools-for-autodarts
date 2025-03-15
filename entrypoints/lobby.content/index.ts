@@ -11,10 +11,7 @@ import {
 import { discordWebhooks } from "@/entrypoints/lobby.content/discord-webhooks";
 import { autoStart, onRemove as onAutoStartRemove } from "@/entrypoints/lobby.content/auto-start";
 import { onRemove as onShufflePlayersRemove, shufflePlayers } from "@/entrypoints/lobby.content/shuffle-players";
-import { nextPlayerAfter3dartsButton } from "@/entrypoints/lobby.content/nextPlayerAfter3dartsButton";
 import RecentLocalPlayers from "@/entrypoints/lobby.content/RecentLocalPlayers.vue";
-import type { IGameData } from "@/utils/game-data-storage";
-import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { fetchWithAuth } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 
@@ -57,10 +54,6 @@ export default defineContentScript({
           }
         }
 
-        const gameData: IGameData = await AutodartsToolsGameData.getValue();
-
-        console.log(gameData.lobby?.isPrivate);
-
         if (config.discord.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(discordWebhooks, url);
@@ -76,11 +69,6 @@ export default defineContentScript({
         if (config.recentLocalPlayers.enabled) {
           const div = document.querySelector("autodarts-tools-recent-local-players");
           if (!div) initRecentLocalPlayers(ctx).catch(console.error);
-        }
-
-        if (config.nextPlayerAfter3darts.enabled) {
-          await waitForElementWithTextContent("h2", "Lobby");
-          await initScript(nextPlayerAfter3dartsButton, url);
         }
 
         if (config.teamLobby.enabled) {
@@ -119,9 +107,7 @@ async function initScript(fn: any, url: string) {
 }
 
 async function initRecentLocalPlayers(ctx: any) {
-  const lobbyUserInput = await waitForElement("input[placeholder=\"Enter name for local player\"]");
-  if (!lobbyUserInput) return;
-  const lobbyUserInputParent = lobbyUserInput.parentElement;
+  const lobbyUserInputParent = (await waitForElement("input[placeholder=\"Enter name for local player\"]"))?.parentElement;
   if (!lobbyUserInputParent) return;
 
   recentLocalPlayersUI = await createShadowRootUi(ctx, {

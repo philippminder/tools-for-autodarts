@@ -12,7 +12,7 @@ import {
   defaultMatchStatus,
 } from "@/utils/storage";
 
-import { scoreSmaller } from "@/entrypoints/match.content/scoreSmaller";
+import { scoreSmaller } from "@/entrypoints/match.content/smaller-scores";
 import { colorChange, onRemove as onRemoveColorChange } from "@/entrypoints/match.content/color-change";
 import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
 import Animations from "@/entrypoints/match.content/Animations.vue";
@@ -24,7 +24,7 @@ import { isBullOff, isCricket, isValidGameMode, isX01 } from "@/utils/helpers";
 import { soundsWinner } from "@/entrypoints/match.content/soundsWinner";
 import { setCricketClosedPoints } from "@/entrypoints/match.content/setCricketPoints";
 import { hideMenu } from "@/entrypoints/match.content/hideMenu";
-import { automaticNextLeg } from "@/entrypoints/match.content/automaticNextLeg";
+import { automaticNextLeg } from "@/entrypoints/match.content/automatic-next-leg";
 import { playerMatchDataLarger } from "@/entrypoints/match.content/playerMatchDataLarger";
 import {
   removeWinnerAnimation,
@@ -36,8 +36,8 @@ import { liveViewRing } from "@/entrypoints/match.content/liveViewRing";
 import { setPlayerInfo } from "@/entrypoints/match.content/setPlayerInfo";
 import { nextPlayerAfter3darts } from "@/entrypoints/match.content/nextPlayerAfter3darts";
 import { handleUndoMode } from "@/entrypoints/match.content/handleUndoMode";
-import { nextPlayerOnTakeOutStuck } from "@/entrypoints/match.content/nextPlayerOnTakeOutStuck";
-import { disableTakeout } from "@/entrypoints/match.content/disableTakeout";
+import { nextPlayerOnTakeOutStuck } from "@/entrypoints/match.content/next-player-on-take-out-stuck";
+import { disableTakeout } from "@/entrypoints/match.content/disable-takeout";
 import "@/utils/audioContextFix";
 
 let matchActive: boolean = false;

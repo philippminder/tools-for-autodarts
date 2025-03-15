@@ -42,11 +42,11 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.inactiveSmall.enabled = !config.inactiveSmall.enabled"
-            :type="config.inactiveSmall.enabled ? 'success' : 'default'"
+            @click="config.smallerScores.enabled = !config.smallerScores.enabled"
+            :type="config.smallerScores.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.inactiveSmall.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.smallerScores.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -61,7 +61,7 @@
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "smaller-scores");
 const config = ref<IConfig>();
@@ -72,9 +72,7 @@ onMounted(async () => {
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await updateConfigIfChanged(currentConfig, config.value, "smallerScores");
 }, { deep: true });
 </script>

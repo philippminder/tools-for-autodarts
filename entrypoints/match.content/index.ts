@@ -1,5 +1,11 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
+import { disableTakeout } from "./disable-takeout";
+import { colorChange, onRemove as colorChangeOnRemove } from "./color-change";
+import Takeout from "./Takeout.vue";
+import { nextPlayerOnTakeOutStuck } from "./next-player-on-take-out-stuck";
+import { automaticNextLeg } from "./automatic-next-leg";
+import { smallerScores } from "./smaller-scores";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
   AutodartsToolsConfig,
@@ -15,6 +21,7 @@ let activeMatchObserver: MutationObserver;
 
 const tools = {
   streamingMode: null as any,
+  takeout: null as any,
 };
 
 export default defineContentScript({
@@ -54,10 +61,10 @@ export default defineContentScript({
           console.log("Autodarts Tools: No Active Match found, waiting for match to start");
         } else {
           console.log("Autodarts Tools: Match found, initializing match");
-          initMatch(ctx).catch(console.error);
+          initMatch(ctx, url).catch(console.error);
         }
 
-        activeMatchObserver = startActiveMatchObserver(ctx);
+        activeMatchObserver = startActiveMatchObserver(ctx, url);
       } else {
         console.log("Autodarts Tools: No Match found, clearing match");
         clearMatch();
@@ -66,14 +73,58 @@ export default defineContentScript({
   },
 });
 
+async function initMatch(ctx, url: string) {
+  if (matchInitialized) return;
+  matchInitialized = true;
+
+  const config = await AutodartsToolsConfig.getValue();
+
+  if (config.streamingMode.enabled) {
+    await initStreamingMode(ctx).catch(console.error);
+  }
+
+  if (config.disableTakeout.enabled) {
+    await initScript(disableTakeout, url);
+  }
+
+  if (config.colors.enabled) {
+    await initScript(colorChange, url);
+  }
+
+  if (config.takeout.enabled) {
+    await initTakeout(ctx);
+  }
+
+  if (config.nextPlayerOnTakeOutStuck.enabled) {
+    await initScript(nextPlayerOnTakeOutStuck, url);
+  }
+
+  if (config.automaticNextLeg.enabled) {
+    await initScript(automaticNextLeg, url);
+  }
+
+  if (config.smallerScores.enabled) {
+    await initScript(smallerScores, url);
+  }
+
+  console.log("Autodarts Tools: Match initialized successfully");
+}
+
 function clearMatch() {
   tools.streamingMode?.remove();
+  tools.takeout?.remove();
   activeMatchObserver?.disconnect();
+  colorChangeOnRemove();
 
   matchInitialized = false;
 }
 
-function startActiveMatchObserver(ctx) {
+async function initScript(fn: any, url: string) {
+  if (window.location.href !== url) return;
+  await fn();
+}
+
+function startActiveMatchObserver(ctx, url: string) {
   const targetNode = document.querySelector("#root > div > div:nth-of-type(2)");
   const observer = new MutationObserver(async () => {
     // Check if the "Board has no active match" element no longer exists
@@ -88,7 +139,7 @@ function startActiveMatchObserver(ctx) {
     } else {
       if (!matchInitialized) {
         console.log("Autodarts Tools: Match found, initializing match");
-        initMatch(ctx).catch(console.error);
+        initMatch(ctx, url).catch(console.error);
       }
     }
   });
@@ -104,17 +155,24 @@ function startActiveMatchObserver(ctx) {
   return observer;
 }
 
-async function initMatch(ctx) {
-  if (matchInitialized) return;
-  matchInitialized = true;
-
-  const config = await AutodartsToolsConfig.getValue();
-
-  if (config.streamingMode.enabled) {
-    await initStreamingMode(ctx).catch(console.error);
-  }
-
-  console.log("Autodarts Tools: Match initialized successfully");
+async function initTakeout(ctx) {
+  tools.takeout = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-takeout",
+    position: "inline",
+    anchor: "#root > div > div:nth-of-type(2)",
+    onMount: (container) => {
+      const takeout = createApp(Takeout);
+      takeout.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return takeout;
+    },
+    onRemove: (takeout) => {
+      takeout?.unmount();
+    },
+  });
+  tools.takeout.mount();
 }
 
 async function initStreamingMode(ctx) {

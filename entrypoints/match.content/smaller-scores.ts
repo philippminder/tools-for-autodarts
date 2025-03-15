@@ -1,10 +1,6 @@
-import { AutodartsToolsConfig } from "@/utils/storage";
 import { addStyles } from "@/utils";
 
-export async function scoreSmaller() {
-  const { inactiveSmall } = await AutodartsToolsConfig.getValue();
-  if (!inactiveSmall.enabled) return;
-
+export async function smallerScores() {
   try {
     addStyles(`
         .adp_points-small { font-size: 3em!important; }

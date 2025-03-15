@@ -178,7 +178,7 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppToggle from "../AppToggle.vue";
 import AppRadioGroup from "../AppRadioGroup.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "streaming-mode");
 const streamingModeEnabled = useStorage("adt:streaming-mode-enabled", false);
@@ -203,10 +203,8 @@ watch(backgroundMode, (newValue) => {
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await updateConfigIfChanged(currentConfig, config.value, "streamingMode");
 }, { deep: true });
 
 function toggleStreamingMode() {

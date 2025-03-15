@@ -39,7 +39,6 @@
       @click="activeSettings = 'automatic-next-leg'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
-      :class="{ 'opacity-50': config.disableTakeout.enabled }"
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
@@ -49,9 +48,6 @@
           <p class="w-2/3 text-white/70">
             Automatically starts the next leg {{ config?.automaticNextLeg?.sec || '5' }} seconds after takeout.
           </p>
-          <p v-if="config.disableTakeout.enabled" class="mt-2 text-sm italic text-amber-400">
-            Requires takeout recognition to be enabled
-          </p>
         </div>
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
@@ -59,7 +55,6 @@
             @click="config.automaticNextLeg.enabled = !config.automaticNextLeg.enabled"
             :type="config.automaticNextLeg.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
-            :disabled="config.disableTakeout.enabled"
           >
             <span v-if="config.automaticNextLeg.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
@@ -74,7 +69,7 @@
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "automatic-next-leg");
 const config = ref<IConfig>();
@@ -84,9 +79,8 @@ onMounted(async () => {
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+
+  await updateConfigIfChanged(currentConfig, config.value, "automaticNextLeg");
 }, { deep: true });
 </script>

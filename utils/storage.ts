@@ -45,7 +45,7 @@ export interface IConfig {
   takeout: {
     enabled: boolean;
   };
-  inactiveSmall: {
+  smallerScores: {
     enabled: boolean;
   };
   shufflePlayers: {
@@ -88,9 +88,6 @@ export interface IConfig {
     size: number;
     colorEnabled: boolean;
     color: string;
-  };
-  nextPlayerAfter3darts: {
-    enabled: boolean;
   };
   nextPlayerOnTakeOutStuck: {
     enabled: boolean;
@@ -199,7 +196,7 @@ export const defaultConfig: IConfig = {
   takeout: {
     enabled: false,
   },
-  inactiveSmall: {
+  smallerScores: {
     enabled: false,
   },
   shufflePlayers: {
@@ -216,16 +213,30 @@ export const defaultConfig: IConfig = {
     boards: [],
   },
   menuDisabled: false,
-  legsSetsLarger: { enabled: false, value: 2.5 },
-  playerMatchData: { enabled: false, value: 1.5 },
+  legsSetsLarger: {
+    enabled: false,
+    value: 2.5,
+  },
+  playerMatchData: {
+    enabled: false,
+    value: 1.5,
+  },
   automaticNextLeg: {
     enabled: false,
     sec: 5,
   },
-  winnerAnimation: { enabled: false },
-  thrownDartsOnWin: { enabled: false },
-  liveViewRing: { enabled: false, size: 2, colorEnabled: true, color: "#000000" },
-  nextPlayerAfter3darts: { enabled: false },
+  winnerAnimation: {
+    enabled: false,
+  },
+  thrownDartsOnWin: {
+    enabled: false,
+  },
+  liveViewRing: {
+    enabled: false,
+    size: 2,
+    colorEnabled: true,
+    color: "#000000",
+  },
   nextPlayerOnTakeOutStuck: {
     enabled: false,
     sec: 10,
@@ -363,3 +374,54 @@ export const AutodartsToolsStreamingModeStatus: WxtStorageItem<boolean, any> = s
     defaultValue: false,
   },
 );
+
+/**
+ * Map to track locks for each config key to prevent concurrent updates
+ */
+const configLocks = new Map<keyof IConfig, number>();
+
+/**
+ * Utility function to check if a config section has changed
+ * @param currentConfigSection The current config section from storage
+ * @param newConfigSection The new config section from the component
+ * @returns boolean indicating if the config sections are different
+ */
+export function hasConfigChanged<T>(currentConfigSection: T, newConfigSection: T): boolean {
+  return JSON.stringify(currentConfigSection) !== JSON.stringify(newConfigSection);
+}
+
+/**
+ * Updates the config only if the specified section has changed
+ * @param currentConfig The current config from storage
+ * @param newConfig The new config from the component
+ * @param configKey The key of the config section to check
+ * @returns Promise<void>
+ */
+export async function updateConfigIfChanged<K extends keyof IConfig>(
+  currentConfig: IConfig,
+  newConfig: IConfig | undefined,
+  configKey: K,
+): Promise<void> {
+  if (!newConfig) return;
+
+  /**
+   * This is needed because sometimes the config is updated multiple times in a row
+   * because of updated hooks from input fields getting triggered.
+   */
+  // Check if this config key is currently locked
+  const lockTime = configLocks.get(configKey);
+  if (lockTime && Date.now() - lockTime < 100) {
+    // Config is locked, skip update
+    return;
+  }
+
+  // Set lock for this config key
+  configLocks.set(configKey, Date.now());
+
+  if (!hasConfigChanged(currentConfig[configKey], newConfig[configKey])) return;
+
+  await AutodartsToolsConfig.setValue({
+    ...JSON.parse(JSON.stringify(defaultConfig)),
+    ...JSON.parse(JSON.stringify(newConfig)),
+  });
+}

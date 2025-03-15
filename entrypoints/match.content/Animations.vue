@@ -9,7 +9,7 @@
         id="gif-animation"
         :src="currentAnimationUrl"
         :class="twMerge(
-          `w-full h-full transition-opacity duration-300`,
+          `size-full transition-opacity duration-300`,
           isFadingIn ? 'opacity-100' : 'opacity-0',
           isFadingOut ? 'opacity-0' : '',
           config?.animations?.objectFit === 'contain' ? 'object-contain' : 'object-cover',

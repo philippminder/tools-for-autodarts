@@ -243,8 +243,6 @@
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
 
-          <!-- Seventh row of feature cards -->
-          <AutomaticNextPlayerAfter3Darts class="feature-card" data-feature-index="19" />
           <Ring class="feature-card" data-feature-index="20" />
           <!-- Settings panel for Ring (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings) && activeSettings === 'ring'" class="lg:hidden" :data-settings-id="activeSettings">
@@ -1227,7 +1225,6 @@ import LargerLegsSets from "./Settings/LargerLegsSets.vue";
 import LargerPlayerMatchData from "./Settings/LargerPlayerMatchData.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
 import ShowThrownDarts from "./Settings/ShowThrownDarts.vue";
-import AutomaticNextPlayerAfter3Darts from "./Settings/AutomaticNextPlayerAfter3Darts.vue";
 import Ring from "./Settings/Ring.vue";
 import ExternalBoards from "@/components/Settings/ExternalBoards.vue";
 import AppToggle from "@/components/AppToggle.vue";
@@ -1343,8 +1340,8 @@ const featureGroups = [
     id: "matches-row7",
     tab: 1,
     features: [
-      { id: "automatic-next-player-after-3-darts", component: AutomaticNextPlayerAfter3Darts, hasSettings: false },
       { id: "ring", component: Ring, hasSettings: true },
+      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [ "ring" ],
   },

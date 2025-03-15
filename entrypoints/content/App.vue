@@ -19,7 +19,6 @@ const navigationCheckInterval = ref();
 const isMobileNav = ref();
 
 watch(currentUrl, async (newURL, oldURL) => {
-  // Only update AutodartsToolsUrlStatus if URL starts with https
   if (newURL && newURL.startsWith("https")) {
     await AutodartsToolsUrlStatus.setValue(newURL.split("#")[0] || "undefined");
   }
@@ -70,6 +69,7 @@ onMounted(async () => {
   currentUrl.value = "";
   await nextTick();
   currentUrl.value = window.location.href;
+
   isConfigPage.value = url.includes("/tools");
 
   if (isConfigPage.value) {
