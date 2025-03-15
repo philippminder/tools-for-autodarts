@@ -58,6 +58,15 @@ watch(isMobileNav, (value, oldValue) => {
 
 onMounted(async () => {
   const url = await AutodartsToolsUrlStatus.getValue();
+
+  /**
+   * This is a workaround to fix the url not being set correctly
+   * when the page is loaded.
+   */
+  AutodartsToolsUrlStatus.setValue("");
+  await nextTick();
+  AutodartsToolsUrlStatus.setValue(url);
+
   currentUrl.value = "";
   await nextTick();
   currentUrl.value = window.location.href;

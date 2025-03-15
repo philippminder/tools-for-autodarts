@@ -265,7 +265,6 @@ async function throwsChange(ctx) {
 
   if (isValidGameMode()) {
     if (matchStatus.hasWinner) {
-      console.log("TEST");
       if (matchStatus.isInEditMode) {
         await removeWinnerAnimationOnEdit();
       } else {

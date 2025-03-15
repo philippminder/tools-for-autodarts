@@ -7,6 +7,8 @@ import {
 } from "@/utils/storage";
 
 import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
+import { fetchWithAuth } from "@/utils/helpers";
+import { processWebSocketMessage } from "@/utils/websocket-helpers";
 
 let matchInitialized = false;
 let activeMatchObserver: MutationObserver;
@@ -21,6 +23,31 @@ export default defineContentScript({
   async main(ctx: any) {
     AutodartsToolsUrlStatus.watch(async (url: string) => {
       if (/(?<!history)(\/matches\/|boards\/)/.test(url)) {
+        // Extract lobby ID from URL and fetch lobby data
+        const matchIdMatch = url.match(/\/matches\/([0-9a-f-]+)/);
+        if (matchIdMatch && matchIdMatch[1]) {
+          const matchId = matchIdMatch[1];
+          console.log("Autodarts Tools: Match ID:", matchId);
+
+          try {
+            console.log("Autodarts Tools: Fetching match data with cookie authentication...");
+            const apiUrl = `https://api.autodarts.io/gs/v0/matches/${matchId}/state`;
+            const response = await fetchWithAuth(apiUrl);
+
+            console.log("Autodarts Tools: Response status:", response.status);
+
+            if (response.ok) {
+              const matchData = await response.json();
+              console.log("Autodarts Tools: Match Data:", matchData);
+              await processWebSocketMessage("autodarts.matches", matchData);
+            } else {
+              console.error("Autodarts Tools: Failed to fetch match data", response.status, response.statusText);
+            }
+          } catch (error) {
+            console.error("Autodarts Tools: Error fetching match data:", error);
+          }
+        }
+
         const activeMatch = !(await waitForElementWithTextContent("h2", "Board has no active match", 1000).catch(() => false));
 
         if (!activeMatch) {

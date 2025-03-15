@@ -2,6 +2,7 @@
  * Content script that injects the WebSocket capture script
  */
 import { injectScript } from "wxt/client";
+import { processWebSocketMessage } from "@/utils/websocket-helpers";
 
 export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
@@ -26,6 +27,7 @@ export default defineContentScript({
             // Try to parse JSON data
             const jsonData = JSON.parse(data);
             console.log("[Content Script] Parsed JSON data:", jsonData);
+            processWebSocketMessage(jsonData.channel, jsonData.data).catch(console.error);
           } catch (e) {
             // Not JSON data, don't log
           }

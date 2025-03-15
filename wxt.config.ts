@@ -52,6 +52,11 @@ export default defineConfig({
     reloadCommand: "Alt+T",
   },
   vite: () => ({
+    server: {
+      watch: {
+        usePolling: true,
+      },
+    },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./", import.meta.url)),
