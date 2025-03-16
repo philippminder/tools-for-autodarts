@@ -64,12 +64,14 @@ export interface IConfig {
       name: string;
     }[];
   };
-  menuDisabled: boolean;
-  legsSetsLarger: {
+  hideMenuInMatch: {
+    enabled: boolean;
+  };
+  largerLegsSets: {
     enabled: boolean;
     value: number;
   };
-  playerMatchData: {
+  largerPlayerMatchData: {
     enabled: boolean;
     value: number;
   };
@@ -79,15 +81,6 @@ export interface IConfig {
   };
   winnerAnimation: {
     enabled: boolean;
-  };
-  thrownDartsOnWin: {
-    enabled: boolean;
-  };
-  liveViewRing: {
-    enabled: boolean;
-    size: number;
-    colorEnabled: boolean;
-    color: string;
   };
   nextPlayerOnTakeOutStuck: {
     enabled: boolean;
@@ -101,6 +94,9 @@ export interface IConfig {
   };
   ring: {
     enabled: boolean;
+    size: number;
+    colorEnabled: boolean;
+    color: string;
   };
   animations: {
     enabled: boolean;
@@ -212,12 +208,14 @@ export const defaultConfig: IConfig = {
     enabled: false,
     boards: [],
   },
-  menuDisabled: false,
-  legsSetsLarger: {
+  hideMenuInMatch: {
+    enabled: false,
+  },
+  largerLegsSets: {
     enabled: false,
     value: 2.5,
   },
-  playerMatchData: {
+  largerPlayerMatchData: {
     enabled: false,
     value: 1.5,
   },
@@ -227,15 +225,6 @@ export const defaultConfig: IConfig = {
   },
   winnerAnimation: {
     enabled: false,
-  },
-  thrownDartsOnWin: {
-    enabled: false,
-  },
-  liveViewRing: {
-    enabled: false,
-    size: 2,
-    colorEnabled: true,
-    color: "#000000",
   },
   nextPlayerOnTakeOutStuck: {
     enabled: false,
@@ -249,6 +238,9 @@ export const defaultConfig: IConfig = {
   },
   ring: {
     enabled: false,
+    size: 2,
+    colorEnabled: true,
+    color: "#000000",
   },
   animations: {
     enabled: false,
@@ -420,8 +412,17 @@ export async function updateConfigIfChanged<K extends keyof IConfig>(
 
   if (!hasConfigChanged(currentConfig[configKey], newConfig[configKey])) return;
 
+  console.log("Autodarts Tools: Updating config", configKey, newConfig[configKey]);
+
+  // Get the latest config to ensure we have the most up-to-date values
+  const latestConfig = await AutodartsToolsConfig.getValue();
+
+  // Only update the specific section that changed
   await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(newConfig)),
+    ...latestConfig,
+    [configKey]: JSON.parse(JSON.stringify(newConfig[configKey])),
   });
+
+  const test: IConfig = await AutodartsToolsConfig.getValue();
+  console.log(test.smallerScores.enabled);
 }

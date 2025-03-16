@@ -161,7 +161,7 @@
             <div class="truncate py-2 font-bold uppercase">
               {{ player.name }}
             </div>
-            <div v-if="showAvg" class="whitespace-nowrap text-lg font-bold text-gray-500">
+            <div v-if="showAvg && (gameData?.match?.stats?.[index]?.legStats?.average || gameData?.match?.stats?.[index]?.setStats?.average || gameData?.match?.stats?.[index]?.matchStats?.average)" class="whitespace-nowrap text-lg font-bold text-gray-500">
               ∅
               <span v-if="gameData?.match?.stats?.[index]?.legStats?.average?.toString()">{{ gameData?.match?.stats?.[index]?.legStats.average.toFixed(1) }} /</span>
               <span v-if="gameData?.match?.stats?.[index]?.setStats?.average?.toString()">{{ gameData?.match?.stats?.[index]?.setStats?.average.toFixed(1) }} /</span>
@@ -268,8 +268,8 @@ const showAvg = computed(() => config.value?.streamingMode.avg);
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-
   gameData.value = await AutodartsToolsGameData.getValue();
+
   AutodartsToolsGameData.watch((value) => {
     gameData.value = value;
 

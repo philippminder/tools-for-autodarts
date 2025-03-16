@@ -1,6 +1,17 @@
 import type { WxtStorageItem } from "wxt/storage";
 import { storage } from "wxt/storage";
 
+// Add type declaration for import.meta.env
+declare global {
+  interface ImportMeta {
+    env: {
+      DEV: boolean;
+      VITE_PRIVATE_CALLER?: string;
+      [key: string]: any;
+    };
+  }
+}
+
 export interface TCaller {
   name?: string;
   url: string;
@@ -11,7 +22,14 @@ export interface TCaller {
 export interface ICallerConfig {
   caller: TCaller[];
 }
-const privateCaller = import.meta.env.DEV && import.meta.env.VITE_PRIVATE_CALLER ? JSON.parse(import.meta.env.VITE_PRIVATE_CALLER).privateCaller || [] : [];
+
+// Safely access environment variables
+const privateCaller = (typeof import.meta.env !== "undefined"
+                      && import.meta.env.DEV
+                      && import.meta.env.VITE_PRIVATE_CALLER)
+  ? JSON.parse(import.meta.env.VITE_PRIVATE_CALLER).privateCaller || []
+  : [];
+
 // console.log("privateCaller", privateCaller);
 export const defaultCallerConfig: ICallerConfig = {
   caller: [ ...[

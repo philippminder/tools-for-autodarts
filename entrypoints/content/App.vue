@@ -17,8 +17,12 @@ const configVisible = ref(false);
 const isConfigPage = ref(true);
 const navigationCheckInterval = ref();
 const isMobileNav = ref();
+const lastVisitedUrl = useStorage("adt:last-visited-url", "");
 
 watch(currentUrl, async (newURL, oldURL) => {
+  lastVisitedUrl.value = newURL;
+
+  // Only update AutodartsToolsUrlStatus if URL starts with https
   if (newURL && newURL.startsWith("https")) {
     await AutodartsToolsUrlStatus.setValue(newURL.split("#")[0] || "undefined");
   }
@@ -57,6 +61,7 @@ watch(isMobileNav, (value, oldValue) => {
 
 onMounted(async () => {
   const url = await AutodartsToolsUrlStatus.getValue();
+  const wasLastInTools = lastVisitedUrl.value.includes("/tools");
 
   /**
    * This is a workaround to fix the url not being set correctly
@@ -69,8 +74,7 @@ onMounted(async () => {
   currentUrl.value = "";
   await nextTick();
   currentUrl.value = window.location.href;
-
-  isConfigPage.value = url.includes("/tools");
+  isConfigPage.value = url.includes("/tools") || wasLastInTools;
 
   if (isConfigPage.value) {
     window.history.pushState(null, "", "/tools");

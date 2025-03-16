@@ -42,11 +42,11 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.menuDisabled = !config.menuDisabled"
-            :type="config.menuDisabled ? 'success' : 'default'"
+            @click="config.hideMenuInMatch.enabled = !config.hideMenuInMatch.enabled"
+            :type="config.hideMenuInMatch.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.menuDisabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.hideMenuInMatch.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -74,6 +74,6 @@ onMounted(async () => {
 
 watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
-  await updateConfigIfChanged(currentConfig, config.value, "menuDisabled");
+  await updateConfigIfChanged(currentConfig, config.value, "hideMenuInMatch");
 }, { deep: true });
 </script>

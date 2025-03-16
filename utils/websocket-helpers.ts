@@ -202,8 +202,6 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
       const id = window.location.href.match(/lobbies\/([0-9a-f-]+)/)?.[1];
       if (id !== data.id) return;
 
-      console.log(data);
-
       const gameData = await AutodartsToolsGameData.getValue();
       AutodartsToolsGameData.setValue({
         ...gameData,
@@ -214,7 +212,8 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
     }
     case "autodarts.matches": {
       const id = window.location.href.match(/matches\/([0-9a-f-]+)/)?.[1];
-      if (id !== data.id && (data as IMatch).activated === undefined) return;
+      const playersBoard = data.players?.find(player => player.boardId === window.location.href.match(/boards\/([0-9a-f-]+)/)?.[1]);
+      if ((id !== data.id && !playersBoard) && (data as IMatch).activated === undefined) return;
 
       const gameData = await AutodartsToolsGameData.getValue();
       if ((data as IMatch).activated !== undefined) {

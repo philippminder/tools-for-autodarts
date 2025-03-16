@@ -53,11 +53,11 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.legsSetsLarger.enabled = !config.legsSetsLarger.enabled"
-            :type="config.legsSetsLarger.enabled ? 'success' : 'default'"
+            @click="config.largerLegsSets.enabled = !config.largerLegsSets.enabled"
+            :type="config.largerLegsSets.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.legsSetsLarger.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.largerLegsSets.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -83,8 +83,8 @@ const imageUrl = browser.runtime.getURL("/images/larger-legs-sets.png");
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   // Initialize the size value from config
-  if (config.value?.legsSetsLarger?.value) {
-    sizeValue.value = config.value.legsSetsLarger.value.toString();
+  if (config.value?.largerLegsSets?.value) {
+    sizeValue.value = config.value.largerLegsSets.value.toString();
   }
 });
 
@@ -93,12 +93,12 @@ watch(sizeValue, (newValue) => {
   if (config.value) {
     // Convert string to number
     const numValue = Number.parseFloat(newValue) || 1; // Default to 1 if parsing fails
-    config.value.legsSetsLarger.value = numValue;
+    config.value.largerLegsSets.value = numValue;
   }
 });
 
 watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
-  await updateConfigIfChanged(currentConfig, config.value, "legsSetsLarger");
+  await updateConfigIfChanged(currentConfig, config.value, "largerLegsSets");
 }, { deep: true });
 </script>

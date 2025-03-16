@@ -53,17 +53,17 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.playerMatchData.enabled = !config.playerMatchData.enabled"
-            :type="config.playerMatchData.enabled ? 'success' : 'default'"
+            @click="config.largerPlayerMatchData.enabled = !config.largerPlayerMatchData.enabled"
+            :type="config.largerPlayerMatchData.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.playerMatchData.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.largerPlayerMatchData.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img src="/images/larger-player-match-data.png" alt="Larger Player Match Data" class="size-full object-cover">
+        <img :src="imageUrl" alt="Larger Player Match Data" class="size-full object-cover">
       </div>
     </div>
   </template>
@@ -78,12 +78,13 @@ import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/uti
 const activeSettings = useStorage("adt:active-settings", "larger-player-match-data");
 const config = ref<IConfig>();
 const sizeValue = ref("");
+const imageUrl = browser.runtime.getURL("/images/larger-player-match-data.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   // Initialize the size value from config
-  if (config.value?.playerMatchData?.value) {
-    sizeValue.value = config.value.playerMatchData.value.toString();
+  if (config.value?.largerPlayerMatchData?.value) {
+    sizeValue.value = config.value.largerPlayerMatchData.value.toString();
   }
 });
 
@@ -92,12 +93,12 @@ watch(sizeValue, (newValue) => {
   if (config.value) {
     // Convert string to number
     const numValue = Number.parseFloat(newValue) || 1; // Default to 1 if parsing fails
-    config.value.playerMatchData.value = numValue;
+    config.value.largerPlayerMatchData.value = numValue;
   }
 });
 
 watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
-  await updateConfigIfChanged(currentConfig, config.value, "playerMatchData");
+  await updateConfigIfChanged(currentConfig, config.value, "largerPlayerMatchData");
 }, { deep: true });
 </script>

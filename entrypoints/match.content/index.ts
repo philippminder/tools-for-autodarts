@@ -6,6 +6,11 @@ import Takeout from "./Takeout.vue";
 import { nextPlayerOnTakeOutStuck } from "./next-player-on-take-out-stuck";
 import { automaticNextLeg } from "./automatic-next-leg";
 import { smallerScores } from "./smaller-scores";
+import { hideMenuInMatch, hideMenuInMatchOnRemove } from "./hide-menu-in-match";
+import { largerPlayerMatchData } from "./larger-player-match-data";
+import { largerLegsSets } from "./larger-legs-sets";
+import { winnerAnimation, winnerAnimationOnRemove } from "./winner-animation";
+import { ring } from "./ring";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
   AutodartsToolsConfig,
@@ -15,9 +20,11 @@ import {
 import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
 import { fetchWithAuth } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
+import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 
 let matchInitialized = false;
 let activeMatchObserver: MutationObserver;
+let gameDataWatcher: any;
 
 const tools = {
   streamingMode: null as any,
@@ -29,15 +36,26 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx: any) {
     AutodartsToolsUrlStatus.watch(async (url: string) => {
-      if (/(?<!history)(\/matches\/|boards\/)/.test(url)) {
-        // Extract lobby ID from URL and fetch lobby data
-        const matchIdMatch = url.match(/\/matches\/([0-9a-f-]+)/);
-        if (matchIdMatch && matchIdMatch[1]) {
-          const matchId = matchIdMatch[1];
-          console.log("Autodarts Tools: Match ID:", matchId);
+      if (/\/(matches|boards)\/([0-9a-f-]+)/.test(url)) {
+        await waitForElement("#root > div > div:nth-of-type(2)");
 
+        // Extract lobby ID from URL and fetch lobby data
+        let matchId = url.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0];
+        if (matchId) {
           try {
             console.log("Autodarts Tools: Fetching match data with cookie authentication...");
+
+            if (url.includes("boards")) {
+              const apiUrl = `https://api.autodarts.io/bs/v0/boards/${matchId}`;
+              const response = await fetchWithAuth(apiUrl);
+
+              if (response.ok) {
+                matchId = (await response.json()).matchId;
+              }
+            }
+
+            console.log("Autodarts Tools: Match ID:", matchId);
+
             const apiUrl = `https://api.autodarts.io/gs/v0/matches/${matchId}/state`;
             const response = await fetchWithAuth(apiUrl);
 
@@ -55,16 +73,26 @@ export default defineContentScript({
           }
         }
 
-        const activeMatch = !(await waitForElementWithTextContent("h2", "Board has no active match", 1000).catch(() => false));
+        const activeMatch = window.location.href.includes("boards") ? !(await waitForElementWithTextContent("h2", "Board has no active match", 1000).catch(() => undefined)) : true;
 
-        if (!activeMatch) {
-          console.log("Autodarts Tools: No Active Match found, waiting for match to start");
-        } else {
+        if (activeMatch) {
           console.log("Autodarts Tools: Match found, initializing match");
           initMatch(ctx, url).catch(console.error);
+
+          if (!gameDataWatcher) {
+            gameDataWatcher = AutodartsToolsGameData.watch(async (value, oldValue) => {
+              if (oldValue?.match?.variant === "Bull-off" && value?.match?.variant !== "Bull-off") {
+                clearMatch();
+                await nextTick();
+                return initMatch(ctx, url);
+              }
+            });
+          }
+        } else {
+          console.log("Autodarts Tools: No Active Match found, waiting for match to start");
         }
 
-        activeMatchObserver = startActiveMatchObserver(ctx, url);
+        activeMatchObserver = startActiveMatchObserver(ctx);
       } else {
         console.log("Autodarts Tools: No Match found, clearing match");
         clearMatch();
@@ -107,14 +135,38 @@ async function initMatch(ctx, url: string) {
     await initScript(smallerScores, url);
   }
 
-  console.log("Autodarts Tools: Match initialized successfully");
+  if (config.hideMenuInMatch.enabled) {
+    await initScript(hideMenuInMatch, url);
+  }
+
+  if (config.largerLegsSets.enabled) {
+    await initScript(largerLegsSets, url);
+  }
+
+  if (config.largerPlayerMatchData.enabled) {
+    await initScript(largerPlayerMatchData, url);
+  }
+
+  if (config.winnerAnimation.enabled) {
+    await initScript(winnerAnimation, url);
+  }
+
+  if (config.ring.enabled) {
+    await initScript(ring, url);
+  }
 }
 
 function clearMatch() {
+  console.log("Autodarts Tools: Clearing match");
+
+  activeMatchObserver?.disconnect();
+
   tools.streamingMode?.remove();
   tools.takeout?.remove();
-  activeMatchObserver?.disconnect();
+
   colorChangeOnRemove();
+  hideMenuInMatchOnRemove();
+  winnerAnimationOnRemove();
 
   matchInitialized = false;
 }
@@ -124,21 +176,35 @@ async function initScript(fn: any, url: string) {
   await fn();
 }
 
-function startActiveMatchObserver(ctx, url: string) {
+function startActiveMatchObserver(ctx) {
   const targetNode = document.querySelector("#root > div > div:nth-of-type(2)");
   const observer = new MutationObserver(async () => {
     // Check if the "Board has no active match" element no longer exists
-    const activeMatch = !(await waitForElementWithTextContent("h2", "Board has no active match", 1000).catch(() => false));
+    const activeMatch = window.location.href.includes("boards") ? !(await waitForElementWithTextContent("h2", "Board has no active match", 1000).catch(() => undefined)) : true;
 
     if (!activeMatch) {
-      console.log("Autodarts Tools: No Active Match found, waiting for match to start");
+      console.log("Autodarts Tools Observer: No Active Match found, waiting for match to start");
       if (matchInitialized) {
         matchInitialized = false;
         clearMatch();
       }
     } else {
-      if (!matchInitialized) {
-        console.log("Autodarts Tools: Match found, initializing match");
+      const url = await AutodartsToolsUrlStatus.getValue();
+      let matchId = url.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0];
+
+      if (url.includes("boards")) {
+        const apiUrl = `https://api.autodarts.io/bs/v0/boards/${matchId}`;
+        const response = await fetchWithAuth(apiUrl);
+
+        if (response.ok) {
+          matchId = (await response.json()).matchId;
+        }
+      }
+
+      console.log("Autodarts Tools Observer: Match ID:", matchId);
+
+      if (!matchInitialized && matchId) {
+        console.log("Autodarts Tools Observer: Match found, initializing match because activeMatch is true");
         initMatch(ctx, url).catch(console.error);
       }
     }
