@@ -809,11 +809,7 @@ function resetAllSettings() {
     "This will reset all settings to their default values. All your customizations will be lost. Are you sure you want to continue?",
     () => {
       config.value = JSON.parse(JSON.stringify(defaultConfig));
-      showNotification("All settings have been reset to default.<br>Reloading page to apply settings...");
-      // Add a small delay before reloading to allow the notification to be seen
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      showNotification("All settings have been reset to default");
     },
   );
 }
