@@ -3,6 +3,7 @@ name: release
   push:
     branches:
       - main
+      - tools-2.0.0
 
 concurrency:
   group: release-${{ github.ref }}
@@ -46,12 +47,22 @@ jobs:
       - run: yarn build:firefox
       - run: yarn zip:firefox
 
+      - name: Set Release Flags
+        id: release-flags
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/tools-2.0.0" ]]; then
+            echo "::set-output name=prerelease::true"
+          else
+            echo "::set-output name=prerelease::false"
+          fi
+
       - name: GH Release
         uses: softprops/action-gh-release@v0.1.15
         with:
           tag_name: ${{ steps.get-version.outputs.version }}
           release_name: ${{ steps.get-version.outputs.version }}
           draft: true
+          prerelease: ${{ steps.release-flags.outputs.prerelease }}
           files: |
             .output/autodarts-tools-${{ steps.get-version.outputs.version }}-chrome.zip
             .output/autodarts-tools-${{ steps.get-version.outputs.version }}-firefox.zip
