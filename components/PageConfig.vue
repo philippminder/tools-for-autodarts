@@ -705,27 +705,6 @@ const tabs = ref([ "Lobbies", "Matches", "Boards", "Sounds & Animations" ]);
 const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
 const activeTab = useStorage("adt:active-tab", 0);
 
-// Add refs for settings sections
-const settingsSections = ref({});
-
-// Function to check if a setting belongs to a group
-function isSettingInGroup(settingId, group) {
-  return group.settingIds.includes(settingId) && group.tab === activeTab.value;
-}
-
-// Function to get the component for a setting
-function getComponentForSetting(settingId) {
-  for (const group of featureGroups) {
-    if (group.tab === activeTab.value) {
-      const feature = group.features.find(f => f.id === settingId && f.hasSettings);
-      if (feature) {
-        return feature.component;
-      }
-    }
-  }
-  return null;
-}
-
 const config = ref<IConfig>();
 const importFileInput = ref<HTMLInputElement>();
 
@@ -891,6 +870,24 @@ function pasteFromClipboard() {
       console.error("Failed to read from clipboard:", err);
       showNotification("Failed to read from clipboard", "error");
     });
+}
+
+// Function to check if a setting belongs to a group
+function isSettingInGroup(settingId, group) {
+  return group.settingIds.includes(settingId) && group.tab === activeTab.value;
+}
+
+// Function to get the component for a setting
+function getComponentForSetting(settingId) {
+  for (const group of featureGroups) {
+    if (group.tab === activeTab.value) {
+      const feature = group.features.find(f => f.id === settingId && f.hasSettings);
+      if (feature) {
+        return feature.component;
+      }
+    }
+  }
+  return null;
 }
 </script>
 
