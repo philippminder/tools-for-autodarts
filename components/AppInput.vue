@@ -9,7 +9,7 @@
       :placeholder="placeholder"
       :disabled="disabled"
       :class="twMerge(
-        'w-full rounded-md border border-white/20 bg-white/10 p-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none',
+        'w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none',
         disabled && 'cursor-not-allowed opacity-60',
         $attrs.class?.toString(),
       )"

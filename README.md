@@ -52,11 +52,39 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Smaller Font for Inactive Players**: Reduces the font size of scores for players not currently throwing
 - **External Boards Support**: Easily follow games on external boards
 - **Fancy Gameshot Animation**: Celebratory animation when a player wins
+- **Animations**: Display custom animations for special events like 180s, bulls, busts, and leg wins during gameplay
 
 ### 🔊 Audio Features
 - **Caller**: Voice announcements for scores
 - **Custom Sounds**: Various sound effects for different game events
 - **Sound Upload**: Add your own custom sounds for personalized feedback
+
+### 🎬 Animations
+
+The Animations feature allows you to display custom GIF animations for special events during gameplay:
+
+#### Configuration
+- **Delay**: Set how long to wait before showing the animation (in seconds)
+- **Duration**: Set how long the animation should display (in seconds)
+- **Object Fit**: Choose between 'cover' (fill screen) or 'contain' (maintain aspect ratio)
+
+#### Supported Triggers
+Animations can be triggered by various game events using these tags:
+
+- **Points**: `0` to `180` (total points scored in a turn)
+- **Singles**: `s0` to `s20` and `s25` (single segments, s25 for bull)
+- **Doubles**: `d1` to `d20` and `d25` (double segments, d25 for bullseye)
+- **Triples**: `t1` to `t20` (triple segments)
+- **Special Events**:
+  - `miss`: When a dart misses the board
+  - `bust`: When a player busts (scores more than needed)
+  - `winner`: When a player wins the game
+
+You can add multiple triggers for the same animation by entering each trigger on a new line in the animation settings.
+
+> [!INFO]
+> #### Random Animation Selection
+> If you assign the same trigger to multiple animations, the system will randomly select one of the matching animations to play each time the trigger occurs. This allows for variety in your gameplay experience.
 
 ### 🔄 Utility Features
 - **Settings Import/Export**: Transfer your configuration between devices or create backups

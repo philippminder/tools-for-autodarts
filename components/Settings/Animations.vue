@@ -12,6 +12,52 @@
           </h3>
           <div class="space-y-3 text-white/70">
             <p>Configure the animations for the game. Click the plus button to add a new animation.</p>
+
+            <!-- Animation Settings -->
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="mb-1 block text-sm font-medium text-white">Delay (seconds)</label>
+                <AppInput
+                  @update:model-value="val => config!.animations.delayStart = Number(val)"
+                  v-if="config"
+                  :model-value="String(config.animations.delayStart || 1)"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  placeholder="1"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-white">Duration (seconds)</label>
+                <AppInput
+                  @update:model-value="val => config!.animations.duration = Number(val)"
+                  v-if="config"
+                  :model-value="String(config.animations.duration || 5)"
+                  type="number"
+                  min="0.5"
+                  step="0.5"
+                  placeholder="5"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-white">Object Fit</label>
+                <AppSelect
+                  @update:model-value="val => config!.animations.objectFit = val as 'cover' | 'contain'"
+                  v-if="config"
+                  :model-value="config.animations.objectFit || 'cover'"
+                  :options="[
+                    { value: 'cover', label: 'Cover' },
+                    { value: 'contain', label: 'Contain' },
+                  ]"
+                />
+              </div>
+            </div>
+
+            <div class="mt-2 flex items-center gap-2 text-sm">
+              <span class="icon-[pixelarticons--drag-and-drop] text-white/60" />
+              <p>Drag and drop animations to change their priority order</p>
+            </div>
+
             <div
               ref="animationsContainer"
               :key="containerKey"
@@ -28,10 +74,10 @@
                 }"
               >
                 <!-- Main content -->
-                <img :src="animation.url" class="size-full object-cover">
+                <img :src="animation.url" class="size-full" :class="`object-${config.animations.objectFit || 'cover'}`">
 
                 <!-- Drag handle overlay -->
-                <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/100 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
                   <span class="icon-[pixelarticons--drag-handle] text-lg text-white/70" />
                 </div>
 
@@ -104,12 +150,18 @@
       <div class="space-y-4">
         <div>
           <label for="animation-url" class="mb-1 block text-sm font-medium text-white">Animation URL (GIF)</label>
-          <AppInput
-            id="animation-url"
-            v-model="newAnimation.url"
-            type="url"
-            placeholder="https://example.com/animation.gif"
-          />
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-white/60">
+              <span class="icon-[pixelarticons--link]" />
+            </span>
+            <AppInput
+              id="animation-url"
+              v-model="newAnimation.url"
+              type="url"
+              placeholder="https://example.com/animation.gif"
+              class="pl-9"
+            />
+          </div>
         </div>
 
         <hr class="border-white/20">
@@ -118,7 +170,7 @@
           <label for="animation-text" class="mb-1 block text-sm font-medium text-white">Triggers <span class="text-xs text-white/60">(one per line)</span></label>
           <AppTextarea
             id="animation-text"
-            v-model="newAnimation.text"
+            v-model="lowercaseText"
             :placeholder="textareaPlaceholder"
             monospace
             :rows="6"
@@ -173,10 +225,12 @@
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 import Sortable from "sortablejs";
+import { computed } from "vue";
 import AppButton from "../AppButton.vue";
 import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
+import AppSelect from "../AppSelect.vue";
 import { AutodartsToolsConfig, type IAnimation, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "animations");
@@ -194,6 +248,14 @@ const currentDragIndex = ref<number | null>(null);
 const containerKey = ref(0);
 let sortableInstance: Sortable | null = null;
 
+// Computed property for lowercase text handling
+const lowercaseText = computed({
+  get: () => newAnimation.value.text,
+  set: (val: string) => {
+    newAnimation.value.text = val.toLowerCase();
+  },
+});
+
 const textareaPlaceholder = `0
 180
 s60
@@ -207,6 +269,15 @@ onMounted(async () => {
   // Initialize animations array if it doesn't exist
   if (!config.value?.animations.data) {
     config.value!.animations.data = [];
+  }
+
+  // Initialize delay and duration if they don't exist
+  if (config.value!.animations.delayStart === undefined) {
+    config.value!.animations.delayStart = 1;
+  }
+
+  if (config.value!.animations.duration === undefined) {
+    config.value!.animations.duration = 5;
   }
 
   // Migrate existing animations to include enabled property
@@ -240,7 +311,7 @@ function initSortable() {
     ghostClass: "bg-gray-700",
     onStart(evt) {
       isDragging.value = true;
-      currentDragIndex.value = evt.oldIndex;
+      currentDragIndex.value = evt.oldIndex !== undefined ? evt.oldIndex : null;
     },
     onEnd(evt) {
       isDragging.value = false;
@@ -249,7 +320,6 @@ function initSortable() {
       // Only update if the position actually changed
       if (evt.oldIndex !== evt.newIndex && config.value?.animations.data) {
         // Get the moved item
-        const itemEl = evt.item;
         const oldIndex = evt.oldIndex;
         const newIndex = evt.newIndex;
 
@@ -296,7 +366,7 @@ function saveAnimation() {
   // Convert text to array of triggers (split by newline and filter empty lines)
   const triggers = newAnimation.value.text
     .split("\n")
-    .map(line => line.trim())
+    .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
 
   // Create animation object

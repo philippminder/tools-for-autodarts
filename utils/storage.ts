@@ -102,7 +102,7 @@ export interface IConfig {
     enabled: boolean;
     duration?: number;
     delayStart?: number;
-    objectFit?: string;
+    objectFit?: "cover" | "contain";
     data: IAnimation[];
   };
 }

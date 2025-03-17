@@ -21,6 +21,7 @@ import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
 import { fetchWithAuth } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
+import Animations from "@/entrypoints/match.content/Animations.vue";
 
 let matchInitialized = false;
 let activeMatchObserver: MutationObserver;
@@ -29,6 +30,7 @@ let gameDataWatcher: any;
 const tools = {
   streamingMode: null as any,
   takeout: null as any,
+  animations: null as any,
 };
 
 export default defineContentScript({
@@ -154,6 +156,10 @@ async function initMatch(ctx, url: string) {
   if (config.ring.enabled) {
     await initScript(ring, url);
   }
+
+  if (config.animations.enabled) {
+    await initAnimations(ctx).catch(console.error);
+  }
 }
 
 function clearMatch() {
@@ -263,4 +269,28 @@ async function initStreamingMode(ctx) {
   });
 
   tools.streamingMode.mount();
+}
+
+async function initAnimations(ctx) {
+  await waitForElement("#root > div > div:nth-of-type(2)");
+  tools.animations = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-animations",
+    position: "inline",
+    anchor: "#root > div > div:nth-of-type(2)",
+    onMount: (container: any) => {
+      console.log("Autodarts Tools: Animations initialized");
+      const app = createApp(Animations);
+      app.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return app;
+    },
+    onRemove: (app: any) => {
+      app?.unmount();
+      console.log("Autodarts Tools: Animations removed");
+    },
+  });
+
+  tools.animations.mount();
 }

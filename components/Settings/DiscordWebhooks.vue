@@ -21,14 +21,19 @@
               ]"
               button-size="sm"
             />
-            <AppInput
-              v-model="config.discord.url"
-              placeholder="Enter Discord webhook URL"
-              label="Webhook URL"
-              left-icon="icon-[pixelarticons--link]"
-              helper-text="The Discord webhook URL to send lobby invitations to"
-              size="sm"
-            />
+            <div class="relative">
+              <span class="absolute inset-y-0 left-3 flex items-center text-white/60">
+                <span class="icon-[pixelarticons--link]" />
+              </span>
+              <AppInput
+                v-model="config.discord.url"
+                placeholder="Enter Discord webhook URL"
+                label="Webhook URL"
+                class="pl-9"
+                helper-text="The Discord webhook URL to send lobby invitations to"
+                size="sm"
+              />
+            </div>
           </div>
         </div>
       </div>
