@@ -62,9 +62,6 @@
           </AppButton>
         </div>
       </div>
-      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img :src="imageUrl" alt="Larger Player Names" class="size-full object-cover">
-      </div>
     </div>
   </template>
 </template>
@@ -78,7 +75,6 @@ import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/uti
 const activeSettings = useStorage("adt:active-settings", "larger-player-names");
 const config = ref<IConfig>();
 const sizeValue = ref("");
-const imageUrl = browser.runtime.getURL("/images/larger-legs-sets.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
