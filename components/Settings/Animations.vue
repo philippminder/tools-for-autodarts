@@ -12,19 +12,35 @@
           </h3>
           <div class="space-y-3 text-white/70">
             <p>Configure the animations for the game. Click the plus button to add a new animation.</p>
-            <div class="mt-5 grid grid-cols-3 gap-4">
+            <div
+              ref="animationsContainer"
+              :key="containerKey"
+              class="mt-5 flex flex-wrap gap-4"
+            >
               <!-- Display existing animations -->
               <div
-                @click="editAnimation(index)"
                 v-for="(animation, index) in config.animations.data"
                 :key="index"
-                class="relative aspect-video w-full cursor-pointer overflow-hidden rounded-md border border-white/30 bg-black/30"
-                :class="{ 'opacity-50': !animation.enabled }"
+                :data-id="index"
+                class="group relative aspect-video w-[calc(33.33%-1rem)] overflow-hidden rounded-md border border-white/30 bg-black/30"
+                :class="{
+                  'opacity-50': !animation.enabled,
+                }"
               >
+                <!-- Main content -->
                 <img :src="animation.url" class="size-full object-cover">
+
+                <!-- Drag handle overlay -->
+                <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/50 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                  <span class="icon-[pixelarticons--drag-handle] text-lg text-white/70" />
+                </div>
+
+                <!-- Disabled overlay -->
                 <div v-if="!animation.enabled" class="absolute inset-0 flex items-center justify-center bg-black/40">
                   <span class="icon-[pixelarticons--close-circle] text-2xl text-white/70" />
                 </div>
+
+                <!-- Toggle button -->
                 <div class="absolute left-2 top-2 z-20">
                   <button
                     @click.stop="toggleAnimation(index)"
@@ -37,6 +53,18 @@
                     <span v-else class="icon-[pixelarticons--close]" />
                   </button>
                 </div>
+
+                <!-- Edit button -->
+                <div class="absolute right-2 top-2 z-20">
+                  <button
+                    @click.stop="editAnimation(index)"
+                    class="flex size-8 items-center justify-center rounded-full bg-white/10 text-white/70 hover:bg-white/20"
+                  >
+                    <span class="icon-[pixelarticons--edit] text-sm" />
+                  </button>
+                </div>
+
+                <!-- Info section -->
                 <div class="absolute inset-x-0 bottom-0 bg-black/70 p-2 text-xs">
                   <div class="truncate font-mono uppercase">
                     {{ animation.triggers.join(', ') }}
@@ -54,7 +82,7 @@
 
               <div
                 @click="openAddAnimationModal"
-                class="flex aspect-video w-full cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
+                class="flex aspect-video w-[calc(33.33%-1rem)] cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
               >
                 <div class="flex flex-col items-center">
                   <span class="icon-[pixelarticons--plus] mb-1 text-xl" />
@@ -144,6 +172,7 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
+import Sortable from "sortablejs";
 import AppButton from "../AppButton.vue";
 import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
@@ -159,6 +188,11 @@ const newAnimation = ref({
   text: "",
 });
 const editingIndex = ref<number | null>(null);
+const animationsContainer = ref<HTMLElement | null>(null);
+const isDragging = ref(false);
+const currentDragIndex = ref<number | null>(null);
+const containerKey = ref(0);
+let sortableInstance: Sortable | null = null;
 
 const textareaPlaceholder = `0
 180
@@ -177,12 +211,65 @@ onMounted(async () => {
 
   // Migrate existing animations to include enabled property
   migrateAnimations();
+
+  // Initialize sortable after the DOM is updated
+  nextTick(() => {
+    initSortable();
+  });
 });
 
 watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await updateConfigIfChanged(currentConfig, config.value, "animations");
 }, { deep: true });
+
+function initSortable() {
+  if (!animationsContainer.value) return;
+
+  // Clean up any existing instance
+  if (sortableInstance) {
+    sortableInstance.destroy();
+    sortableInstance = null;
+  }
+
+  // Create a new Sortable instance
+  sortableInstance = Sortable.create(animationsContainer.value, {
+    animation: 150,
+    draggable: "[data-id]",
+    filter: ".flex.aspect-video", // Don't make the "Add Animation" button draggable
+    ghostClass: "bg-gray-700",
+    onStart(evt) {
+      isDragging.value = true;
+      currentDragIndex.value = evt.oldIndex;
+    },
+    onEnd(evt) {
+      isDragging.value = false;
+      currentDragIndex.value = null;
+
+      // Only update if the position actually changed
+      if (evt.oldIndex !== evt.newIndex && config.value?.animations.data) {
+        // Get the moved item
+        const itemEl = evt.item;
+        const oldIndex = evt.oldIndex;
+        const newIndex = evt.newIndex;
+
+        // Update the data array to match the DOM
+        if (oldIndex !== undefined && newIndex !== undefined) {
+          const movedItem = config.value.animations.data.splice(oldIndex, 1)[0];
+          config.value.animations.data.splice(newIndex, 0, movedItem);
+
+          // Update the container key to force re-render
+          containerKey.value++;
+
+          // Re-initialize sortable after a short delay to ensure DOM is updated
+          setTimeout(() => {
+            initSortable();
+          }, 50);
+        }
+      }
+    },
+  });
+}
 
 function openAddAnimationModal() {
   newAnimation.value = { url: "", text: "" };
