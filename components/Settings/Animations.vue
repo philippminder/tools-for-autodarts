@@ -167,7 +167,16 @@
         <hr class="border-white/20">
 
         <div>
-          <label for="animation-text" class="mb-1 block text-sm font-medium text-white">Triggers <span class="text-xs text-white/60">(one per line)</span></label>
+          <label for="animation-text" class="mb-1 flex items-center justify-between text-sm font-medium text-white">
+            <span>Triggers <span class="text-xs text-white/60">(one per line)</span></span>
+            <a
+              href="https://github.com/creazy231/tools-for-autodarts/tree/tools-2.0.0?tab=readme-ov-file#supported-triggers"
+              target="_blank"
+              class="text-blue-400 hover:text-blue-300"
+            >
+              View supported triggers
+            </a>
+          </label>
           <AppTextarea
             id="animation-text"
             v-model="lowercaseText"

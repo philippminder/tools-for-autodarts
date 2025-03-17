@@ -9,6 +9,7 @@ import { smallerScores } from "./smaller-scores";
 import { hideMenuInMatch, hideMenuInMatchOnRemove } from "./hide-menu-in-match";
 import { largerPlayerMatchData } from "./larger-player-match-data";
 import { largerLegsSets } from "./larger-legs-sets";
+import { largerPlayerNames } from "./larger-player-names";
 import { winnerAnimation, winnerAnimationOnRemove } from "./winner-animation";
 import { ring } from "./ring";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
@@ -149,6 +150,10 @@ async function initMatch(ctx, url: string) {
     await initScript(largerPlayerMatchData, url);
   }
 
+  if (config.largerPlayerNames.enabled) {
+    await initScript(largerPlayerNames, url);
+  }
+
   if (config.winnerAnimation.enabled) {
     await initScript(winnerAnimation, url);
   }
@@ -169,6 +174,7 @@ function clearMatch() {
 
   tools.streamingMode?.remove();
   tools.takeout?.remove();
+  tools.animations?.remove();
 
   colorChangeOnRemove();
   hideMenuInMatchOnRemove();

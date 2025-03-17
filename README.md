@@ -43,6 +43,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Virtual Board Surround**: Adds a customizable surround to the dartboard
 - **Hide Menu**: Provides more space for the game view
 - **Adjustable UI Elements**: Modify the size of legs, sets, and match information
+- **Larger Player Names**: Increase the font size of player names for better visibility during matches
 
 ### 🎮 Gameplay Features
 - **Takeout Visualization**: Visual notification when takeout is in progress
@@ -72,10 +73,11 @@ The Animations feature allows you to display custom GIF animations for special e
 Animations can be triggered by various game events using these tags:
 
 - **Points**: `0` to `180` (total points scored in a turn)
-- **Singles**: `s0` to `s20` and `s25` (single segments, s25 for bull)
-- **Doubles**: `d1` to `d20` and `d25` (double segments, d25 for bullseye)
+- **Singles**: `s0` to `s20` and `25` (single segments, `25` for bull)
+- **Doubles**: `d1` to `d20` (double segments, `bull` for bullseye)
 - **Triples**: `t1` to `t20` (triple segments)
 - **Special Events**:
+  - `bull`: When a player hits the bullseye
   - `miss`: When a dart misses the board
   - `bust`: When a player busts (scores more than needed)
   - `winner`: When a player wins the game
@@ -87,7 +89,7 @@ Example: `s20_s5_d20` would trigger when a player throws single 20, then single 
 
 You can add multiple triggers for the same animation by entering each trigger on a new line in the animation settings.
 
-> [!INFO]
+> [!NOTE]  
 > #### Random Animation Selection
 > If you assign the same trigger to multiple animations, the system will randomly select one of the matching animations to play each time the trigger occurs. This allows for variety in your gameplay experience.
 

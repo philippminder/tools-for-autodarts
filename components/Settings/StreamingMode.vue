@@ -158,10 +158,10 @@
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
             @click="toggleStreamingMode"
-            :type="streamingModeEnabled ? 'success' : 'default'"
+            :type="config?.streamingMode.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="streamingModeEnabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config?.streamingMode.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -181,7 +181,6 @@ import AppRadioGroup from "../AppRadioGroup.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const activeSettings = useStorage("adt:active-settings", "streaming-mode");
-const streamingModeEnabled = useStorage("adt:streaming-mode-enabled", false);
 const config = ref<IConfig>();
 const streamingModeBackgroundFileSelect = ref() as Ref<HTMLInputElement>;
 const backgroundMode = ref(true);
@@ -208,9 +207,8 @@ watch(config, async () => {
 }, { deep: true });
 
 function toggleStreamingMode() {
-  streamingModeEnabled.value = !streamingModeEnabled.value;
   if (config.value) {
-    config.value.streamingMode.enabled = streamingModeEnabled.value;
+    config.value.streamingMode.enabled = !config.value.streamingMode.enabled;
   }
 }
 

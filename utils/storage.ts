@@ -76,6 +76,10 @@ export interface IConfig {
     enabled: boolean;
     value: number;
   };
+  largerPlayerNames: {
+    enabled: boolean;
+    value: number;
+  };
   automaticNextLeg: {
     enabled: boolean;
     sec: number;
@@ -222,6 +226,10 @@ export const defaultConfig: IConfig = {
   largerPlayerMatchData: {
     enabled: false,
     value: 1.5,
+  },
+  largerPlayerNames: {
+    enabled: false,
+    value: 2.5,
   },
   automaticNextLeg: {
     enabled: false,

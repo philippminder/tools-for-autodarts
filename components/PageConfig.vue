@@ -222,9 +222,9 @@
           <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-legs-sets'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
-          <LargerPlayerMatchData class="feature-card" data-feature-index="16" />
-          <!-- Settings panel for LargerPlayerMatchData (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-match-data'" class="lg:hidden" :data-settings-id="activeSettings">
+          <LargerPlayerNames class="feature-card" data-feature-index="16" />
+          <!-- Settings panel for LargerPlayerNames (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-names'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
 
@@ -234,16 +234,23 @@
           </div>
 
           <!-- Sixth row of feature cards -->
-          <WinnerAnimation class="feature-card" data-feature-index="17" />
-          <Ring class="feature-card" data-feature-index="20" />
+          <LargerPlayerMatchData class="feature-card" data-feature-index="17" />
+          <!-- Settings panel for LargerPlayerMatchData (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-match-data'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+          <WinnerAnimation class="feature-card" data-feature-index="18" />
 
-          <!-- Settings panel for sixth row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
+          <!-- Settings panel for sixth row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
 
-          <!-- Settings panel for seventh row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+          <!-- Seventh row of feature cards -->
+          <Ring class="feature-card" data-feature-index="19" />
+
+          <!-- Settings panel for seventh row (only if active setting has settings) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
         </div>
@@ -307,6 +314,7 @@ import StreamingMode from "./Settings/StreamingMode.vue";
 import HideMenuInMatch from "./Settings/HideMenuInMatch.vue";
 import LargerLegsSets from "./Settings/LargerLegsSets.vue";
 import LargerPlayerMatchData from "./Settings/LargerPlayerMatchData.vue";
+import LargerPlayerNames from "./Settings/LargerPlayerNames.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
 import Ring from "./Settings/Ring.vue";
 import Animations from "./Settings/Animations.vue";
@@ -398,18 +406,19 @@ const featureGroups = [
     tab: 1,
     features: [
       { id: "larger-legs-sets", component: LargerLegsSets, hasSettings: true },
-      { id: "larger-player-match-data", component: LargerPlayerMatchData, hasSettings: true },
+      { id: "larger-player-names", component: LargerPlayerNames, hasSettings: true },
     ],
-    settingIds: [ "larger-legs-sets", "larger-player-match-data" ],
+    settingIds: [ "larger-legs-sets", "larger-player-names" ],
   },
   {
     // Sixth row - Matches tab
     id: "matches-row6",
     tab: 1,
     features: [
+      { id: "larger-player-match-data", component: LargerPlayerMatchData, hasSettings: true },
       { id: "winner-animation", component: WinnerAnimation, hasSettings: false },
     ],
-    settingIds: [],
+    settingIds: [ "larger-player-match-data" ],
   },
   {
     // Seventh row - Matches tab
