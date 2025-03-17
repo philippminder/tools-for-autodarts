@@ -265,290 +265,24 @@
           </div>
         </div>
 
+        <!-- Feature cards and settings grid for Sounds & Animations tab -->
         <div
-          v-if="activeTab === 3 && config && !showDangerZone"
+          v-if="activeTab === 3 && !showDangerZone"
+          class="grid grid-cols-1 gap-y-5"
         >
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Caller
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Adds a caller.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto_50px] items-center gap-4">
-                <AppToggle v-model="config.caller.enabled" />
-                <div />
-              </div>
-              <div v-if="config.caller.enabled" class="p-4 text-center">
-                <p class="text-lg">
-                  Coming soon!
-                </p>
-                <p class="text-white/60">
-                  Caller functionality will be available in a future update.
-                </p>
-              </div>
-            </div>
+          <!-- First row of feature cards -->
+          <Animations class="feature-card" data-feature-index="23" />
+          <!-- Settings panel for Animations (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings) && activeSettings === 'animations'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+          <div class="feature-card" data-feature-index="24">
+            <!-- Placeholder for future feature -->
+          </div>
 
-            <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Sounds
-                </h2>
-              </div>
-              <div class="grid grid-cols-[5rem_auto_50px] items-center gap-4">
-                <AppToggle v-model="config.sounds.enabled" />
-                <div />
-              </div>
-              <div v-if="config.sounds.enabled" class="p-4 text-center">
-                <p class="text-lg">
-                  Coming soon!
-                </p>
-                <p class="text-white/60">
-                  Sound functionality will be available in a future update.
-                </p>
-              </div>
-            </div>
-
-            <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Animations
-                </h2>
-              </div>
-              <div class="grid grid-cols-[5rem_auto_50px] items-center gap-4">
-                <AppToggle v-model="config.animations.enabled" />
-                <div />
-                <button
-                  @click="config.animations = defaultConfig.animations"
-                  v-if="config.animations.enabled"
-                  class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                >
-                  <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                </button>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div>Start delay</div>
-                <input
-                  v-model="config.animations.startDelay"
-                  placeholder="Time in seconds"
-                  type="number"
-                  :class="twMerge(
-                    'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                    !!config.animations.startDelay && 'text-white/40',
-                  )"
-                >
-                <div>End delay</div>
-                <input
-                  v-model="config.animations.endDelay"
-                  placeholder="Time in seconds"
-                  type="number"
-                  :class="twMerge(
-                    'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                    !!config.animations.startDelay && 'text-white/40',
-                  )"
-                >
-                <div>Image fit</div>
-                <select
-                  v-model="config.animations.objectFit"
-                  :class="twMerge(
-                    'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                  )"
-                >
-                  <option value="cover">
-                    Cover (fill screen, may crop)
-                  </option>
-                  <option value="contain">
-                    Contain (show full image)
-                  </option>
-                </select>
-                <div class="mt-1.5">
-                  <span class="font-semibold">Winner animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.winner"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.winner.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.winner.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">Bull animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.bull"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.bull.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.bull.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">180 animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.oneEighty"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.oneEighty.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.oneEighty.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">Miss animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.miss"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.miss.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.miss.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">Bust animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.bust"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.bust.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.bust.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-            </div>
+          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
           </div>
         </div>
       </div>
@@ -558,7 +292,6 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
-import { twMerge } from "tailwind-merge";
 import DiscordWebhooks from "./Settings/DiscordWebhooks.vue";
 import AutoStart from "./Settings/AutoStart.vue";
 import RecentLocalPlayers from "./Settings/RecentLocalPlayers.vue";
@@ -576,8 +309,8 @@ import LargerLegsSets from "./Settings/LargerLegsSets.vue";
 import LargerPlayerMatchData from "./Settings/LargerPlayerMatchData.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
 import Ring from "./Settings/Ring.vue";
+import Animations from "./Settings/Animations.vue";
 import ExternalBoards from "@/components/Settings/ExternalBoards.vue";
-import AppToggle from "@/components/AppToggle.vue";
 import type { IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
 import AppButton from "@/components/AppButton.vue";
@@ -698,6 +431,16 @@ const featureGroups = [
     ],
     settingIds: [],
   },
+  {
+    // First row - Sounds & Animations tab
+    id: "sounds-animations-row1",
+    tab: 3,
+    features: [
+      { id: "animations", component: Animations, hasSettings: true },
+      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+    ],
+    settingIds: [ "animations" ],
+  },
 ];
 
 // Tabs component data
@@ -743,7 +486,7 @@ function exportSettings() {
 
   // Convert to JSON and then to base64
   const jsonString = JSON.stringify(exportData);
-  const base64String = btoa(unescape(encodeURIComponent(jsonString)));
+  const base64String = btoa(encodeURIComponent(jsonString));
 
   // Create a blob and download it
   const blob = new Blob([ base64String ], { type: "text/plain" });
@@ -762,7 +505,7 @@ function importSettings() {
     importFileInput.value = document.createElement("input");
     importFileInput.value.type = "file";
     importFileInput.value.accept = ".txt";
-    importFileInput.value.onchange = async () => {
+    importFileInput.value.onchange = async (e) => {
       const file = importFileInput.value?.files?.[0];
       if (!file) return;
 
@@ -770,7 +513,7 @@ function importSettings() {
       reader.onload = async (e) => {
         try {
           const base64String = e.target?.result as string;
-          const jsonString = decodeURIComponent(escape(atob(base64String)));
+          const jsonString = decodeURIComponent(atob(base64String));
           const importedData = JSON.parse(jsonString);
 
           if (!importedData.config) {
@@ -825,7 +568,7 @@ function copyToClipboard() {
 
   // Convert to JSON and then to base64
   const jsonString = JSON.stringify(exportData);
-  const base64String = btoa(unescape(encodeURIComponent(jsonString)));
+  const base64String = btoa(encodeURIComponent(jsonString));
 
   // Copy to clipboard
   navigator.clipboard.writeText(base64String)
@@ -842,7 +585,7 @@ function pasteFromClipboard() {
   navigator.clipboard.readText()
     .then((text) => {
       try {
-        const jsonString = decodeURIComponent(escape(atob(text)));
+        const jsonString = decodeURIComponent(atob(text));
         const importedData = JSON.parse(jsonString);
 
         if (!importedData.config) {
