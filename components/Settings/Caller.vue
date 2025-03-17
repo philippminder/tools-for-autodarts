@@ -11,7 +11,7 @@
             <span>Settings - Caller</span>
             <div class="flex w-full flex-wrap gap-2 sm:w-auto">
               <AppButton @click="sortSoundsByTriggers" size="sm" class="!py-1 text-xs sm:text-sm" auto title="Sort sounds by their triggers">
-                <span class="icon-[pixelarticons--sort-alpha-down] mr-1" />
+                <span class="icon-[pixelarticons--sort-alphabetic] mr-1" />
                 <span class="whitespace-nowrap">Sort by Triggers</span>
               </AppButton>
               <AppButton @click="openDeleteAllModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="danger" title="Delete all sounds">
@@ -40,7 +40,7 @@
                 <div class="flex items-center gap-2">
                   <span>Call every dart</span>
                   <span
-                    class="icon-[pixelarticons--info-circle] cursor-help text-white/50"
+                    class="icon-[pixelarticons--info-box] cursor-help text-white/50"
                     title="When enabled, the caller will announce each dart as it's thrown, rather than waiting for the end of a turn."
                   />
                 </div>
@@ -58,7 +58,7 @@
                 <div class="flex items-center gap-2">
                   <span>Call checkout</span>
                   <span
-                    class="icon-[pixelarticons--info-circle] cursor-help text-white/50"
+                    class="icon-[pixelarticons--info-box] cursor-help text-white/50"
                     title="When enabled, the caller will announce possible checkout combinations when a player is on a checkout score."
                   />
                 </div>
@@ -304,7 +304,7 @@
             <span class="ml-2 text-sm">Generate triggers from filenames</span>
           </label>
           <span
-            class="icon-[pixelarticons--info-circle] ml-2 cursor-help text-white/50"
+            class="icon-[pixelarticons--info-box] ml-2 cursor-help text-white/50"
             title="If enabled, triggers will be automatically generated from filenames. For example, a file named '180.mp3' will trigger on '180' scores."
           />
         </div>

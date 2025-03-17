@@ -88,7 +88,7 @@
 
                 <!-- Drag handle overlay -->
                 <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/100 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-                  <span class="icon-[pixelarticons--drag-handle] text-lg text-white/70" />
+                  <span class="icon-[pixelarticons--drag-and-drop] text-lg text-white/70" />
                 </div>
 
                 <!-- Disabled overlay -->
