@@ -90,7 +90,6 @@ Example: `s20_s5_d20` would trigger when a player throws single 20, then single 
 You can add multiple triggers for the same animation by entering each trigger on a new line in the animation settings.
 
 > [!NOTE]  
-> #### Random Animation Selection
 > If you assign the same trigger to multiple animations, the system will randomly select one of the matching animations to play each time the trigger occurs. This allows for variety in your gameplay experience.
 
 ### 🔄 Utility Features
