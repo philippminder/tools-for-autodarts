@@ -227,6 +227,9 @@
           </AppButton>
         </div>
       </div>
+      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+        <img :src="imageUrl" alt="Animations" class="size-full object-cover">
+      </div>
     </div>
   </template>
 </template>
@@ -244,6 +247,7 @@ import { AutodartsToolsConfig, type IAnimation, type IConfig, updateConfigIfChan
 
 const activeSettings = useStorage("adt:active-settings", "animations");
 const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("/images/animations.png");
 const showAnimationModal = ref(false);
 const isEditMode = ref(false);
 const newAnimation = ref({
