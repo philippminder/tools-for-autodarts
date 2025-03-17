@@ -58,10 +58,6 @@ defineEmits([ "close" ]);
   pointer-events: none;
 }
 
-.error-overlay {
-  position: relative;
-}
-
 .error-overlay::after {
   content: '';
   position: absolute;

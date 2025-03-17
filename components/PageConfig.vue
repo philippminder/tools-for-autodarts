@@ -275,7 +275,7 @@
         <!-- Feature cards and settings grid for Sounds & Animations tab -->
         <div
           v-if="activeTab === 3 && !showDangerZone"
-          class="grid grid-cols-1 gap-y-5"
+          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
         >
           <!-- First row of feature cards -->
           <Animations class="feature-card" data-feature-index="23" />
@@ -283,12 +283,27 @@
           <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings) && activeSettings === 'animations'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
-          <div class="feature-card" data-feature-index="24">
-            <!-- Placeholder for future feature -->
+          <Caller class="feature-card" data-feature-index="24" />
+          <!-- Settings panel for Caller (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings) && activeSettings === 'caller'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
           </div>
 
           <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
+          </div>
+
+          <!-- Second row of feature cards -->
+          <div class="feature-card" data-feature-index="25">
+            <!-- Placeholder for future feature -->
+          </div>
+          <div class="feature-card" data-feature-index="26">
+            <!-- Placeholder for future feature -->
+          </div>
+
+          <!-- Settings panel for second row (only if active setting has settings) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[12]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
         </div>
@@ -318,6 +333,7 @@ import LargerPlayerNames from "./Settings/LargerPlayerNames.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
 import Ring from "./Settings/Ring.vue";
 import Animations from "./Settings/Animations.vue";
+import Caller from "./Settings/Caller.vue";
 import ExternalBoards from "@/components/Settings/ExternalBoards.vue";
 import type { IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
@@ -446,9 +462,19 @@ const featureGroups = [
     tab: 3,
     features: [
       { id: "animations", component: Animations, hasSettings: true },
-      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "caller", component: Caller, hasSettings: true },
     ],
-    settingIds: [ "animations" ],
+    settingIds: [ "animations", "caller" ],
+  },
+  {
+    // Second row - Sounds & Animations tab
+    id: "sounds-animations-row2",
+    tab: 3,
+    features: [
+      { id: "placeholder-1", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "placeholder-2", component: null, hasSettings: false }, // Placeholder for future feature
+    ],
+    settingIds: [],
   },
 ];
 

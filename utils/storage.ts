@@ -52,9 +52,6 @@ export interface IConfig {
   shufflePlayers: {
     enabled: boolean;
   };
-  caller: {
-    enabled: boolean;
-  };
   sounds: {
     enabled: boolean;
   };
@@ -110,6 +107,18 @@ export interface IConfig {
     objectFit?: "cover" | "contain";
     data: IAnimation[];
   };
+  caller: {
+    enabled: boolean;
+    sounds: ISound[];
+  };
+}
+
+export interface ISound {
+  name: string;
+  url: string;
+  base64: string;
+  enabled: boolean;
+  triggers: string[];
 }
 
 export interface IAnimation {
@@ -208,6 +217,7 @@ export const defaultConfig: IConfig = {
   },
   caller: {
     enabled: false,
+    sounds: [],
   },
   sounds: {
     enabled: false,

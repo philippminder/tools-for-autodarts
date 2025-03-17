@@ -14,6 +14,9 @@ export default {
         sans: [ "Open Sans", "sans-serif" ],
         system: [ "system-ui" ],
       },
+      fontSize: {
+        xxs: "0.625rem",
+      },
     },
   },
   plugins: [ addDynamicIconSelectors() ],

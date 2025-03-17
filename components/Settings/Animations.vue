@@ -55,7 +55,7 @@
 
             <div class="mt-2 flex items-center gap-2 text-sm">
               <span class="icon-[pixelarticons--drag-and-drop] text-white/60" />
-              <p>Drag and drop animations to change their priority order</p>
+              <p>Drag and drop animations to change their order</p>
             </div>
 
             <div
