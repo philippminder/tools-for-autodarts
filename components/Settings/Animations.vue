@@ -63,6 +63,16 @@
               :key="containerKey"
               class="mt-5 flex flex-wrap gap-4"
             >
+              <div
+                @click="openAddAnimationModal"
+                class="flex aspect-video w-[calc(33.33%-1rem)] cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
+              >
+                <div class="flex flex-col items-center">
+                  <span class="icon-[pixelarticons--plus] mb-1 text-xl" />
+                  <span>Add Animation</span>
+                </div>
+              </div>
+
               <!-- Display existing animations -->
               <div
                 v-for="(animation, index) in config.animations.data"
@@ -74,7 +84,7 @@
                 }"
               >
                 <!-- Main content -->
-                <img :src="animation.url" class="size-full" :class="`object-${config.animations.objectFit || 'cover'}`">
+                <img :src="animation.url" class="size-full object-cover">
 
                 <!-- Drag handle overlay -->
                 <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/100 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
@@ -123,16 +133,6 @@
                       <span class="icon-[pixelarticons--trash] text-sm" />
                     </button>
                   </div>
-                </div>
-              </div>
-
-              <div
-                @click="openAddAnimationModal"
-                class="flex aspect-video w-[calc(33.33%-1rem)] cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
-              >
-                <div class="flex flex-col items-center">
-                  <span class="icon-[pixelarticons--plus] mb-1 text-xl" />
-                  <span>Add Animation</span>
                 </div>
               </div>
             </div>

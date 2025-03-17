@@ -553,6 +553,10 @@ function resetAllSettings() {
     () => {
       config.value = JSON.parse(JSON.stringify(defaultConfig));
       showNotification("All settings have been reset to default");
+      // Close danger zone and navigate to first tab with first settings panel open
+      showDangerZone.value = false;
+      activeTab.value = 0;
+      activeSettings.value = "discord-webhooks";
     },
   );
 }

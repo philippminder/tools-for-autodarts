@@ -80,6 +80,11 @@ Animations can be triggered by various game events using these tags:
   - `bust`: When a player busts (scores more than needed)
   - `winner`: When a player wins the game
 
+#### Combination Tags
+You can also use combination tags to trigger animations based on specific dart throw combinations. Format: `[first dart]_[second dart]_[third dart]`
+
+Example: `s20_s5_d20` would trigger when a player throws single 20, then single 5, then double 20.
+
 You can add multiple triggers for the same animation by entering each trigger on a new line in the animation settings.
 
 > [!INFO]
