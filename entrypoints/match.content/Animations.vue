@@ -71,7 +71,7 @@ function hideAnimation(): void {
  * INFO:
  * 50 will get processed as "bull"
  */
-function processGameData(gameData: IGameData): void {
+async function processGameData(gameData: IGameData): Promise<void> {
   if (!gameData.match) return;
 
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
@@ -88,13 +88,14 @@ function processGameData(gameData: IGameData): void {
   const miss: boolean = throwName.toLocaleLowerCase().startsWith("m");
   const combinedThrows: string = gameData.match.turns[0].throws.map(t => t.segment.name.toLowerCase()).join("_");
 
-  if (winner) playAnimation("winner");
-  if (busted) playAnimation("bust");
+  if (winner) playAnimation("gameshot");
+  if (busted) playAnimation("busted");
   if (isLastThrow) {
     playAnimation(points.toString());
+    await new Promise(resolve => setTimeout(resolve, 500));
     playAnimation(combinedThrows);
   }
-  if (miss) playAnimation("miss");
+  if (miss) playAnimation("outside");
   playAnimation(throwName.toLowerCase());
 }
 

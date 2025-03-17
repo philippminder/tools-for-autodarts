@@ -7,14 +7,14 @@
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 font-bold uppercase">
-            Settings - Animations
+          <h3 class="mb-1 flex flex-col items-start gap-2 font-bold uppercase sm:flex-row sm:items-center sm:justify-between">
+            <span>Settings - Animations</span>
           </h3>
           <div class="space-y-3 text-white/70">
             <p>Configure the animations for the game. Click the plus button to add a new animation.</p>
 
             <!-- Animation Settings -->
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <label class="mb-1 block text-sm font-medium text-white">Delay (seconds)</label>
                 <AppInput
@@ -61,11 +61,11 @@
             <div
               ref="animationsContainer"
               :key="containerKey"
-              class="mt-5 flex flex-wrap gap-4"
+              class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             >
               <div
                 @click="openAddAnimationModal"
-                class="flex aspect-video w-[calc(33.33%-1rem)] cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
+                class="flex aspect-video cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
               >
                 <div class="flex flex-col items-center">
                   <span class="icon-[pixelarticons--plus] mb-1 text-xl" />
@@ -78,7 +78,7 @@
                 v-for="(animation, index) in config.animations.data"
                 :key="index"
                 :data-id="index"
-                class="group relative aspect-video w-[calc(33.33%-1rem)] overflow-hidden rounded-md border border-white/30 bg-black/30"
+                class="group relative aspect-video overflow-hidden rounded-md border border-white/30 bg-black/30"
                 :class="{
                   'opacity-50': !animation.enabled,
                 }"

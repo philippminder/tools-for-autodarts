@@ -23,6 +23,7 @@ import { fetchWithAuth } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import Animations from "@/entrypoints/match.content/Animations.vue";
+import { caller, callerOnRemove } from "@/entrypoints/match.content/caller";
 
 let matchInitialized = false;
 let activeMatchObserver: MutationObserver;
@@ -86,7 +87,7 @@ export default defineContentScript({
             gameDataWatcher = AutodartsToolsGameData.watch(async (value, oldValue) => {
               if (oldValue?.match?.variant === "Bull-off" && value?.match?.variant !== "Bull-off") {
                 clearMatch();
-                await nextTick();
+                await new Promise(resolve => setTimeout(resolve, 500));
                 return initMatch(ctx, url);
               }
             });
@@ -165,6 +166,16 @@ async function initMatch(ctx, url: string) {
   if (config.animations.enabled) {
     await initAnimations(ctx).catch(console.error);
   }
+
+  if (config.ring.enabled) {
+    await initScript(ring, url);
+  }
+
+  if (config.caller.enabled) {
+    console.log("Autodarts Tools: Initializing caller");
+
+    await initScript(caller, url);
+  }
 }
 
 function clearMatch() {
@@ -179,6 +190,7 @@ function clearMatch() {
   colorChangeOnRemove();
   hideMenuInMatchOnRemove();
   winnerAnimationOnRemove();
+  callerOnRemove();
 
   matchInitialized = false;
 }

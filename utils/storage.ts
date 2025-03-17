@@ -109,6 +109,8 @@ export interface IConfig {
   };
   caller: {
     enabled: boolean;
+    callEveryDart: boolean;
+    callCheckout: boolean;
     sounds: ISound[];
   };
 }
@@ -217,6 +219,8 @@ export const defaultConfig: IConfig = {
   },
   caller: {
     enabled: false,
+    callEveryDart: false,
+    callCheckout: false,
     sounds: [],
   },
   sounds: {
@@ -277,22 +281,22 @@ export const defaultConfig: IConfig = {
       },
       {
         url: "https://media1.tenor.com/m/uhkDiMdcP44AAAAd/rapid-darts-darts.gif",
-        triggers: [ "winner" ],
+        triggers: [ "gameshot" ],
         enabled: true,
       },
       {
         url: "https://media1.tenor.com/m/QriSf7Rc78cAAAAd/darts-niner.gif",
-        triggers: [ "winner" ],
+        triggers: [ "gameshot" ],
         enabled: true,
       },
       {
         url: "https://media.tenor.com/VGyxDGucFyAAAAAM/dancing-bubbly.gif",
-        triggers: [ "winner" ],
+        triggers: [ "gameshot" ],
         enabled: true,
       },
       {
         url: "https://media1.tenor.com/m/2SQcMaUE_D8AAAAd/celebrate-winner.gif",
-        triggers: [ "winner" ],
+        triggers: [ "gameshot" ],
         enabled: true,
       },
       {
@@ -332,42 +336,42 @@ export const defaultConfig: IConfig = {
       },
       {
         url: "https://media1.tenor.com/m/psyC1iEr058AAAAd/bulls-eye-animation.gif",
-        triggers: [ "miss" ],
+        triggers: [ "outside" ],
         enabled: true,
       },
       {
         url: "https://media1.tenor.com/m/x715u156Jz4AAAAd/bbc-america-darts-bbca.gif",
-        triggers: [ "miss" ],
+        triggers: [ "outside" ],
         enabled: true,
       },
       {
         url: "https://media.tenor.com/sbknQ0awa2sAAAAM/bbc-america-darts-bbca.gif",
-        triggers: [ "miss" ],
+        triggers: [ "outside" ],
         enabled: true,
       },
       {
         url: "https://media.tenor.com/kD_PH0LHaHEAAAAM/sigh-growl.gif",
-        triggers: [ "miss" ],
+        triggers: [ "outside" ],
         enabled: true,
       },
       {
         url: "https://media1.tenor.com/m/jaqTZHiIA7EAAAAd/james-wade-darts.gif",
-        triggers: [ "bust" ],
+        triggers: [ "busted" ],
         enabled: true,
       },
       {
         url: "https://media.tenor.com/LU60882wezcAAAAM/fallon-sherrock-sports.gif",
-        triggers: [ "bust" ],
+        triggers: [ "busted" ],
         enabled: true,
       },
       {
         url: "https://media.tenor.com/Rpa8qRNWZ3UAAAAM/glen-durrant-miss.gif",
-        triggers: [ "bust" ],
+        triggers: [ "busted" ],
         enabled: true,
       },
       {
         url: "https://media.tenor.com/tfkMfGGbcLoAAAAM/bbc-america-darts-bbca.gif",
-        triggers: [ "bust" ],
+        triggers: [ "busted" ],
         enabled: true,
       },
     ],

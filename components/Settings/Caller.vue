@@ -7,25 +7,63 @@
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 flex items-center justify-between font-bold uppercase">
+          <h3 class="mb-1 flex flex-col items-start gap-2 font-bold uppercase sm:flex-row sm:items-center sm:justify-between">
             <span>Settings - Caller</span>
-            <div class="flex gap-2">
-              <AppButton @click="sortSoundsByTriggers" size="sm" class="!py-1" auto title="Sort sounds by their triggers">
+            <div class="flex w-full flex-wrap gap-2 sm:w-auto">
+              <AppButton @click="sortSoundsByTriggers" size="sm" class="!py-1 text-xs sm:text-sm" auto title="Sort sounds by their triggers">
                 <span class="icon-[pixelarticons--sort-alpha-down] mr-1" />
-                Sort by Triggers
+                <span class="whitespace-nowrap">Sort by Triggers</span>
               </AppButton>
-              <AppButton @click="openDeleteAllModal" size="sm" class="!py-1" auto type="danger" title="Delete all sounds">
+              <AppButton @click="openDeleteAllModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="danger" title="Delete all sounds">
                 <span class="icon-[pixelarticons--trash] mr-1" />
-                Delete All
+                <span class="whitespace-nowrap">Delete All</span>
               </AppButton>
-              <AppButton @click="openUploadModal" size="sm" class="!py-1" auto type="success">
+              <AppButton @click="openUploadModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
                 <span class="icon-[pixelarticons--upload] mr-1" />
-                Upload Files
+                <span class="whitespace-nowrap">Upload Files</span>
               </AppButton>
             </div>
           </h3>
           <div class="space-y-3 text-white/70">
             <p>Configure the caller settings for the game. Click the plus button to add a new sound.</p>
+
+            <div class="flex flex-col gap-5 sm:flex-row">
+              <div class="mt-2 flex items-center gap-2">
+                <AppButton
+                  @click="config.caller.callEveryDart = !config.caller.callEveryDart"
+                  :type="config.caller.callEveryDart ? 'success' : 'default'"
+                  class="aspect-square !size-10 rounded-full p-0"
+                >
+                  <span v-if="config.caller.callEveryDart" class="icon-[pixelarticons--check]" />
+                  <span v-else class="icon-[pixelarticons--close]" />
+                </AppButton>
+                <div class="flex items-center gap-2">
+                  <span>Call every dart</span>
+                  <span
+                    class="icon-[pixelarticons--info-circle] cursor-help text-white/50"
+                    title="When enabled, the caller will announce each dart as it's thrown, rather than waiting for the end of a turn."
+                  />
+                </div>
+              </div>
+
+              <div class="mt-2 flex items-center gap-2">
+                <AppButton
+                  @click="config.caller.callCheckout = !config.caller.callCheckout"
+                  :type="config.caller.callCheckout ? 'success' : 'default'"
+                  class="aspect-square !size-10 rounded-full p-0"
+                >
+                  <span v-if="config.caller.callCheckout" class="icon-[pixelarticons--check]" />
+                  <span v-else class="icon-[pixelarticons--close]" />
+                </AppButton>
+                <div class="flex items-center gap-2">
+                  <span>Call checkout</span>
+                  <span
+                    class="icon-[pixelarticons--info-circle] cursor-help text-white/50"
+                    title="When enabled, the caller will announce possible checkout combinations when a player is on a checkout score."
+                  />
+                </div>
+              </div>
+            </div>
 
             <div class="mt-2 flex items-center gap-2 text-sm">
               <span class="icon-[pixelarticons--drag-and-drop] text-white/60" />
@@ -35,7 +73,7 @@
             <div
               ref="soundsContainer"
               :key="containerKey"
-              class="mt-5 grid grid-cols-4 gap-4"
+              class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             >
               <div
                 @click="openAddSoundModal"
@@ -57,11 +95,6 @@
                   'opacity-50': !sound.enabled,
                 }"
               >
-                <!-- Main content -->
-                <div class="flex h-full items-center justify-center">
-                  <span class="icon-[pixelarticons--sound-high] text-4xl text-white/70" />
-                </div>
-
                 <!-- Disabled overlay -->
                 <div v-if="!sound.enabled" class="absolute inset-0 flex items-center justify-center bg-black/40">
                   <span class="icon-[pixelarticons--close-circle] text-2xl text-white/70" />
@@ -82,7 +115,7 @@
                 </div>
 
                 <!-- Sound name (centered) -->
-                <div v-if="sound.name" class="absolute left-1/2 top-3.5 z-20 max-w-44 -translate-x-1/2 truncate">
+                <div v-if="sound.name" class="absolute left-1/2 top-3.5 z-20 max-w-full -translate-x-1/2 truncate px-10">
                   <div class="truncate rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
                     {{ sound.name }}
                   </div>
@@ -176,7 +209,7 @@
           <label for="sound-text" class="mb-1 flex items-center justify-between text-sm font-medium text-white">
             <span>Triggers <span class="text-xs text-white/60">(one per line)</span></span>
             <a
-              href="https://github.com/creazy231/tools-for-autodarts/tree/tools-2.0.0?tab=readme-ov-file#supported-triggers"
+              href="https://github.com/creazy231/tools-for-autodarts?tab=readme-ov-file#-caller-feature"
               target="_blank"
               class="text-blue-400 hover:text-blue-300"
             >
@@ -248,8 +281,8 @@
               class="flex items-center justify-between border-b border-white/10 p-2 last:border-b-0"
             >
               <div class="flex items-center">
-                <span class="icon-[pixelarticons--sound-high] mr-2 text-white/70" />
-                <span class="max-w-60 truncate">{{ file.name }}</span>
+                <span class="icon-[pixelarticons--volume-2] mr-2 text-white/70" />
+                <span class="max-w-[calc(100%-2rem)] truncate">{{ file.name }}</span>
               </div>
               <button
                 @click.stop="removeFile(index)"
@@ -424,6 +457,8 @@ onMounted(async () => {
   if (!config.value?.caller || !config.value.caller.sounds) {
     config.value!.caller = {
       enabled: false,
+      callEveryDart: false,
+      callCheckout: false,
       sounds: [],
     };
   }
@@ -530,8 +565,7 @@ function saveSound() {
     sound.enabled = existingSound.enabled; // Preserve enabled state when editing
     config.value.caller.sounds[editingIndex.value] = sound;
   } else {
-    // Add to sounds data array
-    config.value.caller.sounds.push(sound);
+    config.value.caller.sounds.unshift(sound);
   }
 
   // Reset form and close modal
@@ -666,8 +700,8 @@ async function processFiles() {
         triggers,
       };
 
-      // Add to sounds array
-      config.value.caller.sounds.push(sound);
+      // Add to the beginning of sounds array
+      config.value.caller.sounds.unshift(sound);
 
       // Update config and wait for 100ms
       const currentConfig = await AutodartsToolsConfig.getValue();

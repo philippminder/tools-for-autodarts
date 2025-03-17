@@ -56,9 +56,47 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Animations**: Display custom animations for special events like 180s, bulls, busts, and leg wins during gameplay
 
 ### 🔊 Audio Features
-- **Caller**: Voice announcements for scores
+- **Caller**: Voice announcements for scores, checkouts, and each dart thrown during gameplay
 - **Custom Sounds**: Various sound effects for different game events
 - **Sound Upload**: Add your own custom sounds for personalized feedback
+
+### 🗣️ Caller Feature
+The Caller feature provides voice announcements during your darts gameplay, similar to professional darts tournaments:
+
+#### Configuration Options
+- **Call Every Dart**: Announces each dart as it's thrown, rather than waiting for the end of a turn
+- **Call Checkout**: Announces possible checkout combinations when a player is on a checkout score
+- **Custom Sound Library**: Add, edit, and organize voice clips for different game events
+
+#### Supported Triggers
+You can assign sounds to be played based on these triggers:
+
+- **Points**: `0` to `180` (point totals)
+- **Singles**: `s1` to `s20` and `s25` (single segments)
+- **Doubles**: `d1` to `d20` and `bull` (double segments and bullseye)
+- **Triples**: `t1` to `t20` (triple segments)
+- **Special Voice Lines**:
+  - `you_require`: For checkout callouts
+  - `double`, `triple`: Generic announcements for dart types
+  - `outside`: When a dart lands outside the scoring area
+  - `busted`: When a player busts
+  - `gameshot`: When a player wins the game
+  - **Player Names**: Sounds can be triggered when it's a specific player's turn
+
+#### File Management
+- **Upload Audio Files**: Easily add MP3, WAV, or OGG sound files
+- **Auto-Generate Triggers**: Automatically create triggers based on filenames
+- **Sort & Organize**: Sort sounds by their triggers for better organization
+- **Edit & Test**: Edit sound properties and test them directly from the settings panel
+- **Drag & Drop**: Reorder sounds via drag and drop interface
+
+#### Sound Fallbacks
+The caller intelligently falls back to alternative sounds when specific sounds aren't available:
+- If `s20` (single 20) isn't found, it will try to play `single` followed by `20`
+- Similarly for doubles and triples (`d20` → `double` + `20`)
+- `miss` triggers will fall back to `outside` sounds
+
+This feature enhances the game atmosphere with professional-sounding voice announcements, making your home setup feel more like a tournament experience.
 
 ### 🎬 Animations
 
@@ -78,9 +116,9 @@ Animations can be triggered by various game events using these tags:
 - **Triples**: `t1` to `t20` (triple segments)
 - **Special Events**:
   - `bull`: When a player hits the bullseye
-  - `miss`: When a dart misses the board
-  - `bust`: When a player busts (scores more than needed)
-  - `winner`: When a player wins the game
+  - `outside`: When a dart lands outside the scoring area
+  - `busted`: When a player busts (scores more than needed)
+  - `gameshot`: When a player wins the game or leg
 
 #### Combination Tags
 You can also use combination tags to trigger animations based on specific dart throw combinations. Format: `[first dart]_[second dart]_[third dart]`
