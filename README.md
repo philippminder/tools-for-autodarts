@@ -57,7 +57,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 
 ### 🔊 Audio Features
 - **Caller**: Voice announcements for scores, checkouts, and each dart thrown during gameplay
-- **Custom Sounds**: Various sound effects for different game events
+- **Sound FX**: Ambient sound effects for different game events
 - **Sound Upload**: Add your own custom sounds for personalized feedback
 
 ### 🗣️ Caller Feature
@@ -84,20 +84,45 @@ You can assign sounds to be played based on these triggers:
   - `gameshot`: When a player wins the game
   - `[playername]`: Sounds can be triggered when it's a specific player's turn
 
-#### File Management
-- **Upload Audio Files**: Easily add MP3, WAV, or OGG sound files
-- **Auto-Generate Triggers**: Automatically create triggers based on filenames
-- **Sort & Organize**: Sort sounds by their triggers for better organization
-- **Edit & Test**: Edit sound properties and test them directly from the settings panel
-- **Drag & Drop**: Reorder sounds via drag and drop interface
+#### Intelligent Fallback System
+The caller has a sophisticated fallback system to provide complete coverage even with limited sound files:
+- **Segment Announcements**: If a specific segment sound (e.g., `s20`) isn't available, it automatically plays the segment type followed by the number (`20`)
+- **Double/Triple Handling**: For doubles and triples, it follows the same pattern (e.g., `d20` → `double` + `20`)
+- **Miss Handling**: `miss` triggers will fall back to `outside` sounds
+- **Player Announcements**: Automatically announces the current player's name at the start of their turn
+- **Game Start**: Plays the "game on" sound at the beginning of a match
 
-#### Sound Fallbacks
-The caller intelligently falls back to alternative sounds when specific sounds aren't available:
-- If `s20` (single 20) isn't found, it will try to play `single` followed by `20`
-- Similarly for doubles and triples (`d20` → `double` + `20`)
-- `miss` triggers will fall back to `outside` sounds
+#### Cross-Browser Audio Support
+- Compatible with all major browsers including Safari on iOS/MacOS
+- Automatic audio unlocking for mobile browsers that require user interaction
+- Queued sound playback to ensure all announcements are heard in the correct order
 
-This feature enhances the game atmosphere with professional-sounding voice announcements, making your home setup feel more like a tournament experience.
+### 🔊 Sound FX Feature
+The Sound FX feature adds ambient sound effects to your gameplay experience:
+
+#### Game Event Sounds
+Add sound effects for various game events:
+- **Points**: Sounds can be triggered for any score from `0` to `180`
+- **Individual Throws**: Sounds for specific throws like `s20`, `d16`, `t19`, etc.
+- **Combined Throws**: Trigger sounds based on a sequence of throws using format `s20_t19_d12`
+- **Special Events**: Dedicated sounds for `gameshot`, `busted`, and more
+
+#### Ambient Sound Prefix
+- Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_gameshot`) to create separate sound sets for caller and ambient sounds
+- This allows you to have professional voice announcements via the Caller while also having fun sound effects via Sound FX
+
+#### Smart Fallback System
+The Sound FX feature includes a multi-level fallback system:
+- If an exact match (e.g., `ambient_s20`) isn't found, it tries without the ambient prefix (`s20`)
+- For segment triggers like `s20`, it falls back to just the number (`20`)
+- For `miss` or `m` prefixed throws, it falls back to `outside` sounds
+- For double and triple throws, it falls back to the segment type followed by the number
+
+#### Technical Features
+- **Queue Management**: Sounds are carefully queued to prevent overlapping
+- **Format Support**: Plays both URL-based sounds and base64-encoded audio
+- **Error Handling**: Automatically falls back to alternative sources if a sound fails to play
+- **Safari Compatible**: Works with all browsers including Safari's strict audio policies
 
 ### 🎬 Animations
 
