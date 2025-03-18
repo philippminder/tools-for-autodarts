@@ -1,7 +1,7 @@
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-let gameDataWatcher: any;
+let gameDataWatcherUnwatch: any;
 let config: IConfig;
 
 // Audio player for Safari compatibility
@@ -27,8 +27,8 @@ export async function soundFx() {
     // Initialize audio player for Safari compatibility
     initAudioPlayer();
 
-    if (!gameDataWatcher) {
-      gameDataWatcher = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
+    if (!gameDataWatcherUnwatch) {
+      gameDataWatcherUnwatch = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
         console.log("Autodarts Tools: soundFx game data updated");
 
         // Debounce the processGameData call
@@ -49,8 +49,9 @@ export async function soundFx() {
 
 export function soundFxOnRemove() {
   console.log("Autodarts Tools: soundFx on remove");
-  if (gameDataWatcher) {
-    gameDataWatcher = null;
+  if (gameDataWatcherUnwatch) {
+    gameDataWatcherUnwatch();
+    gameDataWatcherUnwatch = null;
   }
 
   // Clear any pending debounce timer

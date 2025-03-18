@@ -193,6 +193,9 @@
               class="pl-9"
             />
           </div>
+          <div v-if="urlError" class="mt-1 text-sm text-red-500">
+            {{ urlError }}
+          </div>
         </div>
 
         <hr class="border-white/20">
@@ -417,6 +420,7 @@ const newSound = ref({
   base64: "",
 });
 const editingIndex = ref<number | null>(null);
+const urlError = ref("");
 
 // Sortable related refs
 const soundsContainer = ref<HTMLElement | null>(null);
@@ -537,6 +541,15 @@ function saveSound() {
     return;
   }
 
+  // Check if URL starts with https://
+  if (newSound.value.url && !newSound.value.url.startsWith("https://")) {
+    urlError.value = "URL must start with https:// for security reasons";
+    return;
+  }
+
+  // Reset error message
+  urlError.value = "";
+
   // Convert text to array of triggers (split by newline and filter empty lines)
   const triggers = newSound.value.text
     .split("\n")
@@ -571,6 +584,7 @@ function closeSoundModal() {
   newSound.value = { url: "", text: "", name: "", base64: "" };
   showSoundModal.value = false;
   editingIndex.value = null;
+  urlError.value = "";
 }
 
 function removeSound(index: number) {

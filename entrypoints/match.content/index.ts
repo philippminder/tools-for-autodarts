@@ -12,7 +12,7 @@ import { largerLegsSets } from "./larger-legs-sets";
 import { largerPlayerNames } from "./larger-player-names";
 import { winnerAnimation, winnerAnimationOnRemove } from "./winner-animation";
 import { ring } from "./ring";
-import { soundFx } from "./sound-fx";
+import { soundFx, soundFxOnRemove } from "./sound-fx";
 import { caller, callerOnRemove } from "./caller";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
@@ -194,6 +194,7 @@ function clearMatch() {
   hideMenuInMatchOnRemove();
   winnerAnimationOnRemove();
   callerOnRemove();
+  soundFxOnRemove();
 
   matchInitialized = false;
 }

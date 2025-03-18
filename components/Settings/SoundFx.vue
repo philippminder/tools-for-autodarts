@@ -162,6 +162,9 @@
               class="pl-9"
             />
           </div>
+          <div v-if="urlError" class="mt-1 text-sm text-red-500">
+            {{ urlError }}
+          </div>
         </div>
 
         <hr class="border-white/20">
@@ -412,6 +415,8 @@ const lowercaseText = computed({
   },
 });
 
+const urlError = ref("");
+
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 
@@ -488,6 +493,7 @@ function closeSoundModal() {
   newSound.value = { name: "", text: "", base64: "", url: "" };
   showSoundModal.value = false;
   editingIndex.value = null;
+  urlError.value = "";
 }
 
 function editSound(index: number) {
@@ -508,6 +514,15 @@ function saveSound() {
     showNotification("Please provide a sound URL and triggers", "error");
     return;
   }
+
+  // Check if URL starts with https://
+  if (newSound.value.url && !newSound.value.url.startsWith("https://")) {
+    urlError.value = "URL must start with https:// for security reasons";
+    return;
+  }
+
+  // Reset error message
+  urlError.value = "";
 
   // Convert text to array of triggers (split by newline and filter empty lines)
   const triggers = newSound.value.text

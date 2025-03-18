@@ -1,7 +1,7 @@
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-let gameDataWatcher: any;
+let gameDataWatcherUnwatch: any;
 let config: IConfig;
 
 // Audio player for Safari compatibility
@@ -27,8 +27,8 @@ export async function caller() {
     // Initialize audio player for Safari compatibility
     initAudioPlayer();
 
-    if (!gameDataWatcher) {
-      gameDataWatcher = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
+    if (!gameDataWatcherUnwatch) {
+      gameDataWatcherUnwatch = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
         console.log("Autodarts Tools: caller game data updated");
 
         // Debounce the processGameData call
@@ -49,8 +49,9 @@ export async function caller() {
 
 export function callerOnRemove() {
   console.log("Autodarts Tools: caller on remove");
-  if (gameDataWatcher) {
-    gameDataWatcher = null;
+  if (gameDataWatcherUnwatch) {
+    gameDataWatcherUnwatch();
+    gameDataWatcherUnwatch = null;
   }
 
   // Clear any pending debounce timer
@@ -125,6 +126,11 @@ function unlockAudio(): void {
  */
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
   if (!gameData.match) return;
+
+  // Play gameon sound if it's the first round and variant is not Bull-off
+  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.variant !== "Bull-off") {
+    playSound("gameon");
+  }
 
   // Check if player has changed
   if (oldGameData?.match?.player !== undefined

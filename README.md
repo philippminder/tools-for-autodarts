@@ -76,12 +76,13 @@ You can assign sounds to be played based on these triggers:
 - **Doubles**: `d1` to `d20` and `bull` (double segments and bullseye)
 - **Triples**: `t1` to `t20` (triple segments)
 - **Special Voice Lines**:
+  - `gameon`: At the start of a new game
   - `you_require`: For checkout callouts
   - `double`, `triple`: Generic announcements for dart types
   - `outside`: When a dart lands outside the scoring area
   - `busted`: When a player busts
   - `gameshot`: When a player wins the game
-  - **Player Names**: Sounds can be triggered when it's a specific player's turn
+  - `[playername]`: Sounds can be triggered when it's a specific player's turn
 
 #### File Management
 - **Upload Audio Files**: Easily add MP3, WAV, or OGG sound files
