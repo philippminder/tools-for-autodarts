@@ -128,14 +128,16 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   if (!gameData.match) return;
 
   // Play gameon sound if it's the first round and variant is not Bull-off
-  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.variant !== "Bull-off") {
+  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.variant !== "Bull-off" && gameData.match.player === 0) {
     playSound("gameon");
-  }
-
-  // Check if player has changed
-  if (oldGameData?.match?.player !== undefined
-      && gameData.match.player !== undefined
-      && oldGameData.match.player !== gameData.match.player) {
+    const playerName = gameData.match.players?.[gameData.match.player]?.name;
+    if (playerName) {
+      playSound(playerName.toLowerCase());
+    }
+  } else if (oldGameData?.match?.player !== undefined
+    && gameData.match.player !== undefined
+    && oldGameData.match.player !== gameData.match.player
+    && gameData.match.round >= 1) {
     // Get player name and play sound with player name as trigger
     const playerName = gameData.match.players?.[gameData.match.player]?.name;
     if (playerName) {
@@ -177,6 +179,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   if (winner) {
     playSound("gameshot");
+    const winnerPlayerIndex = gameData.match.winner;
+    const winnerPlayerName = gameData.match.players?.[winnerPlayerIndex]?.name;
+    if (winnerPlayerName) {
+      playSound(winnerPlayerName.toLowerCase());
+    }
   } else if (busted) {
     playSound("busted");
   } else if (isLastThrow) {

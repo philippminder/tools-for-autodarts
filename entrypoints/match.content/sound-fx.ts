@@ -142,15 +142,15 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   const combinedThrows: string = gameData.match.turns[0].throws.map(t => t.segment.name.toLowerCase()).join("_");
 
   if (winner) {
-    playSound("gameshot");
+    playSound("ambient_gameshot");
   } else if (busted) {
-    playSound("busted");
+    playSound("ambient_busted");
   } else if (isLastThrow) {
-    playSound(throwName.toLowerCase());
-    playSound(points.toString());
-    playSound(combinedThrows);
+    playSound(`ambient_${throwName.toLowerCase()}`);
+    playSound(`ambient_${points}`);
+    playSound(`ambient_${combinedThrows}`);
   } else {
-    playSound(throwName.toLowerCase());
+    playSound(`ambient_${throwName.toLowerCase()}`);
   }
 }
 
@@ -169,34 +169,97 @@ function playSound(trigger: string): void {
     sound.enabled && sound.triggers && sound.triggers.includes(trigger),
   );
 
-  // If no direct match, try to find a fallback only for s, d, or t prefixes
+  // If no direct match, try to find a fallback without the ambient_ prefix
+  if (!matchingSounds.length && trigger.startsWith("ambient_")) {
+    const withoutAmbientPrefix = trigger.replace("ambient_", "");
+    console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${withoutAmbientPrefix}"`);
+    matchingSounds = config.soundFx.sounds.filter(sound =>
+      sound.enabled && sound.triggers && sound.triggers.includes(withoutAmbientPrefix),
+    );
+
+    if (matchingSounds.length) {
+      console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "${withoutAmbientPrefix}"`);
+    }
+  }
+
+  // If still no match, try to find a fallback only for s, d, or t prefixes
   // For example, if "s41" is not found, try "41"
   if (!matchingSounds.length && trigger.length > 1) {
-    const firstChar = trigger.charAt(0).toLowerCase();
+    // Handle both ambient_ prefixed and non-ambient prefixed triggers
+    const triggerWithoutAmbient = trigger.startsWith("ambient_")
+      ? trigger.replace("ambient_", "")
+      : trigger;
+
+    const firstChar = triggerWithoutAmbient.charAt(0).toLowerCase();
 
     // Check for miss prefix (m) and fallback to "outside"
     // But only if the trigger doesn't contain an underscore (to avoid combined throws)
-    if (firstChar === "m" && !trigger.includes("_")) {
-      console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "outside"`);
-      matchingSounds = config.soundFx.sounds.filter(sound =>
-        sound.enabled && sound.triggers && sound.triggers.includes("outside"),
-      );
+    if (firstChar === "m" && !triggerWithoutAmbient.includes("_")) {
+      const number = triggerWithoutAmbient.substring(1);
+
+      // Check if the rest is a number (for m<NUMBER> pattern)
+      if (/^\d+$/.test(number)) {
+        console.log(`Autodarts Tools: Using fallback chain for "ambient_m${number}" -> "ambient_miss" -> "ambient_outside" -> "miss" -> "outside"`);
+
+        // Try ambient_miss first
+        matchingSounds = config.soundFx.sounds.filter(sound =>
+          sound.enabled && sound.triggers && sound.triggers.includes("ambient_miss"),
+        );
+
+        // If no ambient_miss, try ambient_outside
+        if (!matchingSounds.length) {
+          matchingSounds = config.soundFx.sounds.filter(sound =>
+            sound.enabled && sound.triggers && sound.triggers.includes("ambient_outside"),
+          );
+        }
+
+        // If no ambient_outside, try miss
+        if (!matchingSounds.length) {
+          matchingSounds = config.soundFx.sounds.filter(sound =>
+            sound.enabled && sound.triggers && sound.triggers.includes("miss"),
+          );
+        }
+
+        // If no miss, try outside
+        if (!matchingSounds.length) {
+          matchingSounds = config.soundFx.sounds.filter(sound =>
+            sound.enabled && sound.triggers && sound.triggers.includes("outside"),
+          );
+        }
+
+        if (matchingSounds.length) {
+          console.log(`Autodarts Tools: Found sound in fallback chain for "ambient_m${number}"`);
+        }
+      } else {
+        // Original fallback for "m" without a number
+        console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "outside"`);
+        matchingSounds = config.soundFx.sounds.filter(sound =>
+          sound.enabled && sound.triggers && (
+            sound.triggers.includes("ambient_outside")
+            || sound.triggers.includes("outside")
+          ),
+        );
+      }
     } else if (firstChar === "d" || firstChar === "t") {
       // For double (d) and triple (t) prefixes, try multiple fallbacks
-      const number = trigger.substring(1);
+      const number = triggerWithoutAmbient.substring(1);
 
       // Only proceed if the rest is a number
       if (/^\d+$/.test(number)) {
         // First try "double" or "triple" as fallback
         const wordFallback = firstChar === "d" ? "double" : "triple";
+        const ambientWordFallback = `ambient_${wordFallback}`;
 
-        console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${wordFallback}"`);
+        console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${wordFallback}" or "${ambientWordFallback}"`);
         matchingSounds = config.soundFx.sounds.filter(sound =>
-          sound.enabled && sound.triggers && sound.triggers.includes(wordFallback),
+          sound.enabled && sound.triggers && (
+            sound.triggers.includes(ambientWordFallback)
+            || sound.triggers.includes(wordFallback)
+          ),
         );
 
         if (matchingSounds.length) {
-          console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "${wordFallback}"`);
+          console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "${wordFallback}" or "${ambientWordFallback}"`);
 
           // Play the word fallback sound
           const randomIndex = Math.floor(Math.random() * matchingSounds.length);
@@ -213,7 +276,10 @@ function playSound(trigger: string): void {
             // Also try to play the number sound right after
             console.log(`Autodarts Tools: Also trying to play number "${number}" after ${wordFallback}`);
             const numberSounds = config.soundFx.sounds.filter(sound =>
-              sound.enabled && sound.triggers && sound.triggers.includes(number),
+              sound.enabled && sound.triggers && (
+                sound.triggers.includes(`ambient_${number}`)
+                || sound.triggers.includes(number)
+              ),
             );
 
             if (numberSounds.length) {
@@ -242,7 +308,10 @@ function playSound(trigger: string): void {
           // If no "double"/"triple" sound, fall back to just the number
           console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${number}"`);
           matchingSounds = config.soundFx.sounds.filter(sound =>
-            sound.enabled && sound.triggers && sound.triggers.includes(number),
+            sound.enabled && sound.triggers && (
+              sound.triggers.includes(`ambient_${number}`)
+              || sound.triggers.includes(number)
+            ),
           );
 
           if (matchingSounds.length) {
@@ -252,64 +321,55 @@ function playSound(trigger: string): void {
       }
     } else if (firstChar === "s") {
       // Only use fallback for s (single) prefix
-      const fallbackTrigger = trigger.substring(1);
+      const fallbackTrigger = triggerWithoutAmbient.substring(1);
 
       // Only proceed if the rest is a number
       if (/^\d+$/.test(fallbackTrigger)) {
-        // First try "single" as fallback
-        console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "single"`);
-        matchingSounds = config.soundFx.sounds.filter(sound =>
-          sound.enabled && sound.triggers && sound.triggers.includes("single"),
-        );
+        // Skip s<NUMBER> check if we already tried it in the "without ambient_" fallback
+        const shouldCheckSNumber = !trigger.startsWith("ambient_")
+          || (trigger.startsWith("ambient_") && trigger.replace("ambient_", "") !== `s${fallbackTrigger}`);
 
-        if (matchingSounds.length) {
-          console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "single"`);
+        if (shouldCheckSNumber) {
+          // Try s<NUMBER> without ambient prefix
+          console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "s${fallbackTrigger}"`);
+          matchingSounds = config.soundFx.sounds.filter(sound =>
+            sound.enabled && sound.triggers && sound.triggers.includes(`s${fallbackTrigger}`),
+          );
 
-          // Play the single fallback sound
-          const randomIndex = Math.floor(Math.random() * matchingSounds.length);
-          const soundToPlay = matchingSounds[randomIndex];
+          if (matchingSounds.length) {
+            console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "s${fallbackTrigger}"`);
 
-          // Add to queue
-          if (soundToPlay.url || soundToPlay.base64) {
-            soundQueue.push({
-              url: soundToPlay.url,
-              base64: soundToPlay.base64,
-              name: soundToPlay.name,
-            });
+            // Play the s<NUMBER> fallback sound
+            const randomIndex = Math.floor(Math.random() * matchingSounds.length);
+            const soundToPlay = matchingSounds[randomIndex];
 
-            // Also try to play the number sound right after
-            console.log(`Autodarts Tools: Also trying to play number "${fallbackTrigger}" after single`);
-            const numberSounds = config.soundFx.sounds.filter(sound =>
-              sound.enabled && sound.triggers && sound.triggers.includes(fallbackTrigger),
-            );
+            // Add to queue
+            if (soundToPlay.url || soundToPlay.base64) {
+              soundQueue.push({
+                url: soundToPlay.url,
+                base64: soundToPlay.base64,
+                name: soundToPlay.name,
+              });
 
-            if (numberSounds.length) {
-              const randomNumberIndex = Math.floor(Math.random() * numberSounds.length);
-              const numberSoundToPlay = numberSounds[randomNumberIndex];
-
-              if (numberSoundToPlay.url || numberSoundToPlay.base64) {
-                soundQueue.push({
-                  url: numberSoundToPlay.url,
-                  base64: numberSoundToPlay.base64,
-                  name: numberSoundToPlay.name,
-                });
-                console.log(`Autodarts Tools: Added number "${fallbackTrigger}" sound to queue`);
+              // Start playing if not already playing
+              if (!isPlaying) {
+                playNextSound();
               }
-            }
 
-            // Start playing if not already playing
-            if (!isPlaying) {
-              playNextSound();
+              // Return early since we've handled the sound playing
+              return;
             }
-
-            // Return early since we've handled the sound playing
-            return;
           }
-        } else {
-          // If no "single" sound, fall back to just the number
+        }
+
+        // If no s<NUMBER> sound or we skipped that check, fall back to just the number
+        if (!matchingSounds.length) {
           console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${fallbackTrigger}"`);
           matchingSounds = config.soundFx.sounds.filter(sound =>
-            sound.enabled && sound.triggers && sound.triggers.includes(fallbackTrigger),
+            sound.enabled && sound.triggers && (
+              sound.triggers.includes(`ambient_${fallbackTrigger}`)
+              || sound.triggers.includes(fallbackTrigger)
+            ),
           );
 
           if (matchingSounds.length) {
@@ -321,13 +381,16 @@ function playSound(trigger: string): void {
   }
 
   // Special case: fallback from "miss" to "outside"
-  if (!matchingSounds.length && trigger.toLowerCase() === "miss") {
+  if (!matchingSounds.length && trigger.toLowerCase() === "ambient_miss") {
     matchingSounds = config.soundFx.sounds.filter(sound =>
-      sound.enabled && sound.triggers && sound.triggers.includes("outside"),
+      sound.enabled && sound.triggers && (
+        sound.triggers.includes("ambient_outside")
+        || sound.triggers.includes("outside")
+      ),
     );
 
     if (matchingSounds.length) {
-      console.log("Autodarts Tools: Using fallback sound for \"miss\" -> \"outside\"");
+      console.log("Autodarts Tools: Using fallback sound for \"ambient_miss\" -> \"ambient_outside\" or \"outside\"");
     }
   }
 
