@@ -106,6 +106,7 @@ Add sound effects for various game events:
 - **Individual Throws**: Sounds for specific throws like `s20`, `d16`, `t19`, etc.
 - **Combined Throws**: Trigger sounds based on a sequence of throws using format `s20_t19_d12`
 - **Special Events**: Dedicated sounds for `gameshot`, `busted`, and more
+- **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the format `gameshot_player_name` or `ambient_gameshot_player_name`
 
 #### Ambient Sound Prefix
 - Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_gameshot`) to create separate sound sets for caller and ambient sounds

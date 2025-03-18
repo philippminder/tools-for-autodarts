@@ -141,7 +141,34 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   const combinedThrows: string = gameData.match.turns[0].throws.map(t => t.segment.name.toLowerCase()).join("_");
 
   if (winner) {
-    playSound("ambient_gameshot");
+    // Check if there's a winner player index and name available
+    const winnerPlayerIndex = gameData.match.winner;
+    const winnerPlayerName = gameData.match.players?.[winnerPlayerIndex]?.name;
+
+    if (winnerPlayerName) {
+      // First try to play player-specific gameshot sound
+      const playerSpecificTrigger = `ambient_gameshot_${winnerPlayerName.toLowerCase().replace(/\s+/g, "_")}`;
+      console.log(`Autodarts Tools: Trying player-specific gameshot sound "${playerSpecificTrigger}"`);
+
+      // Check if the player-specific sound exists
+      const playerSpecificSoundExists = config?.soundFx?.sounds?.some(sound =>
+        sound.enabled && sound.triggers && (
+          sound.triggers.includes(playerSpecificTrigger)
+          || sound.triggers.includes(playerSpecificTrigger.replace("ambient_", ""))
+        ),
+      );
+
+      if (playerSpecificSoundExists) {
+        playSound(playerSpecificTrigger);
+      } else {
+        // Fallback to regular gameshot sound
+        console.log(`Autodarts Tools: No player-specific gameshot sound found for "${winnerPlayerName}", falling back to standard gameshot`);
+        playSound("ambient_gameshot");
+      }
+    } else {
+      // Fallback if no player name available
+      playSound("ambient_gameshot");
+    }
   } else if (busted) {
     playSound("ambient_busted");
   } else if (isLastThrow) {
