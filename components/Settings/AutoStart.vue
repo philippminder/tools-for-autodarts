@@ -1,7 +1,6 @@
 <template>
   <!-- Feature Card -->
   <div
-    @click="activeSettings = 'auto-start'"
     v-if="config"
     class="adt-container h-56 transition-transform hover:-translate-y-0.5"
   >
@@ -15,7 +14,7 @@
         </p>
       </div>
       <div class="flex">
-        <div class="absolute inset-0 cursor-pointer " />
+        <div @click="activeSettings = 'auto-start'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
           @click="config.autoStart.enabled = !config.autoStart.enabled"
           :type="config.autoStart.enabled ? 'success' : 'default'"

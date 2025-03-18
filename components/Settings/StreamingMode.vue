@@ -142,7 +142,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="$emit('toggleSettings', 'streaming-mode')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -156,9 +155,9 @@
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggleSettings', 'streaming-mode')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click.stop="config.streamingMode.enabled = !config.streamingMode.enabled"
+            @click="config.streamingMode.enabled = !config.streamingMode.enabled"
             :type="config.streamingMode.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >

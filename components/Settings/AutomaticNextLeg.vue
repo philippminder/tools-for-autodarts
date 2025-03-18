@@ -36,7 +36,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="$emit('toggleSettings', 'automatic-next-leg')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -50,9 +49,9 @@
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggleSettings', 'automatic-next-leg')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click.stop="config.automaticNextLeg.enabled = !config.automaticNextLeg.enabled"
+            @click="config.automaticNextLeg.enabled = !config.automaticNextLeg.enabled"
             :type="config.automaticNextLeg.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >

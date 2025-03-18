@@ -1,6 +1,5 @@
 <template>
   <div
-    @click="activeSettings = 'external-boards'"
     v-if="config"
     class="adt-container h-56 transition-transform hover:-translate-y-0.5"
   >
@@ -14,7 +13,7 @@
         </p>
       </div>
       <div class="flex">
-        <div class="absolute inset-0 cursor-pointer" />
+        <div @click="activeSettings = 'external-boards'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
           @click="config.externalBoards.enabled = !config.externalBoards.enabled"
           :type="config.externalBoards.enabled ? 'success' : 'default'"

@@ -26,7 +26,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'hide-menu-in-match'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -40,7 +39,7 @@
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="activeSettings = 'hide-menu-in-match'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="config.hideMenuInMatch.enabled = !config.hideMenuInMatch.enabled"
             :type="config.hideMenuInMatch.enabled ? 'success' : 'default'"

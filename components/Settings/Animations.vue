@@ -202,7 +202,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="$emit('toggleSettings', 'animations')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -216,9 +215,9 @@
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggleSettings', 'animations')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click.stop="config.animations.enabled = !config.animations.enabled"
+            @click="config.animations.enabled = !config.animations.enabled"
             :type="config.animations.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >

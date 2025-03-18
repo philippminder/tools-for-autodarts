@@ -354,7 +354,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="$emit('toggleSettings', 'caller')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -364,17 +363,17 @@
             Caller
           </h3>
           <p class="w-2/3 text-white/70">
-            Voice announcer that calls out scores, checkouts, and game events during gameplay.
+            Call out scores, checkouts and special events during your matches with customizable sound effects.
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggleSettings', 'caller')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click.stop="config.caller.enabled = !config.caller.enabled"
-            :type="config.caller.enabled ? 'success' : 'default'"
+            @click="config.caller.enabled = !config.caller.enabled"
+            :type="config?.caller?.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.caller.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config?.caller?.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>

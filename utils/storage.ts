@@ -113,6 +113,10 @@ export interface IConfig {
     callCheckout: boolean;
     sounds: ISound[];
   };
+  soundFx: {
+    enabled: boolean;
+    sounds: ISound[];
+  };
 }
 
 export interface ISound {
@@ -376,6 +380,10 @@ export const defaultConfig: IConfig = {
       },
     ],
   },
+  soundFx: {
+    enabled: false,
+    sounds: [],
+  },
 };
 
 export const AutodartsToolsConfig: WxtStorageItem<IConfig, any> = storage.defineItem(
@@ -447,7 +455,7 @@ export const AutodartsToolsSoundAutoplayStatus: WxtStorageItem<boolean, any> = s
 export const AutodartsToolsUrlStatus: WxtStorageItem<string, any> = storage.defineItem(
   "local:urlstatus",
   {
-    defaultValue: window.location.href.split("#")[0] || "undefined",
+    defaultValue: typeof window !== "undefined" ? window.location.href.split("#")[0] || "undefined" : "undefined",
   },
 );
 

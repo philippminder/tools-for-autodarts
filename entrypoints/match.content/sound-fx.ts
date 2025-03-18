@@ -17,19 +17,19 @@ let debounceTimer: number | null = null;
 // Debounce delay in milliseconds
 const DEBOUNCE_DELAY = 200;
 
-export async function caller() {
-  console.log("Autodarts Tools: caller");
+export async function soundFx() {
+  console.log("Autodarts Tools: Sound FX");
 
   try {
     config = await AutodartsToolsConfig.getValue();
-    console.log("Autodarts Tools: Config loaded", config?.caller?.sounds?.length || 0, "sounds available");
+    console.log("Autodarts Tools: Config loaded", config?.soundFx?.sounds?.length || 0, "sounds available");
 
     // Initialize audio player for Safari compatibility
     initAudioPlayer();
 
     if (!gameDataWatcher) {
       gameDataWatcher = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
-        console.log("Autodarts Tools: caller game data updated");
+        console.log("Autodarts Tools: soundFx game data updated");
 
         // Debounce the processGameData call
         if (debounceTimer) {
@@ -43,12 +43,12 @@ export async function caller() {
       });
     }
   } catch (error) {
-    console.error("Autodarts Tools: caller initialization error", error);
+    console.error("Autodarts Tools: soundFx initialization error", error);
   }
 }
 
-export function callerOnRemove() {
-  console.log("Autodarts Tools: caller on remove");
+export function soundFxOnRemove() {
+  console.log("Autodarts Tools: soundFx on remove");
   if (gameDataWatcher) {
     gameDataWatcher = null;
   }
@@ -126,35 +126,6 @@ function unlockAudio(): void {
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
   if (!gameData.match) return;
 
-  // Check if player has changed
-  if (oldGameData?.match?.player !== undefined
-      && gameData.match.player !== undefined
-      && oldGameData.match.player !== gameData.match.player) {
-    // Get player name and play sound with player name as trigger
-    const playerName = gameData.match.players?.[gameData.match.player]?.name;
-    if (playerName) {
-      console.log("Autodarts Tools: Player changed to", playerName);
-      playSound(playerName.toLowerCase());
-    }
-  }
-
-  // Check for checkout guide
-  if (gameData.match.state?.checkoutGuide?.length) {
-    console.log("Autodarts Tools: Checkout guide available");
-
-    // Get the current player's score from gameScores
-    const currentPlayerIndex = gameData.match.player;
-    const currentScore = gameData.match.gameScores[currentPlayerIndex];
-
-    // Only play "you require" when there are 0 throws in the current turn
-    if (config.caller.callCheckout && currentScore > 0 && gameData.match.turns[0].throws.length === 0) {
-      console.log(`Autodarts Tools: Playing checkout guide sound for ${currentScore}`);
-      // Play "you_require" followed by the player's current score
-      playSound("you_require");
-      playSound(currentScore.toString());
-    }
-  }
-
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
 
@@ -174,11 +145,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   } else if (busted) {
     playSound("busted");
   } else if (isLastThrow) {
-    if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
+    playSound(throwName.toLowerCase());
     playSound(points.toString());
     playSound(combinedThrows);
   } else {
-    if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
+    playSound(throwName.toLowerCase());
   }
 }
 
@@ -187,15 +158,13 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
  * Adds the sound to a queue to be played sequentially
  */
 function playSound(trigger: string): void {
-  console.log("Autodarts Tools: Adding sound to queue", trigger);
-
-  if (!config?.caller?.sounds || !config.caller.sounds.length) {
+  if (!config?.soundFx?.sounds || !config.soundFx.sounds.length) {
     console.log("Autodarts Tools: No sounds configured");
     return;
   }
 
   // Find all sounds that match the trigger
-  let matchingSounds = config.caller.sounds.filter(sound =>
+  let matchingSounds = config.soundFx.sounds.filter(sound =>
     sound.enabled && sound.triggers && sound.triggers.includes(trigger),
   );
 
@@ -208,7 +177,7 @@ function playSound(trigger: string): void {
     // But only if the trigger doesn't contain an underscore (to avoid combined throws)
     if (firstChar === "m" && !trigger.includes("_")) {
       console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "outside"`);
-      matchingSounds = config.caller.sounds.filter(sound =>
+      matchingSounds = config.soundFx.sounds.filter(sound =>
         sound.enabled && sound.triggers && sound.triggers.includes("outside"),
       );
     } else if (firstChar === "d" || firstChar === "t") {
@@ -221,7 +190,7 @@ function playSound(trigger: string): void {
         const wordFallback = firstChar === "d" ? "double" : "triple";
 
         console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${wordFallback}"`);
-        matchingSounds = config.caller.sounds.filter(sound =>
+        matchingSounds = config.soundFx.sounds.filter(sound =>
           sound.enabled && sound.triggers && sound.triggers.includes(wordFallback),
         );
 
@@ -242,7 +211,7 @@ function playSound(trigger: string): void {
 
             // Also try to play the number sound right after
             console.log(`Autodarts Tools: Also trying to play number "${number}" after ${wordFallback}`);
-            const numberSounds = config.caller.sounds.filter(sound =>
+            const numberSounds = config.soundFx.sounds.filter(sound =>
               sound.enabled && sound.triggers && sound.triggers.includes(number),
             );
 
@@ -271,7 +240,7 @@ function playSound(trigger: string): void {
         } else {
           // If no "double"/"triple" sound, fall back to just the number
           console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${number}"`);
-          matchingSounds = config.caller.sounds.filter(sound =>
+          matchingSounds = config.soundFx.sounds.filter(sound =>
             sound.enabled && sound.triggers && sound.triggers.includes(number),
           );
 
@@ -288,7 +257,7 @@ function playSound(trigger: string): void {
       if (/^\d+$/.test(fallbackTrigger)) {
         // First try "single" as fallback
         console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "single"`);
-        matchingSounds = config.caller.sounds.filter(sound =>
+        matchingSounds = config.soundFx.sounds.filter(sound =>
           sound.enabled && sound.triggers && sound.triggers.includes("single"),
         );
 
@@ -309,7 +278,7 @@ function playSound(trigger: string): void {
 
             // Also try to play the number sound right after
             console.log(`Autodarts Tools: Also trying to play number "${fallbackTrigger}" after single`);
-            const numberSounds = config.caller.sounds.filter(sound =>
+            const numberSounds = config.soundFx.sounds.filter(sound =>
               sound.enabled && sound.triggers && sound.triggers.includes(fallbackTrigger),
             );
 
@@ -338,7 +307,7 @@ function playSound(trigger: string): void {
         } else {
           // If no "single" sound, fall back to just the number
           console.log(`Autodarts Tools: Trying fallback sound for "${trigger}" -> "${fallbackTrigger}"`);
-          matchingSounds = config.caller.sounds.filter(sound =>
+          matchingSounds = config.soundFx.sounds.filter(sound =>
             sound.enabled && sound.triggers && sound.triggers.includes(fallbackTrigger),
           );
 
@@ -352,7 +321,7 @@ function playSound(trigger: string): void {
 
   // Special case: fallback from "miss" to "outside"
   if (!matchingSounds.length && trigger.toLowerCase() === "miss") {
-    matchingSounds = config.caller.sounds.filter(sound =>
+    matchingSounds = config.soundFx.sounds.filter(sound =>
       sound.enabled && sound.triggers && sound.triggers.includes("outside"),
     );
 

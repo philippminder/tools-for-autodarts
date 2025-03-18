@@ -12,6 +12,8 @@ import { largerLegsSets } from "./larger-legs-sets";
 import { largerPlayerNames } from "./larger-player-names";
 import { winnerAnimation, winnerAnimationOnRemove } from "./winner-animation";
 import { ring } from "./ring";
+import { soundFx } from "./sound-fx";
+import { caller, callerOnRemove } from "./caller";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
   AutodartsToolsConfig,
@@ -23,7 +25,6 @@ import { fetchWithAuth } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import Animations from "@/entrypoints/match.content/Animations.vue";
-import { caller, callerOnRemove } from "@/entrypoints/match.content/caller";
 
 let matchInitialized = false;
 let activeMatchObserver: MutationObserver;
@@ -172,9 +173,11 @@ async function initMatch(ctx, url: string) {
   }
 
   if (config.caller.enabled) {
-    console.log("Autodarts Tools: Initializing caller");
-
     await initScript(caller, url);
+  }
+
+  if (config.soundFx.enabled) {
+    await initScript(soundFx, url);
   }
 }
 

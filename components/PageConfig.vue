@@ -295,8 +295,10 @@
           </div>
 
           <!-- Second row of feature cards -->
-          <div class="feature-card" data-feature-index="25">
-            <!-- Placeholder for future feature -->
+          <SoundFx @toggle-settings="toggleSettings" class="feature-card" data-feature-index="25" />
+          <!-- Settings panel for SoundFx (only on small screens) -->
+          <div v-if="isSettingInGroup(activeSettings, featureGroups[12]) && getComponentForSetting(activeSettings) && activeSettings === 'sound-fx'" class="lg:hidden" :data-settings-id="activeSettings">
+            <component :is="getComponentForSetting(activeSettings)" />
           </div>
           <div class="feature-card" data-feature-index="26">
             <!-- Placeholder for future feature -->
@@ -333,8 +335,9 @@ import LargerPlayerNames from "./Settings/LargerPlayerNames.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
 import Ring from "./Settings/Ring.vue";
 import Animations from "./Settings/Animations.vue";
-import Caller from "@/components/Settings/Caller.vue";
-import ExternalBoards from "@/components/Settings/ExternalBoards.vue";
+import Caller from "./Settings/Caller.vue";
+import ExternalBoards from "./Settings/ExternalBoards.vue";
+import SoundFx from "./Settings/SoundFx.vue";
 import type { IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
 import AppButton from "@/components/AppButton.vue";
@@ -471,10 +474,10 @@ const featureGroups = [
     id: "sounds-animations-row2",
     tab: 3,
     features: [
-      { id: "placeholder-1", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "sound-fx", component: SoundFx, hasSettings: true },
       { id: "placeholder-2", component: null, hasSettings: false }, // Placeholder for future feature
     ],
-    settingIds: [],
+    settingIds: [ "sound-fx" ],
   },
 ];
 
