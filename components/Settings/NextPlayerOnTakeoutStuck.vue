@@ -51,7 +51,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'next-player-on-takeout-stuck')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.nextPlayerOnTakeOutStuck.enabled = !config.nextPlayerOnTakeOutStuck.enabled"
+            @click="toggleFeature"
             :type="config.nextPlayerOnTakeOutStuck.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -82,4 +82,17 @@ watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await updateConfigIfChanged(currentConfig, config.value, "nextPlayerOnTakeOutStuck");
 }, { deep: true });
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.nextPlayerOnTakeOutStuck.enabled;
+  config.value.nextPlayerOnTakeOutStuck.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "next-player-on-takeout-stuck");
+  }
+}
 </script>

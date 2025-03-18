@@ -40,9 +40,9 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="activeSettings = 'winner-animation'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggleSettings', 'winner-animation')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.winnerAnimation.enabled = !config.winnerAnimation.enabled"
+            @click="toggleFeature"
             :type="config.winnerAnimation.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -63,9 +63,23 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "winner-animation");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/winner-animation.png");
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.winnerAnimation.enabled;
+  config.value.winnerAnimation.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "winner-animation");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

@@ -35,9 +35,9 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="activeSettings = 'takeout-notification'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggleSettings', 'takeout-notification')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.takeout.enabled = !config.takeout.enabled"
+            @click="toggleFeature"
             :type="config.takeout.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -58,9 +58,23 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "takeout-notification");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/takeout-notification.png");
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.takeout.enabled;
+  config.value.takeout.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "takeout-notification");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

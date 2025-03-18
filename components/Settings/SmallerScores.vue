@@ -39,9 +39,9 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="activeSettings = 'smaller-scores'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggleSettings', 'smaller-scores')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.smallerScores.enabled = !config.smallerScores.enabled"
+            @click="toggleFeature"
             :type="config.smallerScores.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -62,9 +62,23 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "smaller-scores");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/smaller-scores.png");
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.smallerScores.enabled;
+  config.value.smallerScores.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "smaller-scores");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

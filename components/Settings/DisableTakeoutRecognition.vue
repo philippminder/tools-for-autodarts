@@ -32,9 +32,9 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="activeSettings = 'disable-takeout-recognition'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggleSettings', 'disable-takeout-recognition')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.disableTakeout.enabled = !config.disableTakeout.enabled"
+            @click="toggleFeature"
             :type="config.disableTakeout.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -52,8 +52,22 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "disable-takeout-recognition");
 const config = ref<IConfig>();
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.disableTakeout.enabled;
+  config.value.disableTakeout.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "disable-takeout-recognition");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

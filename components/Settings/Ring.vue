@@ -62,7 +62,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'ring')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.ring.enabled = !config.ring.enabled"
+            @click="toggleFeature"
             :type="config.ring.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -99,4 +99,17 @@ watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await updateConfigIfChanged(currentConfig, config.value, "ring");
 }, { deep: true });
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.ring.enabled;
+  config.value.ring.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "ring");
+  }
+}
 </script>

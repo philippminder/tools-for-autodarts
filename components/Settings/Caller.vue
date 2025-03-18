@@ -369,7 +369,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'caller')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.caller.enabled = !config.caller.enabled"
+            @click="toggleFeature"
             :type="config?.caller?.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -776,5 +776,18 @@ function playSound(sound: ISound) {
     console.error("Error playing sound:", error);
     showNotification("Failed to play sound", "error");
   });
+}
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.caller.enabled;
+  config.value.caller.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "caller");
+  }
 }
 </script>

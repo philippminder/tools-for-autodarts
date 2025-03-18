@@ -85,7 +85,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'recent-local-players')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.recentLocalPlayers.enabled = !config.recentLocalPlayers.enabled"
+            @click="toggleFeature"
             :type="config.recentLocalPlayers.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -132,6 +132,19 @@ function removePlayer(index: number) {
 function clearAllPlayers() {
   if (config.value) {
     config.value.recentLocalPlayers.players = [];
+  }
+}
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.recentLocalPlayers.enabled;
+  config.value.recentLocalPlayers.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "recent-local-players");
   }
 }
 </script>

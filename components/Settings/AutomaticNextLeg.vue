@@ -51,7 +51,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'automatic-next-leg')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.automaticNextLeg.enabled = !config.automaticNextLeg.enabled"
+            @click="toggleFeature"
             :type="config.automaticNextLeg.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -83,4 +83,17 @@ watch(config, async () => {
 
   await updateConfigIfChanged(currentConfig, config.value, "automaticNextLeg");
 }, { deep: true });
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.automaticNextLeg.enabled;
+  config.value.automaticNextLeg.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "automatic-next-leg");
+  }
+}
 </script>

@@ -70,7 +70,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'colors')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.colors.enabled = !config.colors.enabled"
+            @click="toggleFeature"
             :type="config.colors.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -104,4 +104,17 @@ watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await updateConfigIfChanged(currentConfig, config.value, "colors");
 }, { deep: true });
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.colors.enabled;
+  config.value.colors.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "colors");
+  }
+}
 </script>

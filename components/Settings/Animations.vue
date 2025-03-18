@@ -217,7 +217,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'animations')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.animations.enabled = !config.animations.enabled"
+            @click="toggleFeature"
             :type="config.animations.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -432,5 +432,18 @@ function migrateAnimations() {
       animation.enabled = true; // Default to enabled
     }
   });
+}
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.animations.enabled;
+  config.value.animations.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "animations");
+  }
 }
 </script>

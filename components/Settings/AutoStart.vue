@@ -14,9 +14,9 @@
         </p>
       </div>
       <div class="flex">
-        <div @click="activeSettings = 'auto-start'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+        <div @click="$emit('toggleSettings', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
-          @click="config.autoStart.enabled = !config.autoStart.enabled"
+          @click="toggleFeature"
           :type="config.autoStart.enabled ? 'success' : 'default'"
           class="aspect-square !size-10 rounded-full p-0"
         >
@@ -36,9 +36,23 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const emit = defineEmits([ "toggleSettings" ]);
+const activeSettings = useStorage("adt:active-settings", "auto-start");
 const config = ref<IConfig>();
 const imageUrl = ref<string>();
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.autoStart.enabled;
+  config.value.autoStart.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "auto-start");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

@@ -52,7 +52,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'larger-player-names')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.largerPlayerNames.enabled = !config.largerPlayerNames.enabled"
+            @click="toggleFeature"
             :type="config.largerPlayerNames.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -97,4 +97,17 @@ watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await updateConfigIfChanged(currentConfig, config.value, "largerPlayerNames");
 }, { deep: true });
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.largerPlayerNames.enabled;
+  config.value.largerPlayerNames.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "larger-player-names");
+  }
+}
 </script>

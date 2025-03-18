@@ -52,7 +52,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'larger-legs-sets')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.largerLegsSets.enabled = !config.largerLegsSets.enabled"
+            @click="toggleFeature"
             :type="config.largerLegsSets.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -101,4 +101,17 @@ watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await updateConfigIfChanged(currentConfig, config.value, "largerLegsSets");
 }, { deep: true });
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.largerLegsSets.enabled;
+  config.value.largerLegsSets.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "larger-legs-sets");
+  }
+}
 </script>

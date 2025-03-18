@@ -39,9 +39,9 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="activeSettings = 'hide-menu-in-match'" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggleSettings', 'hide-menu-in-match')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.hideMenuInMatch.enabled = !config.hideMenuInMatch.enabled"
+            @click="toggleFeature"
             :type="config.hideMenuInMatch.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -63,9 +63,23 @@ import { onMounted, ref, watch } from "vue";
 import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "hide-menu-in-match");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/hide-menu-in-match.png");
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.hideMenuInMatch.enabled;
+  config.value.hideMenuInMatch.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "hide-menu-in-match");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();

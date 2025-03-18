@@ -59,7 +59,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'discord-webhooks')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.discord.enabled = !config.discord.enabled"
+            @click="toggleFeature"
             :type="config.discord.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -95,4 +95,17 @@ watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await updateConfigIfChanged(currentConfig, config.value, "discord");
 }, { deep: true });
+
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.discord.enabled;
+  config.value.discord.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "discord-webhooks");
+  }
+}
 </script>

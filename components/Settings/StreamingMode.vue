@@ -157,7 +157,7 @@
         <div class="flex">
           <div @click="$emit('toggleSettings', 'streaming-mode')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.streamingMode.enabled = !config.streamingMode.enabled"
+            @click="toggleFeature"
             :type="config.streamingMode.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -207,9 +207,16 @@ watch(config, async () => {
   await updateConfigIfChanged(currentConfig, config.value, "streamingMode");
 }, { deep: true });
 
-function toggleStreamingMode() {
-  if (config.value) {
-    config.value.streamingMode.enabled = !config.value.streamingMode.enabled;
+function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.streamingMode.enabled;
+  config.value.streamingMode.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    emit("toggleSettings", "streaming-mode");
   }
 }
 
