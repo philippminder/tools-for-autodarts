@@ -125,8 +125,7 @@ function unlockAudio(): void {
  * Process game data to trigger sounds based on game events
  */
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
-  if (!gameData.match) return;
-
+  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns.length) return;
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
 

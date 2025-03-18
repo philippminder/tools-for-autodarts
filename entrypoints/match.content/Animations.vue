@@ -72,7 +72,7 @@ function hideAnimation(): void {
  * 50 will get processed as "bull"
  */
 async function processGameData(gameData: IGameData): Promise<void> {
-  if (!gameData.match) return;
+  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns.length) return;
 
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;

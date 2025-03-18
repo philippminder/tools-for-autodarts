@@ -125,7 +125,7 @@ function unlockAudio(): void {
  * Process game data to trigger sounds based on game events
  */
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
-  if (!gameData.match) return;
+  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns.length) return;
 
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.variant !== "Bull-off" && gameData.match.player === 0) {
@@ -162,7 +162,6 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       playSound(currentScore.toString());
     }
   }
-
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
 
