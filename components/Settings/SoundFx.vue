@@ -281,7 +281,8 @@
         <AppButton
           @click="processFiles"
           type="success"
-          :disabled="selectedFiles.length === 0"
+          :disabled="selectedFiles.length === 0 || isProcessing"
+          :loading="isProcessing"
         >
           Save {{ selectedFiles.length }} Files
         </AppButton>
@@ -398,6 +399,7 @@ const fileInput = ref<HTMLInputElement | null>(null);
 const selectedFiles = ref<File[]>([]);
 const isDragging = ref(false);
 const generateTriggersFromFilenames = ref(true);
+const isProcessing = ref(false);
 
 // Sortable related refs
 const soundsContainer = ref<HTMLElement | null>(null);
@@ -685,41 +687,53 @@ async function fileToBase64(file: File): Promise<string> {
 async function processFiles() {
   if (!config.value || selectedFiles.value.length === 0) return;
 
-  for (const file of selectedFiles.value) {
-    try {
-      // Convert file to base64
-      const base64Data = await fileToBase64(file);
+  isProcessing.value = true;
 
-      // Get filename without extension
-      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf("."));
+  try {
+    for (const file of selectedFiles.value) {
+      try {
+        // Convert file to base64
+        const base64Data = await fileToBase64(file);
 
-      // Generate triggers if option is enabled
-      const triggers = generateTriggersFromFilenames.value
-        ? extractTriggerFromFilename(file.name)
-        : [];
+        // Get filename without extension
+        const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf("."));
 
-      // Create sound object
-      const sound: ISound = {
-        name: nameWithoutExt,
-        url: "",
-        base64: base64Data,
-        enabled: true,
-        triggers,
-      };
+        // Generate triggers if option is enabled
+        const triggers = generateTriggersFromFilenames.value
+          ? extractTriggerFromFilename(file.name)
+          : [];
 
-      // Add to the beginning of sounds array
-      config.value.soundFx.sounds.unshift(sound);
-    } catch (error) {
-      console.error(`Error processing file ${file.name}:`, error);
+        // Create sound object
+        const sound: ISound = {
+          name: nameWithoutExt,
+          url: "",
+          base64: base64Data,
+          enabled: true,
+          triggers,
+        };
+
+        // Add to the beginning of sounds array
+        config.value.soundFx.sounds.unshift(sound);
+      } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error);
+      }
     }
+
+    // Update config
+    const currentConfig = await AutodartsToolsConfig.getValue();
+    await updateConfigIfChanged(currentConfig, config.value, "soundFx");
+
+    // Show notification
+    showNotification(`Successfully added ${selectedFiles.value.length} sounds`);
+  } catch (error) {
+    console.error("Error processing files:", error);
+    showNotification("Error processing files", "error");
+  } finally {
+    isProcessing.value = false;
+
+    // Close modal
+    closeUploadModal();
   }
-
-  // Update config
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await updateConfigIfChanged(currentConfig, config.value, "soundFx");
-
-  // Close modal
-  closeUploadModal();
 }
 
 function sortSoundsByTriggers() {
