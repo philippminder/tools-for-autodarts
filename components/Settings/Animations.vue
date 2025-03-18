@@ -338,8 +338,8 @@ function initSortable() {
 
         // Update the data array to match the DOM
         if (oldIndex !== undefined && newIndex !== undefined) {
-          const movedItem = config.value.animations.data.splice(oldIndex, 1)[0];
-          config.value.animations.data.splice(newIndex, 0, movedItem);
+          const movedItem = config.value.animations.data.splice(oldIndex - 1, 1)[0];
+          config.value.animations.data.splice(newIndex - 1, 0, movedItem);
 
           // Update the container key to force re-render
           containerKey.value++;

@@ -499,9 +499,9 @@ function initSortable() {
 
         // Update the data array to match the DOM
         if (oldIndex !== undefined && newIndex !== undefined) {
-          const movedItem = config.value.caller.sounds.splice(oldIndex, 1)[0];
+          const movedItem = config.value.caller.sounds.splice(oldIndex - 1, 1)[0];
 
-          config.value.caller.sounds.splice(newIndex, 0, movedItem);
+          config.value.caller.sounds.splice(newIndex - 1, 0, movedItem);
 
           // Update the container key to force re-render
           containerKey.value++;

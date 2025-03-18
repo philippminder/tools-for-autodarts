@@ -467,8 +467,8 @@ function initSortable() {
 
         // Update the data array to match the DOM
         if (oldIndex !== undefined && newIndex !== undefined) {
-          const movedItem = config.value.soundFx.sounds.splice(oldIndex, 1)[0];
-          config.value.soundFx.sounds.splice(newIndex, 0, movedItem);
+          const movedItem = config.value.soundFx.sounds.splice(oldIndex - 1, 1)[0];
+          config.value.soundFx.sounds.splice(newIndex - 1, 0, movedItem);
 
           // Update the container key to force re-render
           containerKey.value++;
