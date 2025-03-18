@@ -439,6 +439,9 @@ const isProcessing = ref(false);
 // Delete all modal
 const showDeleteAllModal = ref(false);
 
+// Audio player reference for stopping previous sounds
+const currentAudio = ref<HTMLAudioElement | null>(null);
+
 // Computed property for lowercase text handling
 const lowercaseText = computed({
   get: () => newSound.value.text,
@@ -785,8 +788,15 @@ async function deleteAllSounds() {
 }
 
 function playSound(sound: ISound) {
+  // Stop current audio if it exists
+  if (currentAudio.value) {
+    currentAudio.value.pause();
+    currentAudio.value.currentTime = 0;
+  }
+
   // Create an audio element
   const audio = new Audio();
+  currentAudio.value = audio;
 
   // Set the source based on what's available
   if (sound.base64) {

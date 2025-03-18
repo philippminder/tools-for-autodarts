@@ -406,6 +406,9 @@ const soundsContainer = ref<HTMLElement | null>(null);
 const containerKey = ref(0);
 let sortableInstance: Sortable | null = null;
 
+// Audio player reference for stopping previous sounds
+const currentAudio = ref<HTMLAudioElement | null>(null);
+
 // Notification handling through composable
 const { notification, showNotification, hideNotification } = useNotification();
 
@@ -567,8 +570,15 @@ function toggleSound(index: number) {
 }
 
 function playSound(sound: ISound) {
+  // Stop current audio if it exists
+  if (currentAudio.value) {
+    currentAudio.value.pause();
+    currentAudio.value.currentTime = 0;
+  }
+
   // Create an audio element
   const audio = new Audio();
+  currentAudio.value = audio;
 
   // Set the source based on what's available
   if (sound.base64) {
