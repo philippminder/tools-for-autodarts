@@ -105,6 +105,7 @@ export interface IConfig {
     duration?: number;
     delayStart?: number;
     objectFit?: "cover" | "contain";
+    viewMode?: "full-page" | "board-only";
     data: IAnimation[];
   };
   caller: {
@@ -277,6 +278,7 @@ export const defaultConfig: IConfig = {
     duration: 5,
     delayStart: 1,
     objectFit: "cover",
+    viewMode: "board-only",
     data: [
       {
         url: "https://media.tenor.com/G4cRydvvtU4AAAAM/ted-hankey-darts.gif",

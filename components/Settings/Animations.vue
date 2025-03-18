@@ -14,7 +14,7 @@
             <p>Configure the animations for the game. Click the plus button to add a new animation.</p>
 
             <!-- Animation Settings -->
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label class="mb-1 block text-sm font-medium text-white">Delay (seconds)</label>
                 <AppInput
@@ -48,6 +48,18 @@
                   :options="[
                     { value: 'cover', label: 'Cover' },
                     { value: 'contain', label: 'Contain' },
+                  ]"
+                />
+              </div>
+              <div>
+                <label class="mb-1 block text-sm font-medium text-white">View Mode</label>
+                <AppSelect
+                  @update:model-value="val => config!.animations.viewMode = val as 'full-page' | 'board-only'"
+                  v-if="config"
+                  :model-value="config.animations.viewMode || 'board-only'"
+                  :options="[
+                    { value: 'full-page', label: 'Full Page' },
+                    { value: 'board-only', label: 'Board Only' },
                   ]"
                 />
               </div>

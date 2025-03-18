@@ -2,7 +2,9 @@
   <div
     @click="hideAnimation"
     v-if="isShowingAnimation"
-    class="fixed left-0 top-0 z-[180] size-full"
+    class="fixed z-[180]"
+    :class="animationContainerClasses"
+    :style="animationContainerStyle"
   >
     <div class="absolute inset-0">
       <img
@@ -36,6 +38,34 @@ const isFadingIn = ref(false);
 const currentAnimationUrl = ref("");
 const config = ref<any>(null);
 const animationTimeout = ref<number | null>(null);
+const boardPosition = ref({
+  top: 0,
+  left: 0,
+  width: 0,
+  height: 0,
+});
+
+// Computed properties
+const animationContainerClasses = computed(() => {
+  const isFullPage = config.value?.animations?.viewMode === "full-page";
+  return {
+    "left-0 top-0 size-full": isFullPage,
+  };
+});
+
+const animationContainerStyle = computed(() => {
+  const isFullPage = config.value?.animations?.viewMode === "full-page";
+  if (isFullPage) {
+    return {};
+  }
+
+  return {
+    top: `${boardPosition.value.top}px`,
+    left: `${boardPosition.value.left}px`,
+    width: `${boardPosition.value.width}px`,
+    height: `${boardPosition.value.height}px`,
+  };
+});
 
 onMounted(async () => {
   console.log("Autodarts Tools: Animations mounted");
@@ -45,10 +75,38 @@ onMounted(async () => {
     AutodartsToolsGameData.watch((gameData: IGameData) => {
       processGameData(gameData);
     });
+
+    // Update board position
+    updateBoardPosition();
+
+    // Add resize event listener
+    window.addEventListener("resize", updateBoardPosition);
+
+    // Set up an interval to check for board position changes
+    const updateInterval = setInterval(updateBoardPosition, 1000);
+
+    // Clean up interval on unmount
+    onUnmounted(() => {
+      clearInterval(updateInterval);
+      window.removeEventListener("resize", updateBoardPosition);
+    });
   } catch (error) {
     console.error("Autodarts Tools: Animation initialization error", error);
   }
 });
+
+function updateBoardPosition(): void {
+  const boardElement = document.querySelector("#ad-ext-turn")?.nextElementSibling?.querySelector(".showAnimations");
+  if (boardElement) {
+    const rect = boardElement.getBoundingClientRect();
+    boardPosition.value = {
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+    };
+  }
+}
 
 function hideAnimation(): void {
   isFadingOut.value = true;
@@ -106,6 +164,9 @@ async function playAnimation(trigger: string): Promise<void> {
     const animationUrl = getAnimationUrl(trigger);
     if (!animationUrl) return;
 
+    // Update the board position before showing animation
+    updateBoardPosition();
+
     // Clear any existing animation
     if (isShowingAnimation.value) {
       hideAnimation();
@@ -155,7 +216,7 @@ function abortAnimation(): void {
 
 function getAnimationUrl(trigger: string): string | undefined {
   // Find all animations that match the trigger
-  const matchingAnimations = config.value.animations.data.filter(a => a.triggers.includes(trigger));
+  const matchingAnimations = config.value.animations.data.filter(a => a.triggers.includes(trigger) && a.enabled);
 
   // If no matching animations, return undefined
   if (!matchingAnimations.length) return undefined;
