@@ -333,7 +333,7 @@ import LargerPlayerNames from "./Settings/LargerPlayerNames.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
 import Ring from "./Settings/Ring.vue";
 import Animations from "./Settings/Animations.vue";
-import Caller from "./Settings/Caller.vue";
+import Caller from "@/components/Settings/Caller.vue";
 import ExternalBoards from "@/components/Settings/ExternalBoards.vue";
 import type { IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
@@ -557,12 +557,23 @@ function importSettings() {
           }
 
           // Update the config
-          config.value = {
+          const newConfig = {
             ...JSON.parse(JSON.stringify(defaultConfig)),
             ...JSON.parse(JSON.stringify(importedData.config)),
           };
 
-          showNotification("Settings imported successfully");
+          // Set the local ref
+          config.value = newConfig;
+
+          // Explicitly save to storage
+          await AutodartsToolsConfig.setValue(newConfig);
+
+          showNotification("Settings imported successfully. Page will reload to apply changes...");
+
+          // Reload the page after a short delay to allow the notification to be seen
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         } catch (error) {
           console.error("Failed to import settings:", error);
           showNotification("Failed to import settings", "error");
@@ -585,13 +596,25 @@ function resetAllSettings() {
   showConfirmDialog(
     "Reset All Settings",
     "This will reset all settings to their default values. All your customizations will be lost. Are you sure you want to continue?",
-    () => {
-      config.value = JSON.parse(JSON.stringify(defaultConfig));
-      showNotification("All settings have been reset to default");
-      // Close danger zone and navigate to first tab with first settings panel open
+    async () => {
+      const newConfig = JSON.parse(JSON.stringify(defaultConfig));
+      config.value = newConfig;
+
+      // Explicitly save to storage
+      await AutodartsToolsConfig.setValue(newConfig);
+
+      showNotification("All settings have been reset to default. Page will reload to apply changes...");
+
+      // Close danger zone
       showDangerZone.value = false;
-      activeTab.value = 0;
-      activeSettings.value = "discord-webhooks";
+
+      // Reload the page after a short delay to allow the notification to be seen
+      setTimeout(() => {
+        window.location.reload();
+        // After reload, navigate to first tab with first settings panel open
+        activeTab.value = 0;
+        activeSettings.value = "discord-webhooks";
+      }, 1500);
     },
   );
 }
@@ -622,7 +645,7 @@ function copyToClipboard() {
 
 function pasteFromClipboard() {
   navigator.clipboard.readText()
-    .then((text) => {
+    .then(async (text) => {
       try {
         const jsonString = decodeURIComponent(atob(text));
         const importedData = JSON.parse(jsonString);
@@ -633,12 +656,23 @@ function pasteFromClipboard() {
         }
 
         // Update the config
-        config.value = {
+        const newConfig = {
           ...JSON.parse(JSON.stringify(defaultConfig)),
           ...JSON.parse(JSON.stringify(importedData.config)),
         };
 
-        showNotification("Settings imported successfully");
+        // Set the local ref
+        config.value = newConfig;
+
+        // Explicitly save to storage
+        await AutodartsToolsConfig.setValue(newConfig);
+
+        showNotification("Settings imported successfully. Page will reload to apply changes...");
+
+        // Reload the page after a short delay to allow the notification to be seen
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } catch (error) {
         console.error("Failed to import settings from clipboard:", error);
         showNotification("Failed to import settings from clipboard", "error");

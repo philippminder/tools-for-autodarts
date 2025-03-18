@@ -39,10 +39,6 @@
                 </AppButton>
                 <div class="flex items-center gap-2">
                   <span>Call every dart</span>
-                  <span
-                    class="icon-[pixelarticons--info-box] cursor-help text-white/50"
-                    title="When enabled, the caller will announce each dart as it's thrown, rather than waiting for the end of a turn."
-                  />
                 </div>
               </div>
 
@@ -57,10 +53,6 @@
                 </AppButton>
                 <div class="flex items-center gap-2">
                   <span>Call checkout</span>
-                  <span
-                    class="icon-[pixelarticons--info-box] cursor-help text-white/50"
-                    title="When enabled, the caller will announce possible checkout combinations when a player is on a checkout score."
-                  />
                 </div>
               </div>
             </div>
