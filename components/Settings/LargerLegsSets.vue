@@ -37,7 +37,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'larger-legs-sets'"
+      @click="$emit('toggleSettings', 'larger-legs-sets')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -53,7 +53,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.largerLegsSets.enabled = !config.largerLegsSets.enabled"
+            @click.stop="config.largerLegsSets.enabled = !config.largerLegsSets.enabled"
             :type="config.largerLegsSets.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -75,6 +75,7 @@ import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "larger-legs-sets");
 const config = ref<IConfig>();
 const sizeValue = ref("");

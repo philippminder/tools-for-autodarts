@@ -202,7 +202,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'animations'"
+      @click="$emit('toggleSettings', 'animations')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -218,7 +218,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.animations.enabled = !config.animations.enabled"
+            @click.stop="config.animations.enabled = !config.animations.enabled"
             :type="config.animations.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -245,6 +245,7 @@ import AppInput from "../AppInput.vue";
 import AppSelect from "../AppSelect.vue";
 import { AutodartsToolsConfig, type IAnimation, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "animations");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/animations.png");

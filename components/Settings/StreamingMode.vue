@@ -142,7 +142,8 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'streaming-mode'"
+      @click="$emit('toggleSettings', 'streaming-mode')"
+      v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
@@ -157,11 +158,11 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="toggleStreamingMode"
-            :type="config?.streamingMode.enabled ? 'success' : 'default'"
+            @click.stop="config.streamingMode.enabled = !config.streamingMode.enabled"
+            :type="config.streamingMode.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config?.streamingMode.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.streamingMode.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -180,6 +181,7 @@ import AppToggle from "../AppToggle.vue";
 import AppRadioGroup from "../AppRadioGroup.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "streaming-mode");
 const config = ref<IConfig>();
 const streamingModeBackgroundFileSelect = ref() as Ref<HTMLInputElement>;

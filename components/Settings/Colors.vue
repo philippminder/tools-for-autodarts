@@ -55,7 +55,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'colors'"
+      @click="$emit('toggleSettings', 'colors')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -71,7 +71,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.colors.enabled = !config.colors.enabled"
+            @click.stop="config.colors.enabled = !config.colors.enabled"
             :type="config.colors.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -92,6 +92,7 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "colors");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/colors.png");

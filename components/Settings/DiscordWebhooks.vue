@@ -43,7 +43,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'discord-webhooks'"
+      @click="$emit('toggleSettings', 'discord-webhooks')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -60,7 +60,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.discord.enabled = !config.discord.enabled"
+            @click.stop="config.discord.enabled = !config.discord.enabled"
             :type="config.discord.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -83,6 +83,7 @@ import AppRadioGroup from "../AppRadioGroup.vue";
 import AppInput from "../AppInput.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/discord-webhooks.png");

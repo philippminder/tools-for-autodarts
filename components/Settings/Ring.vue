@@ -47,7 +47,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'ring'"
+      @click="$emit('toggleSettings', 'ring')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -63,7 +63,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.ring.enabled = !config.ring.enabled"
+            @click.stop="config.ring.enabled = !config.ring.enabled"
             :type="config.ring.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -84,6 +84,8 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppToggle from "../AppToggle.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+
+const emit = defineEmits([ "toggleSettings" ]);
 
 const imageUrl = browser.runtime.getURL("/images/ring.png");
 

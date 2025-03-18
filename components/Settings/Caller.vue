@@ -354,7 +354,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'caller'"
+      @click="$emit('toggleSettings', 'caller')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -370,7 +370,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.caller.enabled = !config.caller.enabled"
+            @click.stop="config.caller.enabled = !config.caller.enabled"
             :type="config.caller.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -397,6 +397,8 @@ import AppInput from "../AppInput.vue";
 import AppNotification from "../AppNotification.vue";
 import { AutodartsToolsConfig, type IConfig, type ISound, updateConfigIfChanged } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
+
+const emit = defineEmits([ "toggleSettings" ]);
 
 const textareaPlaceholder = `180
 s60

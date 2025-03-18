@@ -37,7 +37,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'larger-player-names'"
+      @click="$emit('toggleSettings', 'larger-player-names')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -53,7 +53,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.largerPlayerNames.enabled = !config.largerPlayerNames.enabled"
+            @click.stop="config.largerPlayerNames.enabled = !config.largerPlayerNames.enabled"
             :type="config.largerPlayerNames.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -72,6 +72,7 @@ import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "larger-player-names");
 const config = ref<IConfig>();
 const sizeValue = ref("");

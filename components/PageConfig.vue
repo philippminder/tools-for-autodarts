@@ -121,7 +121,7 @@
           class="grid grid-cols-1 gap-5 lg:grid-cols-2"
         >
           <!-- First row of feature cards -->
-          <DiscordWebhooks class="feature-card" data-feature-index="1" />
+          <DiscordWebhooks @toggle-settings="toggleSettings" class="feature-card" data-feature-index="1" />
           <!-- Settings panel for DiscordWebhooks (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[0]) && getComponentForSetting(activeSettings) && activeSettings === 'discord-webhooks'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -134,7 +134,7 @@
           </div>
 
           <!-- Second row of feature cards -->
-          <RecentLocalPlayers class="feature-card" data-feature-index="3" />
+          <RecentLocalPlayers @toggle-settings="toggleSettings" class="feature-card" data-feature-index="3" />
           <!-- Settings panel for RecentLocalPlayers (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[1]) && getComponentForSetting(activeSettings) && activeSettings === 'recent-local-players'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -166,7 +166,7 @@
         >
           <!-- First row of feature cards -->
           <DisableTakeoutRecognition class="feature-card" data-feature-index="7" />
-          <Colors class="feature-card" data-feature-index="8" />
+          <Colors @toggle-settings="toggleSettings" class="feature-card" data-feature-index="8" />
           <!-- Settings panel for Colors (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[3]) && getComponentForSetting(activeSettings) && activeSettings === 'colors'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -179,7 +179,7 @@
 
           <!-- Second row of feature cards -->
           <TakeoutNotification class="feature-card" data-feature-index="9" />
-          <NextPlayerOnTakeoutStuck class="feature-card" data-feature-index="10" />
+          <NextPlayerOnTakeoutStuck @toggle-settings="toggleSettings" class="feature-card" data-feature-index="10" />
           <!-- Settings panel for NextPlayerOnTakeoutStuck (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[4]) && getComponentForSetting(activeSettings) && activeSettings === 'next-player-on-takeout-stuck'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -191,7 +191,7 @@
           </div>
 
           <!-- Third row of feature cards -->
-          <AutomaticNextLeg class="feature-card" data-feature-index="11" />
+          <AutomaticNextLeg @toggle-settings="toggleSettings" class="feature-card" data-feature-index="11" />
           <!-- Settings panel for AutomaticNextLeg (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[5]) && getComponentForSetting(activeSettings) && activeSettings === 'automatic-next-leg'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -205,7 +205,7 @@
 
           <!-- Fourth row of feature cards -->
           <HideMenuInMatch class="feature-card" data-feature-index="13" />
-          <StreamingMode class="feature-card" data-feature-index="14" />
+          <StreamingMode @toggle-settings="toggleSettings" class="feature-card" data-feature-index="14" />
           <!-- Settings panel for StreamingMode (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[6]) && getComponentForSetting(activeSettings) && activeSettings === 'streaming-mode'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -217,12 +217,12 @@
           </div>
 
           <!-- Fifth row of feature cards -->
-          <LargerLegsSets class="feature-card" data-feature-index="15" />
+          <LargerLegsSets @toggle-settings="toggleSettings" class="feature-card" data-feature-index="15" />
           <!-- Settings panel for LargerLegsSets (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-legs-sets'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
-          <LargerPlayerNames class="feature-card" data-feature-index="16" />
+          <LargerPlayerNames @toggle-settings="toggleSettings" class="feature-card" data-feature-index="16" />
           <!-- Settings panel for LargerPlayerNames (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-names'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -234,7 +234,7 @@
           </div>
 
           <!-- Sixth row of feature cards -->
-          <LargerPlayerMatchData class="feature-card" data-feature-index="17" />
+          <LargerPlayerMatchData @toggle-settings="toggleSettings" class="feature-card" data-feature-index="17" />
           <!-- Settings panel for LargerPlayerMatchData (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-match-data'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -247,7 +247,7 @@
           </div>
 
           <!-- Seventh row of feature cards -->
-          <Ring class="feature-card" data-feature-index="19" />
+          <Ring @toggle-settings="toggleSettings" class="feature-card" data-feature-index="19" />
 
           <!-- Settings panel for seventh row (only if active setting has settings) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
@@ -278,12 +278,12 @@
           class="grid grid-cols-1 gap-5 lg:grid-cols-2"
         >
           <!-- First row of feature cards -->
-          <Animations class="feature-card" data-feature-index="23" />
+          <Animations @toggle-settings="toggleSettings" class="feature-card" data-feature-index="23" />
           <!-- Settings panel for Animations (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings) && activeSettings === 'animations'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
           </div>
-          <Caller class="feature-card" data-feature-index="24" />
+          <Caller @toggle-settings="toggleSettings" class="feature-card" data-feature-index="24" />
           <!-- Settings panel for Caller (only on small screens) -->
           <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings) && activeSettings === 'caller'" class="lg:hidden" :data-settings-id="activeSettings">
             <component :is="getComponentForSetting(activeSettings)" />
@@ -700,6 +700,17 @@ function getComponentForSetting(settingId) {
     }
   }
   return null;
+}
+
+// Function to toggle settings panel
+function toggleSettings(settingId) {
+  if (activeSettings.value === settingId) {
+    // If the clicked setting is already active, close it
+    activeSettings.value = null;
+  } else {
+    // Otherwise, open the clicked setting
+    activeSettings.value = settingId;
+  }
 }
 </script>
 

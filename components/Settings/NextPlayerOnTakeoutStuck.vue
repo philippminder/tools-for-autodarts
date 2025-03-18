@@ -36,7 +36,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'next-player-on-takeout-stuck'"
+      @click="$emit('toggleSettings', 'next-player-on-takeout-stuck')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -52,7 +52,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.nextPlayerOnTakeOutStuck.enabled = !config.nextPlayerOnTakeOutStuck.enabled"
+            @click.stop="config.nextPlayerOnTakeOutStuck.enabled = !config.nextPlayerOnTakeOutStuck.enabled"
             :type="config.nextPlayerOnTakeOutStuck.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -71,6 +71,7 @@ import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
+const emit = defineEmits([ "toggleSettings" ]);
 const activeSettings = useStorage("adt:active-settings", "next-player-on-takeout-stuck");
 const config = ref<IConfig>();
 

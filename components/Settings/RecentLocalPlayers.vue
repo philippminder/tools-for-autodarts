@@ -70,7 +70,7 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'recent-local-players'"
+      @click="$emit('toggleSettings', 'recent-local-players')"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -86,7 +86,7 @@
         <div class="flex">
           <div class="absolute inset-0 cursor-pointer " />
           <AppButton
-            @click="config.recentLocalPlayers.enabled = !config.recentLocalPlayers.enabled"
+            @click.stop="config.recentLocalPlayers.enabled = !config.recentLocalPlayers.enabled"
             :type="config.recentLocalPlayers.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -108,7 +108,8 @@ import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const emit = defineEmits([ "toggleSettings" ]);
+const activeSettings = useStorage("adt:active-settings", "recent-local-players");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/recent-local-players.png");
 
