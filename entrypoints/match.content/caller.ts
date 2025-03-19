@@ -157,7 +157,7 @@ function unlockAudio(): void {
   // Also unlock all audio pool elements
   audioPool.forEach((audio, i) => {
     audio.src = silentAudio;
-    audio.volume = 0.01;
+    audio.volume = 1;
     // Don't play them all, just load them
     if (i === 0) {
       audio.play().catch(e => console.error("Autodarts Tools: Error unlocking pool audio", e));
