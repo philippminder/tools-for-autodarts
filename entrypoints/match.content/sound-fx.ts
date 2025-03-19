@@ -23,6 +23,13 @@ let notificationElement: HTMLElement | null = null;
 // Reference to the style element for notification
 let notificationStyleElement: HTMLStyleElement | null = null;
 
+// Audio element pool for Safari compatibility
+const AUDIO_POOL_SIZE = 3;
+const audioPool: HTMLAudioElement[] = [];
+let currentAudioIndex = 0;
+// Tracking URLs that need to be revoked
+const blobUrlsToRevoke: string[] = [];
+
 export async function soundFx() {
   console.log("Autodarts Tools: Sound FX");
 
@@ -73,6 +80,24 @@ export function soundFxOnRemove() {
     audioPlayer = null;
   }
 
+  // Clean up audio pool
+  audioPool.forEach((audio) => {
+    audio.pause();
+    audio.src = "";
+    audio.remove();
+  });
+  audioPool.length = 0;
+
+  // Revoke any blob URLs
+  blobUrlsToRevoke.forEach((url) => {
+    try {
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Autodarts Tools: Error revoking URL", e);
+    }
+  });
+  blobUrlsToRevoke.length = 0;
+
   // Remove notification elements if they exist
   removeInteractionNotification();
 }
@@ -94,6 +119,20 @@ function initAudioPlayer(): void {
       playNextSound();
     });
 
+    // Initialize audio pool
+    for (let i = 0; i < AUDIO_POOL_SIZE; i++) {
+      const audio = new Audio();
+      audio.addEventListener("ended", () => {
+        console.log("Autodarts Tools: Pool audio ended");
+        playNextSound();
+      });
+      audio.addEventListener("error", (error) => {
+        console.error("Autodarts Tools: Pool audio error", error);
+        playNextSound();
+      });
+      audioPool.push(audio);
+    }
+
     // Unlock audio on first user interaction (required for Safari/iOS)
     document.addEventListener("click", unlockAudio, { once: true });
     document.addEventListener("touchstart", unlockAudio, { once: true });
@@ -114,6 +153,16 @@ function unlockAudio(): void {
 
   audioPlayer.src = silentAudio;
   audioPlayer.volume = 0.01;
+
+  // Also unlock all audio pool elements
+  audioPool.forEach((audio, i) => {
+    audio.src = silentAudio;
+    audio.volume = 0.01;
+    // Don't play them all, just load them
+    if (i === 0) {
+      audio.play().catch(e => console.error("Autodarts Tools: Error unlocking pool audio", e));
+    }
+  });
 
   audioPlayer.play()
     .then(() => {
@@ -608,12 +657,6 @@ function playSound(trigger: string): void {
 function playNextSound(): void {
   console.log("Autodarts Tools: playNextSound called, queue length:", soundQueue.length);
 
-  if (!audioPlayer) {
-    console.error("Autodarts Tools: Audio player not initialized");
-    isPlaying = false;
-    return;
-  }
-
   if (soundQueue.length === 0) {
     console.log("Autodarts Tools: Sound queue is empty");
     isPlaying = false;
@@ -629,34 +672,31 @@ function playNextSound(): void {
     console.log("Autodarts Tools: Playing sound");
 
     try {
+      // Get the next audio element from the pool
+      const audioElement = audioPool[currentAudioIndex];
+
+      // Make sure the audio element exists
+      if (!audioElement) {
+        console.error("Autodarts Tools: Audio element not found in pool");
+        isPlaying = false;
+        return;
+      }
+
+      // Update index for next use
+      currentAudioIndex = (currentAudioIndex + 1) % AUDIO_POOL_SIZE;
+
+      // Stop any current playback
+      audioElement.pause();
+
       // Try URL first if available
       if (nextSound.url) {
         console.log("Autodarts Tools: Using URL source");
 
-        // Create a new audio element for URL-based sounds
-        const tempAudio = new Audio(nextSound.url);
-
-        // Set up event listeners
-        tempAudio.addEventListener("ended", () => {
-          console.log("Autodarts Tools: URL sound ended");
-          playNextSound();
-        });
-
-        tempAudio.addEventListener("error", (error) => {
-          console.error("Autodarts Tools: Error playing URL sound", error);
-
-          // If URL fails and we have base64, try that as fallback
-          if (nextSound.base64) {
-            console.log("Autodarts Tools: Falling back to base64 after URL failure");
-            playBase64Sound(nextSound.base64);
-          } else {
-            // Move to next sound
-            playNextSound();
-          }
-        });
+        // Set the source to the URL
+        audioElement.src = nextSound.url;
 
         // Play the sound
-        tempAudio.play()
+        audioElement.play()
           .then(() => {
             console.log("Autodarts Tools: URL sound playing successfully");
           })
@@ -670,6 +710,7 @@ function playNextSound(): void {
               || error.toString().includes("The request is not allowed by the user agent") // safari
             ) {
               showInteractionNotification();
+              unlockAudio(); // Try to unlock audio again
             }
 
             // If URL fails and we have base64, try that as fallback
@@ -715,21 +756,32 @@ function playBase64Sound(base64Data: string): void {
       return;
     }
 
-    // Create a new audio element for this sound
-    const audioElement = new Audio(audioUrl);
+    // Add URL to tracking array for later revocation
+    blobUrlsToRevoke.push(audioUrl);
 
-    // Set up event listeners
-    audioElement.addEventListener("ended", () => {
-      console.log("Autodarts Tools: Base64 sound ended");
-      URL.revokeObjectURL(audioUrl);
-      playNextSound();
-    });
+    // Get the next audio element from the pool
+    const audioElement = audioPool[currentAudioIndex];
 
-    audioElement.addEventListener("error", (error) => {
-      console.error("Autodarts Tools: Error playing base64 sound", error);
+    // Make sure the audio element exists
+    if (!audioElement) {
+      console.error("Autodarts Tools: Audio element not found in pool for base64");
       URL.revokeObjectURL(audioUrl);
+      const index = blobUrlsToRevoke.indexOf(audioUrl);
+      if (index > -1) {
+        blobUrlsToRevoke.splice(index, 1);
+      }
       playNextSound();
-    });
+      return;
+    }
+
+    // Update index for next use
+    currentAudioIndex = (currentAudioIndex + 1) % AUDIO_POOL_SIZE;
+
+    // Stop any current playback
+    audioElement.pause();
+
+    // Set the source to the blob URL
+    audioElement.src = audioUrl;
 
     // Play the sound
     audioElement.play()
@@ -746,9 +798,14 @@ function playBase64Sound(base64Data: string): void {
           || error.toString().includes("The request is not allowed by the user agent") // safari
         ) {
           showInteractionNotification();
+          unlockAudio(); // Try to unlock audio again
         }
 
         URL.revokeObjectURL(audioUrl);
+        const index = blobUrlsToRevoke.indexOf(audioUrl);
+        if (index > -1) {
+          blobUrlsToRevoke.splice(index, 1);
+        }
         playNextSound();
       });
   } catch (error) {
@@ -826,3 +883,24 @@ function createAudioBlobUrl(base64Data: string): string | null {
     return null;
   }
 }
+
+// Clean up blob URLs periodically to prevent memory leaks
+setInterval(() => {
+  if (blobUrlsToRevoke.length > 20) {
+    console.log("Autodarts Tools: Cleaning up blob URLs", blobUrlsToRevoke.length);
+    // Keep the 5 most recent URLs (they might still be in use)
+    const urlsToKeep = blobUrlsToRevoke.slice(-5);
+    const urlsToRemove = blobUrlsToRevoke.slice(0, -5);
+
+    urlsToRemove.forEach((url) => {
+      try {
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error("Autodarts Tools: Error revoking URL", e);
+      }
+    });
+
+    blobUrlsToRevoke.length = 0;
+    blobUrlsToRevoke.push(...urlsToKeep);
+  }
+}, 60000); // Check every minute
