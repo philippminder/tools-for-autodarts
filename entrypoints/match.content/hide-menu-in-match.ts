@@ -2,6 +2,7 @@ import { waitForElement } from "@/utils";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 
 export async function hideMenuInMatch() {
+  if (document.querySelector("#adt-menu-hide")) return;
   console.log("Autodarts Tools: Hiding menu in match");
 
   await waitForElement("#ad-ext-player-display");
@@ -15,8 +16,6 @@ export async function hideMenuInMatch() {
   menu.style.display = "none";
 
   const settingsBtn = menuBar.querySelector("button");
-  console.log(settingsBtn);
-
   const settingsIcon = settingsBtn?.querySelector("svg") as Node;
 
   const menuHideBtn = document.createElement("button");
@@ -45,7 +44,7 @@ export async function hideMenuInMatch() {
 
 export async function hideMenuInMatchOnRemove() {
   // restore the menu
-  const menu = await waitForElement("#root > div > div");
-  if (!menu) return console.error("Autodarts Tools: No menu found");
-  menu.style.display = "";
+  // const menu = await waitForElement("#adt-menu-hide");
+  // if (!menu) return console.error("Autodarts Tools: No menu found");
+  // menu.remove();
 }

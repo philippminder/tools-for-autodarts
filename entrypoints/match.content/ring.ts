@@ -17,25 +17,25 @@ function getRingSizes(size: number): {
 } {
   switch (size) {
     case 1:
-      return { imageCircleSize: 0.343, svgCircleSize: 0.488, adjustmentValue: -0.04 };
+      return { imageCircleSize: 0.337, svgCircleSize: 0.488, adjustmentValue: -0.04 };
     case 2:
-      return { imageCircleSize: 0.354, svgCircleSize: 0.499, adjustmentValue: 0 };
-    case 3:
-      return { imageCircleSize: 0.359, svgCircleSize: 0.511, adjustmentValue: 0.05 };
-    case 4:
-      return { imageCircleSize: 0.364, svgCircleSize: 0.519, adjustmentValue: 0.065 };
-    case 5:
-      return { imageCircleSize: 0.369, svgCircleSize: 0.528, adjustmentValue: 0.085 };
-    case 6:
-      return { imageCircleSize: 0.374, svgCircleSize: 0.536, adjustmentValue: 0.11 };
-    case 7:
-      return { imageCircleSize: 0.379, svgCircleSize: 0.545, adjustmentValue: 0.1375 };
-    case 8:
-      return { imageCircleSize: 0.384, svgCircleSize: 0.556, adjustmentValue: 0.165 };
-    case 9:
-      return { imageCircleSize: 0.389, svgCircleSize: 0.568, adjustmentValue: 0.195 };
-    default:
       return { imageCircleSize: 0.349, svgCircleSize: 0.499, adjustmentValue: 0 };
+    case 3:
+      return { imageCircleSize: 0.351, svgCircleSize: 0.511, adjustmentValue: 0.05 };
+    case 4:
+      return { imageCircleSize: 0.356, svgCircleSize: 0.519, adjustmentValue: 0.065 };
+    case 5:
+      return { imageCircleSize: 0.361, svgCircleSize: 0.528, adjustmentValue: 0.085 };
+    case 6:
+      return { imageCircleSize: 0.366, svgCircleSize: 0.536, adjustmentValue: 0.11 };
+    case 7:
+      return { imageCircleSize: 0.371, svgCircleSize: 0.545, adjustmentValue: 0.1375 };
+    case 8:
+      return { imageCircleSize: 0.376, svgCircleSize: 0.556, adjustmentValue: 0.165 };
+    case 9:
+      return { imageCircleSize: 0.381, svgCircleSize: 0.568, adjustmentValue: 0.195 };
+    default:
+      return { imageCircleSize: 0.341, svgCircleSize: 0.499, adjustmentValue: 0 };
   }
 }
 
@@ -79,8 +79,6 @@ async function applyRingStyles() {
     // Clear existing ring if it exists
     boardViewNumbersElement.innerHTML = "";
   }
-
-  console.log(boardViewContainer.children[0].children[2]);
 
   // Get image holder and elements
   const imageHolder = boardViewContainer.children[0].children[2].children[0];

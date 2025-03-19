@@ -31,6 +31,8 @@ import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 const FADE_DURATION = 300; // ms
 const FADE_IN_DELAY = 50; // ms
 
+let updateInterval: NodeJS.Timeout | null = null;
+
 // State
 const isShowingAnimation = ref(false);
 const isFadingOut = ref(false);
@@ -83,16 +85,16 @@ onMounted(async () => {
     window.addEventListener("resize", updateBoardPosition);
 
     // Set up an interval to check for board position changes
-    const updateInterval = setInterval(updateBoardPosition, 1000);
-
-    // Clean up interval on unmount
-    onUnmounted(() => {
-      clearInterval(updateInterval);
-      window.removeEventListener("resize", updateBoardPosition);
-    });
+    updateInterval = setInterval(updateBoardPosition, 1000);
   } catch (error) {
     console.error("Autodarts Tools: Animation initialization error", error);
   }
+}); ;
+
+// Clean up interval on unmount
+onUnmounted(() => {
+  if (updateInterval) clearInterval(updateInterval);
+  window.removeEventListener("resize", updateBoardPosition);
 });
 
 function updateBoardPosition(): void {
@@ -146,6 +148,7 @@ async function processGameData(gameData: IGameData): Promise<void> {
   const miss: boolean = throwName.toLocaleLowerCase().startsWith("m");
   const combinedThrows: string = gameData.match.turns[0].throws.map(t => t.segment.name.toLowerCase()).join("_");
 
+  playAnimation(throwName.toLowerCase());
   if (winner) playAnimation("gameshot");
   if (busted) playAnimation("busted");
   if (isLastThrow) {
@@ -154,7 +157,6 @@ async function processGameData(gameData: IGameData): Promise<void> {
     playAnimation(combinedThrows);
   }
   if (miss) playAnimation("outside");
-  playAnimation(throwName.toLowerCase());
 }
 
 async function playAnimation(trigger: string): Promise<void> {
