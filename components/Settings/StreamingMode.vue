@@ -204,6 +204,7 @@ watch(backgroundMode, (newValue) => {
 
 watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
+  await nextTick();
   await updateConfigIfChanged(currentConfig, config.value, "streamingMode");
 }, { deep: true });
 

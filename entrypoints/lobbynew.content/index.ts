@@ -12,6 +12,8 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main() {
     AutodartsToolsUrlStatus.watch(async (url: string) => {
+      if (!url) url = window.location.href;
+
       const config: IConfig = await AutodartsToolsConfig.getValue();
       if (/\/lobbies\/*new\//.test(url)) {
         console.log("Autodarts Tools: Lobby New Ready");

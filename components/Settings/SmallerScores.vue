@@ -86,6 +86,7 @@ onMounted(async () => {
 
 watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
+  await nextTick();
   await updateConfigIfChanged(currentConfig, config.value, "smallerScores");
 }, { deep: true });
 </script>

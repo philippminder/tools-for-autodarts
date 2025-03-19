@@ -505,6 +505,7 @@ onMounted(async () => {
 watch(config, async () => {
   // Get the latest config to ensure we have the most up-to-date values
   const latestConfig = await AutodartsToolsConfig.getValue();
+  await nextTick();
 
   // Create a merged config that preserves all settings
   await AutodartsToolsConfig.setValue({
@@ -513,7 +514,8 @@ watch(config, async () => {
   });
 }, { deep: true });
 
-function exportSettings() {
+async function exportSettings() {
+  config.value = await AutodartsToolsConfig.getValue();
   if (!config.value) return;
 
   const exportData = {
@@ -622,7 +624,8 @@ function resetAllSettings() {
   );
 }
 
-function copyToClipboard() {
+async function copyToClipboard() {
+  config.value = await AutodartsToolsConfig.getValue();
   if (!config.value) return;
 
   const exportData = {

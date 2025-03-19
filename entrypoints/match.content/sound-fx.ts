@@ -16,6 +16,12 @@ let audioUnlocked = false;
 let debounceTimer: number | null = null;
 // Debounce delay in milliseconds
 const DEBOUNCE_DELAY = 200;
+// Flag to track if we've shown the interaction notification
+let interactionNotificationShown = false;
+// Reference to notification element
+let notificationElement: HTMLElement | null = null;
+// Reference to the style element for notification
+let notificationStyleElement: HTMLStyleElement | null = null;
 
 export async function soundFx() {
   console.log("Autodarts Tools: Sound FX");
@@ -66,6 +72,9 @@ export function soundFxOnRemove() {
     audioPlayer.removeEventListener("ended", playNextSound);
     audioPlayer = null;
   }
+
+  // Remove notification elements if they exist
+  removeInteractionNotification();
 }
 
 /**
@@ -110,6 +119,7 @@ function unlockAudio(): void {
     .then(() => {
       console.log("Autodarts Tools: Audio unlocked successfully");
       audioUnlocked = true;
+      hideInteractionNotification();
 
       // If we have sounds in the queue, start playing them
       if (soundQueue.length > 0 && !isPlaying) {
@@ -122,10 +132,151 @@ function unlockAudio(): void {
 }
 
 /**
+ * Shows a notification to inform the user they need to interact with the page
+ */
+function showInteractionNotification(): void {
+  // Return if notification is already shown or if another notification with the same class already exists
+  if (interactionNotificationShown || document.querySelector(".adt-notification")) return;
+
+  interactionNotificationShown = true;
+
+  // Add style for notification if not already added
+  if (!document.querySelector("style[data-adt-notification-style]")) {
+    notificationStyleElement = document.createElement("style");
+    notificationStyleElement.setAttribute("data-adt-notification-style", "");
+    notificationStyleElement.textContent = `
+      .adt-notification {
+        position: fixed;
+        bottom: 16px;
+        right: 32px;
+        z-index: 50;
+        max-width: 28rem;
+        border-radius: 6px;
+        padding: 16px;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        backdrop-filter: blur(4px);
+        background-color: rgba(0, 0, 0, 0.4);
+        color: white;
+      }
+      .adt-notification::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-color: rgba(220, 38, 38, 0.3);
+        border-radius: 6px;
+        pointer-events: none;
+      }
+      .adt-notification-content {
+        display: flex;
+      }
+      .adt-notification-icon {
+        margin-right: 8px;
+        flex-shrink: 0;
+        font-size: 1.25rem;
+      }
+      .adt-notification-message {
+        margin-right: 16px;
+        flex-grow: 1;
+      }
+      .adt-notification-close {
+        flex-shrink: 0;
+        font-size: 1.25rem;
+        opacity: 0.7;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+      }
+      .adt-notification-close:hover {
+        opacity: 1;
+      }
+      
+      /* Animation classes */
+      @keyframes adt-notification-enter {
+        from {
+          transform: translateY(32px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .adt-notification {
+        animation: adt-notification-enter 300ms ease-out forwards;
+      }
+    `;
+    document.head.appendChild(notificationStyleElement);
+  } else {
+    // If the style element exists but we don't have a reference to it, get a reference
+    notificationStyleElement = document.querySelector("style[data-adt-notification-style]");
+  }
+
+  // Create notification element if it doesn't exist
+  if (!notificationElement) {
+    notificationElement = document.createElement("div");
+    notificationElement.className = "adt-notification";
+    notificationElement.setAttribute("data-adt-notification-source", "sound-fx");
+    notificationElement.innerHTML = `
+      <div class="adt-notification-content">
+        <div class="adt-notification-message">
+          Please interact with the page (click, tap, or press a key) to enable audio for sound effects.
+        </div>
+        <button class="adt-notification-close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><!-- Icon from Pixelarticons by Gerrit Halfmann - https://github.com/halfmage/pixelarticons/blob/master/LICENSE --><path fill="currentColor" d="M5 5h2v2H5zm4 4H7V7h2zm2 2H9V9h2zm2 0h-2v2H9v2H7v2H5v2h2v-2h2v-2h2v-2h2v2h2v2h2v2h2v-2h-2v-2h-2v-2h-2zm2-2v2h-2V9zm2-2v2h-2V7zm0 0V5h2v2z"/></svg>
+        </button>
+      </div>
+    `;
+
+    // Add click listener to close button
+    const closeButton = notificationElement.querySelector(".adt-notification-close");
+    if (closeButton) {
+      closeButton.addEventListener("click", hideInteractionNotification);
+    }
+
+    // Add the notification to the DOM
+    document.body.appendChild(notificationElement);
+  } else {
+    notificationElement.style.display = "block";
+  }
+}
+
+/**
+ * Hides the interaction notification
+ */
+function hideInteractionNotification(): void {
+  if (notificationElement) {
+    notificationElement.remove();
+    notificationElement = null;
+  }
+  interactionNotificationShown = false;
+}
+
+/**
+ * Completely removes notification elements from the DOM
+ */
+function removeInteractionNotification(): void {
+  // Only remove the notification if it belongs to this feature
+  if (notificationElement && notificationElement.getAttribute("data-adt-notification-source") === "sound-fx") {
+    notificationElement.remove();
+    notificationElement = null;
+
+    // Only remove the style element if no other notifications are present
+    if (notificationStyleElement && !document.querySelector(".adt-notification")) {
+      notificationStyleElement.remove();
+      notificationStyleElement = null;
+    }
+  }
+
+  interactionNotificationShown = false;
+}
+
+/**
  * Process game data to trigger sounds based on game events
  */
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
-  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns.length) return;
+  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns?.length) return;
+
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
 
@@ -512,6 +663,15 @@ function playNextSound(): void {
           .catch((error) => {
             console.error("Autodarts Tools: Error playing URL sound", error);
 
+            // Check if the error is due to user interaction requirement
+            if (
+              error.toString().includes("failed because the user didn't interact with the document first") // chrome
+              || error.toString().includes("The play method is not allowed by the user agent") // firefox
+              || error.toString().includes("The request is not allowed by the user agent") // safari
+            ) {
+              showInteractionNotification();
+            }
+
             // If URL fails and we have base64, try that as fallback
             if (nextSound.base64) {
               console.log("Autodarts Tools: Falling back to base64 after URL failure");
@@ -578,6 +738,16 @@ function playBase64Sound(base64Data: string): void {
       })
       .catch((error) => {
         console.error("Autodarts Tools: Base64 sound playback failed", error);
+
+        // Check if error is due to user interaction requirement
+        if (
+          error.toString().includes("failed because the user didn't interact with the document first") // chrome
+          || error.toString().includes("The play method is not allowed by the user agent") // firefox
+          || error.toString().includes("The request is not allowed by the user agent") // safari
+        ) {
+          showInteractionNotification();
+        }
+
         URL.revokeObjectURL(audioUrl);
         playNextSound();
       });

@@ -41,6 +41,8 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx: any) {
     AutodartsToolsUrlStatus.watch(async (url: string) => {
+      if (!url) url = window.location.href;
+
       if (/\/(matches|boards)\/([0-9a-f-]+)/.test(url)) {
         await waitForElement("#root > div > div:nth-of-type(2)");
 
@@ -99,7 +101,6 @@ export default defineContentScript({
 
         activeMatchObserver = startActiveMatchObserver(ctx);
       } else {
-        console.log("Autodarts Tools: No Match found, clearing match");
         clearMatch();
       }
     });

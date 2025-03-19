@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
 import { waitForElement } from "@/utils";
-import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const clearAllSVG = "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\" height=\"1.3em\" width=\"1.3em\" xmlns=\"http://www.w3.org/2000/svg\"><path fill=\"none\" d=\"M0 0h24v24H0z\"></path><path d=\"M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z\"></path></svg>";
 
@@ -35,10 +35,9 @@ const addUserButton = ref() as Ref<HTMLButtonElement>;
 const recentUsersDiv = ref() as Ref<HTMLDivElement>;
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await nextTick();
+  await updateConfigIfChanged(currentConfig, config.value, "recentLocalPlayers");
 }, { deep: true });
 
 onBeforeMount(async () => {
