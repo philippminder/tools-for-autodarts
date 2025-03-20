@@ -400,6 +400,13 @@ import AppInput from "../AppInput.vue";
 import AppNotification from "../AppNotification.vue";
 import { AutodartsToolsConfig, type IConfig, type ISound, updateConfigIfChanged } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
+import {
+  deleteSoundFromIndexedDB,
+  getSoundFromIndexedDB,
+  isIndexedDBAvailable,
+  migrateCallerSoundsToIndexedDB,
+  saveSoundToIndexedDB,
+} from "@/utils/helpers";
 
 const emit = defineEmits([ "toggleSettings" ]);
 
@@ -463,6 +470,25 @@ onMounted(async () => {
       callCheckout: false,
       sounds: [],
     };
+  }
+
+  // Migrate existing base64 sounds to IndexedDB if available
+  if (isIndexedDBAvailable() && config.value?.caller?.sounds?.length) {
+    try {
+      const migrated = await migrateCallerSoundsToIndexedDB(
+        config.value,
+        async (updatedConfig) => {
+          config.value = updatedConfig;
+          await AutodartsToolsConfig.setValue(updatedConfig);
+        },
+      );
+
+      if (migrated) {
+        console.log("Autodarts Tools: Successfully migrated caller sounds to IndexedDB");
+      }
+    } catch (error) {
+      console.error("Autodarts Tools: Error migrating sounds to IndexedDB", error);
+    }
   }
 
   // Initialize sortable after the DOM is updated
@@ -532,18 +558,44 @@ function openAddSoundModal() {
 
 function editSound(index: number) {
   const sound = config.value!.caller.sounds[index];
+
+  // Set up base form values
   newSound.value = {
     url: sound.url || "",
     text: sound.triggers?.join("\n") || "",
     name: sound.name || "",
-    base64: sound.base64 || "",
+    base64: "", // We'll load this below if needed
   };
+
+  // If we have a soundId, load from IndexedDB
+  if (sound.soundId && isIndexedDBAvailable()) {
+    getSoundFromIndexedDB(sound.soundId)
+      .then((base64Data) => {
+        if (base64Data) {
+          newSound.value.base64 = base64Data;
+        } else if (sound.base64) {
+          // Fallback to the base64 in config if exists
+          newSound.value.base64 = sound.base64;
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading sound from IndexedDB:", error);
+        // Fallback to the base64 in config if exists
+        if (sound.base64) {
+          newSound.value.base64 = sound.base64;
+        }
+      });
+  } else if (sound.base64) {
+    // Use the base64 in config
+    newSound.value.base64 = sound.base64;
+  }
+
   isEditMode.value = true;
   editingIndex.value = index;
   showSoundModal.value = true;
 }
 
-function saveSound() {
+async function saveSound() {
   if (!config.value || (!newSound.value.url && !newSound.value.base64) || !newSound.value.text) {
     return;
   }
@@ -563,11 +615,27 @@ function saveSound() {
     .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
 
+  // Store base64 data in IndexedDB if available
+  let soundId = null;
+  if (newSound.value.base64 && isIndexedDBAvailable()) {
+    soundId = await saveSoundToIndexedDB(
+      newSound.value.name.trim() || "Unnamed sound",
+      newSound.value.base64,
+    );
+
+    if (!soundId) {
+      // If IndexedDB failed, fall back to storing in config
+      console.warn("Failed to save sound to IndexedDB, falling back to local storage");
+    }
+  }
+
   // Create sound object
   const sound: ISound = {
     url: newSound.value.url.trim(),
     name: newSound.value.name.trim() || "", // Use the name if provided
-    base64: newSound.value.base64 || "", // Preserve base64 data
+    // Only store base64 in config if we couldn't store in IndexedDB
+    base64: soundId ? "" : newSound.value.base64 || "",
+    soundId: soundId || "", // Store the IndexedDB ID if available
     enabled: true, // New sounds are enabled by default
     triggers,
   };
@@ -576,6 +644,12 @@ function saveSound() {
     // Update existing sound
     const existingSound = config.value.caller.sounds[editingIndex.value];
     sound.enabled = existingSound.enabled; // Preserve enabled state when editing
+
+    // Delete old sound from IndexedDB if exists and different
+    if (existingSound.soundId && existingSound.soundId !== sound.soundId) {
+      await deleteSoundFromIndexedDB(existingSound.soundId);
+    }
+
     config.value.caller.sounds[editingIndex.value] = sound;
   } else {
     config.value.caller.sounds.unshift(sound);
@@ -594,8 +668,15 @@ function closeSoundModal() {
   urlError.value = "";
 }
 
-function removeSound(index: number) {
+async function removeSound(index: number) {
   if (config.value && config.value.caller.sounds) {
+    const sound = config.value.caller.sounds[index];
+
+    // If sound is stored in IndexedDB, delete it
+    if (sound.soundId && isIndexedDBAvailable()) {
+      await deleteSoundFromIndexedDB(sound.soundId);
+    }
+
     config.value.caller.sounds.splice(index, 1);
   }
 }
@@ -708,26 +789,35 @@ async function processFiles() {
           ? extractTriggerFromFilename(file.name)
           : [];
 
+        // Store file in IndexedDB if available
+        let soundId = null;
+        if (isIndexedDBAvailable()) {
+          soundId = await saveSoundToIndexedDB(nameWithoutExt, base64Data);
+        }
+
         // Create sound object
         const sound: ISound = {
           name: nameWithoutExt,
           url: "", // Leave URL blank as requested
-          base64: base64Data,
+          base64: soundId ? "" : base64Data, // Only store in config if not in IndexedDB
+          soundId: soundId || "", // Store the IndexedDB ID if available
           enabled: true,
           triggers,
         };
 
         // Add to the beginning of sounds array
         config.value.caller.sounds.unshift(sound);
-
-        // Update config and wait for 100ms
-        const currentConfig = await AutodartsToolsConfig.getValue();
-        await updateConfigIfChanged(currentConfig, config.value, "caller");
-        await nextTick();
       } catch (error) {
         console.error(`Error processing file ${file.name}:`, error);
       }
     }
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Update config and wait for 100ms
+    const currentConfig = await AutodartsToolsConfig.getValue();
+    await updateConfigIfChanged(currentConfig, config.value, "caller");
+    await nextTick();
 
     // Show notification
     showNotification(`Successfully added ${selectedFiles.value.length} sounds`);
@@ -776,7 +866,17 @@ function closeDeleteAllModal() {
 async function deleteAllSounds() {
   if (!config.value) return;
 
-  // Clear all sounds
+  // Delete all sounds from IndexedDB
+  if (isIndexedDBAvailable()) {
+    // Delete individual sounds with their IDs to ensure cleanup
+    for (const sound of config.value.caller.sounds) {
+      if (sound.soundId) {
+        await deleteSoundFromIndexedDB(sound.soundId);
+      }
+    }
+  }
+
+  // Clear all sounds from the config
   config.value.caller.sounds = [];
 
   // Update config
@@ -788,7 +888,7 @@ async function deleteAllSounds() {
   showNotification("All caller sounds have been deleted", "error");
 }
 
-function playSound(sound: ISound) {
+async function playSound(sound: ISound) {
   // Stop current audio if it exists
   if (currentAudio.value) {
     currentAudio.value.pause();
@@ -799,18 +899,30 @@ function playSound(sound: ISound) {
   const audio = new Audio();
   currentAudio.value = audio;
 
-  // Set the source based on what's available
-  if (sound.base64) {
-    audio.src = sound.base64;
-  } else if (sound.url) {
-    audio.src = sound.url;
-  } else {
-    // No audio source available
-    showNotification("No audio source available for this sound", "error");
-    return;
+  // Try to get base64 from IndexedDB first if sound has a soundId
+  let source = "";
+  if (sound.soundId && isIndexedDBAvailable()) {
+    const base64Data = await getSoundFromIndexedDB(sound.soundId);
+    if (base64Data) {
+      source = base64Data;
+    }
   }
 
-  // Play the sound
+  // If no source from IndexedDB, fall back to config values
+  if (!source) {
+    if (sound.base64) {
+      source = sound.base64;
+    } else if (sound.url) {
+      source = sound.url;
+    } else {
+      // No audio source available
+      showNotification("No audio source available for this sound", "error");
+      return;
+    }
+  }
+
+  // Set the source and play
+  audio.src = source;
   audio.play().catch((error) => {
     console.error("Error playing sound:", error);
     showNotification("Failed to play sound", "error");

@@ -126,6 +126,7 @@ export interface ISound {
   base64: string;
   enabled: boolean;
   triggers: string[];
+  soundId?: string;
 }
 
 export interface IAnimation {
