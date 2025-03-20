@@ -126,6 +126,7 @@ export interface ISound {
   base64: string;
   enabled: boolean;
   triggers: string[];
+  soundId?: string;
 }
 
 export interface IAnimation {
@@ -390,70 +391,70 @@ export const defaultConfig: IConfig = {
         url: "https://www.myinstants.com/media/sounds/super-mario-dies.mp3",
         base64: "",
         enabled: true,
-        triggers: [ "busted" ],
+        triggers: [ "ambient_busted" ],
       },
       {
         name: "triple",
         url: "https://autodarts.x10.mx/beep_1.mp3",
         base64: "",
         enabled: true,
-        triggers: [ "triple" ],
+        triggers: [ "ambient_triple" ],
       },
       {
         name: "t17",
         url: "https://autodarts.x10.mx/beep_2_17.wav",
         base64: "",
         enabled: true,
-        triggers: [ "t17" ],
+        triggers: [ "ambient_t17" ],
       },
       {
         name: "t18",
         url: "https://autodarts.x10.mx/beep_2_18.wav",
         base64: "",
         enabled: true,
-        triggers: [ "t18" ],
+        triggers: [ "ambient_t18" ],
       },
       {
         name: "t19",
         url: "https://autodarts.x10.mx/beep_2_19.wav",
         base64: "",
         enabled: true,
-        triggers: [ "t19" ],
+        triggers: [ "ambient_t19" ],
       },
       {
         name: "t20",
         url: "https://autodarts.x10.mx/beep_2_20.wav",
         base64: "",
         enabled: true,
-        triggers: [ "t20" ],
+        triggers: [ "ambient_t20" ],
       },
       {
         name: "bull",
         url: "https://autodarts.x10.mx/beep_2_bullseye.mp3",
         base64: "",
         enabled: true,
-        triggers: [ "bull" ],
+        triggers: [ "ambient_bull" ],
       },
       {
         name: "miss",
         url: "https://autodarts.x10.mx/miss_1.mp3",
         base64: "",
         enabled: true,
-        triggers: [ "miss" ],
+        triggers: [ "ambient_miss" ],
       },
       {
         name: "miss",
         url: "https://autodarts.x10.mx/miss_2.mp3",
         base64: "",
         enabled: true,
-        triggers: [ "miss" ],
+        triggers: [ "ambient_miss" ],
       },
       {
         name: "miss",
         url: "https://autodarts.x10.mx/miss_3.mp3",
         base64: "",
         enabled: true,
-        triggers: [ "miss" ],
+        triggers: [ "ambient_miss" ],
       },
       {
         name: "gameshot",

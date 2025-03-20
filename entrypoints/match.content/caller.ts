@@ -1,5 +1,6 @@
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
+import { getSoundFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: any;
 let config: IConfig;
@@ -7,7 +8,7 @@ let config: IConfig;
 // Audio player for Safari compatibility
 let audioPlayer: HTMLAudioElement | null = null;
 // Queue for sounds to be played
-const soundQueue: { url?: string; base64?: string; name?: string }[] = [];
+const soundQueue: { url?: string; base64?: string; name?: string; soundId?: string }[] = [];
 // Flag to track if we're currently playing a sound
 let isPlaying = false;
 // Flag to track if audio has been unlocked
@@ -377,8 +378,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   if (winner) {
     playSound("gameshot");
-    const winnerPlayerIndex = gameData.match.winner;
-    const winnerPlayerName = gameData.match.players?.[winnerPlayerIndex]?.name;
+    const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
     if (winnerPlayerName) {
       playSound(winnerPlayerName.toLowerCase());
     }
@@ -443,12 +443,16 @@ function playSound(trigger: string): void {
           const randomIndex = Math.floor(Math.random() * matchingSounds.length);
           const soundToPlay = matchingSounds[randomIndex];
 
+          console.log("soundToPlay");
+          console.log(soundToPlay);
+
           // Add to queue
-          if (soundToPlay.url || soundToPlay.base64) {
+          if (soundToPlay.url || soundToPlay.base64 || soundToPlay.soundId) {
             soundQueue.push({
               url: soundToPlay.url,
               base64: soundToPlay.base64,
               name: soundToPlay.name,
+              soundId: soundToPlay.soundId,
             });
 
             // Also try to play the number sound right after
@@ -461,11 +465,12 @@ function playSound(trigger: string): void {
               const randomNumberIndex = Math.floor(Math.random() * numberSounds.length);
               const numberSoundToPlay = numberSounds[randomNumberIndex];
 
-              if (numberSoundToPlay.url || numberSoundToPlay.base64) {
+              if (numberSoundToPlay.url || numberSoundToPlay.base64 || numberSoundToPlay.soundId) {
                 soundQueue.push({
                   url: numberSoundToPlay.url,
                   base64: numberSoundToPlay.base64,
                   name: numberSoundToPlay.name,
+                  soundId: numberSoundToPlay.soundId,
                 });
                 console.log(`Autodarts Tools: Added number "${number}" sound to queue`);
               }
@@ -511,11 +516,12 @@ function playSound(trigger: string): void {
           const soundToPlay = matchingSounds[randomIndex];
 
           // Add to queue
-          if (soundToPlay.url || soundToPlay.base64) {
+          if (soundToPlay.url || soundToPlay.base64 || soundToPlay.soundId) {
             soundQueue.push({
               url: soundToPlay.url,
               base64: soundToPlay.base64,
               name: soundToPlay.name,
+              soundId: soundToPlay.soundId,
             });
 
             // Also try to play the number sound right after
@@ -528,11 +534,12 @@ function playSound(trigger: string): void {
               const randomNumberIndex = Math.floor(Math.random() * numberSounds.length);
               const numberSoundToPlay = numberSounds[randomNumberIndex];
 
-              if (numberSoundToPlay.url || numberSoundToPlay.base64) {
+              if (numberSoundToPlay.url || numberSoundToPlay.base64 || numberSoundToPlay.soundId) {
                 soundQueue.push({
                   url: numberSoundToPlay.url,
                   base64: numberSoundToPlay.base64,
                   name: numberSoundToPlay.name,
+                  soundId: numberSoundToPlay.soundId,
                 });
                 console.log(`Autodarts Tools: Added number "${fallbackTrigger}" sound to queue`);
               }
@@ -572,77 +579,94 @@ function playSound(trigger: string): void {
     }
   }
 
-  // If we found matching sounds
-  if (matchingSounds.length) {
-    // If multiple sounds match the trigger, pick a random one
+  // If we found matching sounds, randomly select one
+  if (matchingSounds.length > 0) {
+    console.log(`Autodarts Tools: Found ${matchingSounds.length} matching sounds for ${trigger}`);
+
+    // Randomly select a sound from matching sounds
     const randomIndex = Math.floor(Math.random() * matchingSounds.length);
     const soundToPlay = matchingSounds[randomIndex];
 
-    console.log("Autodarts Tools: Found matching sound", soundToPlay.name);
+    // Add to queue
+    if (soundToPlay.url || soundToPlay.base64 || soundToPlay.soundId) {
+      soundQueue.push({
+        url: soundToPlay.url,
+        base64: soundToPlay.base64,
+        name: soundToPlay.name,
+        soundId: soundToPlay.soundId,
+      });
 
-    // Check if the sound has either URL or base64 data
-    if (!soundToPlay.url && !soundToPlay.base64) {
-      console.error("Autodarts Tools: Sound has neither URL nor base64 data", soundToPlay);
-      return;
-    }
-
-    // Add to queue with both url and base64 properties
-    soundQueue.push({
-      url: soundToPlay.url,
-      base64: soundToPlay.base64,
-      name: soundToPlay.name,
-    });
-    console.log("Autodarts Tools: Queue length after adding", soundQueue.length);
-
-    // If not currently playing, start playing
-    if (!isPlaying) {
-      playNextSound();
+      // Start playing if not already playing
+      if (!isPlaying) {
+        playNextSound();
+      }
     }
   } else {
-    console.log(`Autodarts Tools: No sound found for trigger "${trigger}"`);
+    console.log(`Autodarts Tools: No matching sounds found for ${trigger}`);
   }
 }
 
 /**
  * Play the next sound in the queue
  */
-function playNextSound(): void {
-  console.log("Autodarts Tools: playNextSound called, queue length:", soundQueue.length);
+async function playNextSound(): Promise<void> {
+  console.log(`Autodarts Tools: Next sound, queue length: ${soundQueue.length}`);
 
+  // If the queue is empty, we're done
   if (soundQueue.length === 0) {
-    console.log("Autodarts Tools: Sound queue is empty");
     isPlaying = false;
     return;
   }
 
   isPlaying = true;
+
+  // Get the next sound from the queue
   const nextSound = soundQueue.shift();
 
-  console.log("Autodarts Tools: Next sound to play:", nextSound?.name);
-
   if (nextSound) {
-    console.log("Autodarts Tools: Playing sound");
-
     try {
-      // Get the next audio element from the pool
-      const audioElement = audioPool[currentAudioIndex];
+      console.log(`Autodarts Tools: Playing sound: ${nextSound.name || "unnamed"}`);
 
-      // Make sure the audio element exists
-      if (!audioElement) {
-        console.error("Autodarts Tools: Audio element not found in pool");
-        isPlaying = false;
-        return;
+      // Try to load from IndexedDB first if soundId is present
+      if (nextSound.soundId && isIndexedDBAvailable()) {
+        console.log("Autodarts Tools: Attempting to load sound from IndexedDB");
+        try {
+          const base64Data = await getSoundFromIndexedDB(nextSound.soundId);
+          if (base64Data) {
+            console.log("Autodarts Tools: Successfully loaded sound from IndexedDB");
+            playBase64Sound(base64Data);
+            return;
+          } else {
+            console.warn("Autodarts Tools: Sound not found in IndexedDB, falling back to base64/URL");
+          }
+        } catch (error) {
+          console.error("Autodarts Tools: Error loading sound from IndexedDB", error);
+        }
       }
 
-      // Update index for next use
-      currentAudioIndex = (currentAudioIndex + 1) % AUDIO_POOL_SIZE;
-
-      // Stop any current playback
-      audioElement.pause();
-
-      // Try URL first if available
-      if (nextSound.url) {
+      // Fall back to base64 in config if available
+      if (nextSound.base64) {
+        playBase64Sound(nextSound.base64);
+      } else if (nextSound.url) {
+        // Use URL source if available
         console.log("Autodarts Tools: Using URL source");
+
+        // Get the next audio element from the pool
+        const audioElement = audioPool[currentAudioIndex];
+
+        // Make sure the audio element exists
+        if (!audioElement) {
+          console.error("Autodarts Tools: Audio element not found in pool");
+          // Move to next sound
+          playNextSound();
+          return;
+        }
+
+        // Update index for next use
+        currentAudioIndex = (currentAudioIndex + 1) % AUDIO_POOL_SIZE;
+
+        // Stop any current playback
+        audioElement.pause();
 
         // Set the source to the URL
         audioElement.src = nextSound.url;
@@ -665,19 +689,11 @@ function playNextSound(): void {
               unlockAudio(); // Try to unlock audio again
             }
 
-            // If URL fails and we have base64, try that as fallback
-            if (nextSound.base64) {
-              console.log("Autodarts Tools: Falling back to base64 after URL failure");
-              playBase64Sound(nextSound.base64);
-            } else {
-              // Move to next sound
-              playNextSound();
-            }
+            // Move to next sound
+            playNextSound();
           });
-      } else if (nextSound.base64) { // If no URL, try base64
-        playBase64Sound(nextSound.base64);
       } else {
-        console.error("Autodarts Tools: Sound has neither URL nor base64 data");
+        console.error("Autodarts Tools: Sound has neither URL, base64 data, nor soundId");
         // Move to next sound
         playNextSound();
       }

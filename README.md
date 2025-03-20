@@ -77,18 +77,18 @@ You can assign sounds to be played based on these triggers:
 - **Triples**: `t1` to `t20` (triple segments)
 - **Special Voice Lines**:
   - `gameon`: At the start of a new game
+  - `gameshot`: When a player wins the game
   - `you_require`: For checkout callouts
+  - `busted`: When a player busts
   - `double`, `triple`: Generic announcements for dart types
   - `outside`: When a dart lands outside the scoring area
-  - `busted`: When a player busts
-  - `gameshot`: When a player wins the game
-  - `[playername]`: Sounds can be triggered when it's a specific player's turn
+  - `[playername]`: Player name sounds play automatically when it's their turn
 
 #### Intelligent Fallback System
 The caller has a sophisticated fallback system to provide complete coverage even with limited sound files:
-- **Segment Announcements**: If a specific segment sound (e.g., `s20`) isn't available, it automatically plays the segment type followed by the number (`20`)
-- **Double/Triple Handling**: For doubles and triples, it follows the same pattern (e.g., `d20` → `double` + `20`)
-- **Miss Handling**: `miss` triggers will fall back to `outside` sounds
+- **Segment Announcements**: If a specific segment sound (e.g., `s20`) isn't available, it automatically plays just the number (`20`)
+- **Double/Triple Handling**: For doubles and triples, it follows the pattern of playing the word followed by the number (e.g., `d20` → `double` + `20`)
+- **Miss Handling**: `miss` or `m` prefixed throws will fall back to `outside` sounds
 - **Player Announcements**: Automatically announces the current player's name at the start of their turn
 - **Game Start**: Plays the "game on" sound at the beginning of a match
 
@@ -109,19 +109,23 @@ Add sound effects for various game events:
 - **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the format `gameshot_player_name` or `ambient_gameshot_player_name`
 
 #### Ambient Sound Prefix
-- Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_gameshot`) to create separate sound sets for caller and ambient sounds
+- Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_t20`) to create separate sound sets for caller and ambient sounds
 - This allows you to have professional voice announcements via the Caller while also having fun sound effects via Sound FX
 
 #### Smart Fallback System
 The Sound FX feature includes a multi-level fallback system:
-- If an exact match (e.g., `ambient_s20`) isn't found, it tries without the ambient prefix (`s20`)
-- For segment triggers like `s20`, it falls back to just the number (`20`)
+- If an exact match with `ambient_` prefix isn't found, it tries without the prefix
+- For segment triggers like `ambient_t20`, it tries multiple fallbacks:
+  - First checks for direct `t20` (without ambient prefix)
+  - Then tries `ambient_triple` + `ambient_20` or `ambient_triple` + `20`
+  - Falls back to `triple` + `20` if ambient prefixed versions aren't found
 - For `miss` or `m` prefixed throws, it falls back to `outside` sounds
-- For double and triple throws, it falls back to the segment type followed by the number
+- If no match is found for any of these combinations, it doesn't play any sound
 
 #### Technical Features
 - **Queue Management**: Sounds are carefully queued to prevent overlapping
 - **Format Support**: Plays both URL-based sounds and base64-encoded audio
+- **IndexedDB Storage**: Efficiently stores sound files in browser database to improve performance
 - **Error Handling**: Automatically falls back to alternative sources if a sound fails to play
 - **Safari Compatible**: Works with all browsers including Safari's strict audio policies
 

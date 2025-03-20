@@ -23,6 +23,7 @@
     "@iconify-json/pixelarticons": "^1.2.2",
     "@vueuse/components": "^10.11.0",
     "@vueuse/core": "^10.11.0",
+    "idb": "^8.0.2",
     "lodash": "^4.17.21",
     "mitt": "^3.0.1",
     "radix-vue": "^1.8.5",
