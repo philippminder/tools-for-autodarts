@@ -596,8 +596,24 @@ function editSound(index: number) {
 }
 
 async function saveSound() {
-  if (!config.value || (!newSound.value.url && !newSound.value.base64) || !newSound.value.text) {
-    return;
+  // Check if we're in edit mode with an existing sound
+  const existingSound = isEditMode.value && editingIndex.value !== null
+    ? config.value?.caller.sounds[editingIndex.value]
+    : null;
+
+  // Different validation when editing vs adding new sound
+  if (!config.value) return;
+
+  if (isEditMode.value && existingSound) {
+    // For editing: validate that we have triggers
+    if (!newSound.value.text) {
+      return;
+    }
+  } else {
+    // For new sounds: require URL or base64 data plus triggers
+    if ((!newSound.value.url && !newSound.value.base64) || !newSound.value.text) {
+      return;
+    }
   }
 
   // Check if URL starts with https://
@@ -618,10 +634,20 @@ async function saveSound() {
   // Store base64 data in IndexedDB if available
   let soundId: string | null = null;
   if (newSound.value.base64 && isIndexedDBAvailable()) {
-    soundId = await saveSoundToIndexedDB(
-      newSound.value.name.trim() || "Unnamed sound",
-      newSound.value.base64,
-    );
+    if (isEditMode.value && existingSound?.soundId) {
+      // Update existing sound in IndexedDB
+      soundId = await saveSoundToIndexedDB(
+        newSound.value.name.trim() || "Unnamed sound",
+        newSound.value.base64,
+        existingSound.soundId, // Pass existing soundId to update instead of creating new
+      );
+    } else {
+      // Create new sound in IndexedDB
+      soundId = await saveSoundToIndexedDB(
+        newSound.value.name.trim() || "Unnamed sound",
+        newSound.value.base64,
+      );
+    }
 
     if (!soundId) {
       // If IndexedDB failed, fall back to storing in config
@@ -642,12 +668,11 @@ async function saveSound() {
 
   if (isEditMode.value && editingIndex.value !== null) {
     // Update existing sound
-    const existingSound = config.value.caller.sounds[editingIndex.value];
-    sound.enabled = existingSound.enabled; // Preserve enabled state when editing
+    sound.enabled = existingSound!.enabled; // Preserve enabled state when editing
 
-    // Delete old sound from IndexedDB if exists and different
-    if (existingSound.soundId && existingSound.soundId !== sound.soundId) {
-      await deleteSoundFromIndexedDB(existingSound.soundId);
+    // Only delete old sound from IndexedDB if we didn't reuse the soundId and there's a new one
+    if (existingSound!.soundId && existingSound!.soundId !== soundId && soundId !== null) {
+      await deleteSoundFromIndexedDB(existingSound!.soundId);
     }
 
     config.value.caller.sounds[editingIndex.value] = sound;

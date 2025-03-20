@@ -338,9 +338,9 @@ import Animations from "./Settings/Animations.vue";
 import Caller from "./Settings/Caller.vue";
 import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
-import type { IConfig } from "@/utils/storage";
+import type { IConfig, ISound } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
-import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
+import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCallerSoundsFromIndexedDB, getAllSoundFxFromIndexedDB, isIndexedDBAvailable, saveSoundFxToIndexedDB, saveSoundToIndexedDB } from "@/utils/helpers";
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppNotification from "@/components/AppNotification.vue";
@@ -519,11 +519,66 @@ async function exportSettings() {
   config.value = await AutodartsToolsConfig.getValue();
   if (!config.value) return;
 
-  const exportData = {
+  interface ExportData {
+    config: IConfig;
+    exportDate: string;
+    version: string;
+    sounds: {
+      caller: ISound[];
+      soundFx: ISound[];
+    };
+  }
+
+  const exportData: ExportData = {
     config: config.value,
     exportDate: new Date().toISOString(),
     version: "1.0",
+    sounds: {
+      caller: [],
+      soundFx: [],
+    },
   };
+
+  // Add sounds from IndexedDB if available
+  if (isIndexedDBAvailable()) {
+    try {
+      // Get all sounds from IndexedDB
+      const callerSounds = await getAllCallerSoundsFromIndexedDB();
+      const soundFxSounds = await getAllSoundFxFromIndexedDB();
+
+      if (callerSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.caller = callerSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      if (soundFxSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.soundFx = soundFxSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      console.log("Autodarts Tools: Loaded sounds for export", {
+        caller: callerSounds?.length || 0,
+        soundFx: soundFxSounds?.length || 0,
+      });
+    } catch (error) {
+      console.error("Autodarts Tools: Error exporting sounds from IndexedDB", error);
+      showNotification("Error exporting sound files", "error");
+    }
+  }
 
   // Convert to JSON and then to base64
   const jsonString = JSON.stringify(exportData);
@@ -573,6 +628,84 @@ function importSettings() {
 
           // Explicitly save to storage
           await AutodartsToolsConfig.setValue(newConfig);
+
+          // Import sounds to IndexedDB if available
+          if (importedData.sounds && isIndexedDBAvailable()) {
+            try {
+              // Clear existing sounds first if there are new sounds to import
+              if (importedData.sounds.caller?.length > 0) {
+                await clearCallerSoundsFromIndexedDB();
+              }
+
+              if (importedData.sounds.soundFx?.length > 0) {
+                await clearSoundFxFromIndexedDB();
+              }
+
+              // Import caller sounds
+              let callerImportCount = 0;
+              if (importedData.sounds.caller?.length > 0) {
+                for (const sound of importedData.sounds.caller) {
+                  // Use existing soundId if available instead of creating a new one
+                  const soundId = await saveSoundToIndexedDB(
+                    sound.name,
+                    sound.base64,
+                    sound.soundId || sound.id, // Use existing soundId/id from imported data
+                  );
+                  if (soundId) {
+                    callerImportCount++;
+
+                    // Update the sound in config to reference the soundId
+                    const soundInConfig = newConfig.caller.sounds.find(
+                      s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                    );
+
+                    if (soundInConfig) {
+                      soundInConfig.soundId = soundId;
+                      soundInConfig.base64 = ""; // Clear base64 data from config
+                    }
+                  }
+                }
+              }
+
+              // Import soundFx sounds
+              let soundFxImportCount = 0;
+              if (importedData.sounds.soundFx?.length > 0) {
+                for (const sound of importedData.sounds.soundFx) {
+                  // Use existing soundId if available instead of creating a new one
+                  const soundId = await saveSoundFxToIndexedDB(
+                    sound.name,
+                    sound.base64,
+                    sound.soundId || sound.id, // Use existing soundId/id from imported data
+                  );
+                  if (soundId) {
+                    soundFxImportCount++;
+
+                    // Update the sound in config to reference the soundId
+                    const soundInConfig = newConfig.soundFx.sounds.find(
+                      s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                    );
+
+                    if (soundInConfig) {
+                      soundInConfig.soundId = soundId;
+                      soundInConfig.base64 = ""; // Clear base64 data from config
+                    }
+                  }
+                }
+              }
+
+              // Update the config with the updated sounds
+              config.value = newConfig;
+              await AutodartsToolsConfig.setValue(newConfig);
+
+              console.log("Autodarts Tools: Imported sounds", {
+                caller: callerImportCount,
+                soundFx: soundFxImportCount,
+              });
+            } catch (error) {
+              console.error("Autodarts Tools: Error importing sounds to IndexedDB", error);
+              showNotification("Settings imported, but error importing sounds", "error");
+            }
+          }
 
           showNotification("Settings imported successfully. Page will reload to apply changes...");
 
@@ -640,11 +773,66 @@ async function copyToClipboard() {
   config.value = await AutodartsToolsConfig.getValue();
   if (!config.value) return;
 
-  const exportData = {
+  interface ExportData {
+    config: IConfig;
+    exportDate: string;
+    version: string;
+    sounds: {
+      caller: ISound[];
+      soundFx: ISound[];
+    };
+  }
+
+  const exportData: ExportData = {
     config: config.value,
     exportDate: new Date().toISOString(),
     version: "1.0",
+    sounds: {
+      caller: [],
+      soundFx: [],
+    },
   };
+
+  // Add sounds from IndexedDB if available
+  if (isIndexedDBAvailable()) {
+    try {
+      // Get all sounds from IndexedDB
+      const callerSounds = await getAllCallerSoundsFromIndexedDB();
+      const soundFxSounds = await getAllSoundFxFromIndexedDB();
+
+      if (callerSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.caller = callerSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      if (soundFxSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.soundFx = soundFxSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      console.log("Autodarts Tools: Copied sounds to clipboard", {
+        caller: callerSounds?.length || 0,
+        soundFx: soundFxSounds?.length || 0,
+      });
+    } catch (error) {
+      console.error("Autodarts Tools: Error copying sounds from IndexedDB", error);
+      showNotification("Settings copied, but error including sounds", "error");
+    }
+  }
 
   // Convert to JSON and then to base64
   const jsonString = JSON.stringify(exportData);
@@ -684,6 +872,84 @@ function pasteFromClipboard() {
 
         // Explicitly save to storage
         await AutodartsToolsConfig.setValue(newConfig);
+
+        // Import sounds to IndexedDB if available
+        if (importedData.sounds && isIndexedDBAvailable()) {
+          try {
+            // Clear existing sounds first if there are new sounds to import
+            if (importedData.sounds.caller?.length > 0) {
+              await clearCallerSoundsFromIndexedDB();
+            }
+
+            if (importedData.sounds.soundFx?.length > 0) {
+              await clearSoundFxFromIndexedDB();
+            }
+
+            // Import caller sounds
+            let callerImportCount = 0;
+            if (importedData.sounds.caller?.length > 0) {
+              for (const sound of importedData.sounds.caller) {
+                // Use existing soundId if available instead of creating a new one
+                const soundId = await saveSoundToIndexedDB(
+                  sound.name,
+                  sound.base64,
+                  sound.soundId || sound.id, // Use existing soundId/id from imported data
+                );
+                if (soundId) {
+                  callerImportCount++;
+
+                  // Update the sound in config to reference the soundId
+                  const soundInConfig = newConfig.caller.sounds.find(
+                    s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                  );
+
+                  if (soundInConfig) {
+                    soundInConfig.soundId = soundId;
+                    soundInConfig.base64 = ""; // Clear base64 data from config
+                  }
+                }
+              }
+            }
+
+            // Import soundFx sounds
+            let soundFxImportCount = 0;
+            if (importedData.sounds.soundFx?.length > 0) {
+              for (const sound of importedData.sounds.soundFx) {
+                // Use existing soundId if available instead of creating a new one
+                const soundId = await saveSoundFxToIndexedDB(
+                  sound.name,
+                  sound.base64,
+                  sound.soundId || sound.id, // Use existing soundId/id from imported data
+                );
+                if (soundId) {
+                  soundFxImportCount++;
+
+                  // Update the sound in config to reference the soundId
+                  const soundInConfig = newConfig.soundFx.sounds.find(
+                    s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                  );
+
+                  if (soundInConfig) {
+                    soundInConfig.soundId = soundId;
+                    soundInConfig.base64 = ""; // Clear base64 data from config
+                  }
+                }
+              }
+            }
+
+            // Update the config with the updated sounds
+            config.value = newConfig;
+            await AutodartsToolsConfig.setValue(newConfig);
+
+            console.log("Autodarts Tools: Imported sounds from clipboard", {
+              caller: callerImportCount,
+              soundFx: soundFxImportCount,
+            });
+          } catch (error) {
+            console.error("Autodarts Tools: Error importing sounds from clipboard to IndexedDB", error);
+            showNotification("Settings imported, but error importing sounds", "error");
+          }
+        }
 
         showNotification("Settings imported successfully. Page will reload to apply changes...");
 

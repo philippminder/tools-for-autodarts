@@ -146,38 +146,24 @@ export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
   return dbPromise;
 }
 
-// Save a base64 sound to IndexedDB for caller
-export async function saveSoundToIndexedDB(
-  name: string,
-  base64: string,
-): Promise<string | null> {
-  return saveToIndexedDB("sounds-caller", name, base64);
-}
-
-// Save a base64 sound to IndexedDB for soundFx
-export async function saveSoundFxToIndexedDB(
-  name: string,
-  base64: string,
-): Promise<string | null> {
-  return saveToIndexedDB("sounds-fx", name, base64);
-}
-
 // Generic function to save to IndexedDB
 async function saveToIndexedDB(
   storeName: "sounds-caller" | "sounds-fx",
   name: string,
   base64: string,
+  existingId?: string,
 ): Promise<string | null> {
   try {
     const db = await getDB();
     if (!db) return null;
 
-    const id = `sound_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Use existing ID if provided, otherwise generate a new one
+    const id = existingId || `sound_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const soundData = {
       id,
       name,
       base64,
-      dateAdded: Date.now(),
+      dateAdded: existingId ? (await db.get(storeName, id))?.dateAdded || Date.now() : Date.now(),
     };
 
     await db.put(storeName, soundData);
@@ -186,6 +172,24 @@ async function saveToIndexedDB(
     console.error(`Error saving sound to IndexedDB (${storeName}):`, error);
     return null;
   }
+}
+
+// Save a base64 sound to IndexedDB for caller
+export async function saveSoundToIndexedDB(
+  name: string,
+  base64: string,
+  existingId?: string,
+): Promise<string | null> {
+  return saveToIndexedDB("sounds-caller", name, base64, existingId);
+}
+
+// Save a base64 sound to IndexedDB for soundFx
+export async function saveSoundFxToIndexedDB(
+  name: string,
+  base64: string,
+  existingId?: string,
+): Promise<string | null> {
+  return saveToIndexedDB("sounds-fx", name, base64, existingId);
 }
 
 // Get a sound from IndexedDB by ID for caller
@@ -265,6 +269,36 @@ async function clearFromIndexedDB(
   } catch (error) {
     console.error(`Error clearing sounds from IndexedDB (${storeName}):`, error);
     return false;
+  }
+}
+
+// Get all sounds from IndexedDB for caller
+export async function getAllCallerSoundsFromIndexedDB(): Promise<Array<{ id: string; name: string; base64: string }> | null> {
+  return getAllSoundsFromIndexedDB("sounds-caller");
+}
+
+// Get all sounds from IndexedDB for soundFx
+export async function getAllSoundFxFromIndexedDB(): Promise<Array<{ id: string; name: string; base64: string }> | null> {
+  return getAllSoundsFromIndexedDB("sounds-fx");
+}
+
+// Generic function to get all sounds from IndexedDB
+async function getAllSoundsFromIndexedDB(
+  storeName: "sounds-caller" | "sounds-fx",
+): Promise<Array<{ id: string; name: string; base64: string }> | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+
+    const sounds = await db.getAll(storeName);
+    return sounds.map(sound => ({
+      id: sound.id,
+      name: sound.name,
+      base64: sound.base64,
+    }));
+  } catch (error) {
+    console.error(`Error getting all sounds from IndexedDB (${storeName}):`, error);
+    return null;
   }
 }
 
