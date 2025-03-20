@@ -83,6 +83,9 @@ You can assign sounds to be played based on these triggers:
   - `double`, `triple`: Generic announcements for dart types
   - `outside`: When a dart lands outside the scoring area
   - `[playername]`: Player name sounds play automatically when it's their turn
+- **Cricket-Specific**:
+  - `cricket_hit`: When a player hits a Cricket target (15-20 and Bull)
+  - `cricket_miss`: When a player hits a non-Cricket target (Miss-14)
 
 #### Predefined Caller Sets
 The extension comes with ready-to-use caller sets that you can easily import:
@@ -124,6 +127,9 @@ Add sound effects for various game events:
 - **Combined Throws**: Trigger sounds based on a sequence of throws using format `s20_t19_d12`
 - **Special Events**: Dedicated sounds for `gameshot`, `busted`, and more
 - **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the format `gameshot_player_name` or `ambient_gameshot_player_name`
+- **Cricket Mode**: Special triggers for Cricket games:
+  - `cricket_hit`: Triggered when hitting Cricket targets (15-20 and Bull)
+  - `cricket_miss`: Triggered when hitting non-Cricket targets (Miss-14)
 
 #### Ambient Sound Prefix
 - Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_t20`) to create separate sound sets for caller and ambient sounds
