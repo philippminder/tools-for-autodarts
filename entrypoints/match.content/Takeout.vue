@@ -27,29 +27,30 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
-import { AutodartsToolsBoardStatus, AutodartsToolsConfig, type TBoardStatus } from "@/utils/storage";
-import { BoardStatus } from "@/utils/types";
 import { waitForElementWithTextContent } from "@/utils";
+import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 
 const show = ref<boolean>(false);
+let gameDataWatcherUnwatch: any;
 
-AutodartsToolsBoardStatus.watch(() => {
-  checkStatus().catch(console.error);
+onMounted(() => {
+  gameDataWatcherUnwatch = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
+    checkStatus(gameData, oldGameData).catch(console.error);
+  });
 });
 
-onMounted(async () => {
-  console.warn("Autodarts Tools: Takeout - TEST THIS WITH LIVE BOARD");
-
-  checkStatus().catch(console.error);
+onUnmounted(() => {
+  if (gameDataWatcherUnwatch) {
+    gameDataWatcherUnwatch();
+  }
 });
 
-async function checkStatus() {
-  const config = await AutodartsToolsConfig.getValue();
+async function checkStatus(gameData: IGameData, oldGameData: IGameData) {
+  const boardstatus: string | undefined = gameData.board?.status;
+  show.value = boardstatus === "Takeout in progress";
 
-  if (config.takeout.enabled) {
-    // TODO: Rework this to be used with the websocket data
-    const boardstatus: TBoardStatus = await AutodartsToolsBoardStatus.getValue();
-    show.value = boardstatus === BoardStatus.TAKEOUT;
+  if (gameData.match?.player !== oldGameData.match?.player) {
+    show.value = false;
   }
 }
 

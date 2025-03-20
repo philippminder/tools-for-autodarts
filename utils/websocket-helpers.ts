@@ -195,10 +195,18 @@ export interface IMatch {
   chalkboards?: IChalkboard[];
 }
 
-export async function processWebSocketMessage(channel: string, data: ILobbies | IMatch) {
+export interface IBoard {
+  connected: boolean;
+  event: string;
+  numThrows: number;
+  status: string;
+}
+
+export async function processWebSocketMessage(channel: string, data: ILobbies | IMatch | IBoard) {
   // do a switch on the channel
   switch (channel) {
     case "autodarts.lobbies": {
+      data = data as ILobbies;
       const id = window.location.href.match(/lobbies\/([0-9a-f-]+)/)?.[1];
       if (id !== data.id) return;
 
@@ -211,6 +219,7 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
       break;
     }
     case "autodarts.matches": {
+      data = data as IMatch;
       const id = window.location.href.match(/matches\/([0-9a-f-]+)/)?.[1];
       const playersBoard = data.players?.find(player => player.boardId === window.location.href.match(/boards\/([0-9a-f-]+)/)?.[1]);
       if ((id !== data.id && !playersBoard) && (data as IMatch).activated === undefined) return;
@@ -236,6 +245,17 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
           match: data as IMatch,
         });
       }
+
+      break;
+    }
+    case "autodarts.boards": {
+      data = data as IBoard;
+      const gameData = await AutodartsToolsGameData.getValue();
+
+      AutodartsToolsGameData.setValue({
+        ...gameData,
+        board: data as IBoard,
+      });
 
       break;
     }

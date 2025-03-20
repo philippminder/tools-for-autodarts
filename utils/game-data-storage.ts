@@ -1,6 +1,6 @@
 import type { WxtStorageItem } from "wxt/storage";
 import { storage } from "wxt/storage";
-import type { ILobbies, IMatch } from "./websocket-helpers";
+import type { IBoard, ILobbies, IMatch } from "./websocket-helpers";
 
 export enum GameMode {
   X01 = "X01",
@@ -21,6 +21,7 @@ export interface IGameData {
   gameMode: GameMode;
   lobby: ILobbies | undefined;
   match: IMatch | undefined;
+  board: IBoard | undefined;
 }
 
 export const defaultGameData: IGameData = {
@@ -28,6 +29,7 @@ export const defaultGameData: IGameData = {
   gameMode: GameMode.X01,
   lobby: undefined,
   match: undefined,
+  board: undefined,
 };
 
 export const AutodartsToolsGameData: WxtStorageItem<IGameData, any> = storage.defineItem(

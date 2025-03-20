@@ -3,7 +3,7 @@ import { createApp } from "vue";
 import { disableTakeout } from "./disable-takeout";
 import { colorChange, onRemove as colorChangeOnRemove } from "./color-change";
 import Takeout from "./Takeout.vue";
-import { nextPlayerOnTakeOutStuck } from "./next-player-on-take-out-stuck";
+import { nextPlayerOnTakeOutStuck, nextPlayerOnTakeOutStuckOnRemove } from "./next-player-on-take-out-stuck";
 import { automaticNextLeg } from "./automatic-next-leg";
 import { smallerScores } from "./smaller-scores";
 import { hideMenuInMatch, hideMenuInMatchOnRemove } from "./hide-menu-in-match";
@@ -196,6 +196,7 @@ function clearMatch() {
   winnerAnimationOnRemove();
   callerOnRemove();
   soundFxOnRemove();
+  nextPlayerOnTakeOutStuckOnRemove();
 
   matchInitialized = false;
 }
