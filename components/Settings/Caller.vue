@@ -616,7 +616,7 @@ async function saveSound() {
     .filter(line => line.length > 0);
 
   // Store base64 data in IndexedDB if available
-  let soundId = null;
+  let soundId: string | null = null;
   if (newSound.value.base64 && isIndexedDBAvailable()) {
     soundId = await saveSoundToIndexedDB(
       newSound.value.name.trim() || "Unnamed sound",
@@ -748,17 +748,15 @@ function extractTriggerFromFilename(filename: string): string[] {
   // Remove file extension
   const nameWithoutExt = filename.substring(0, filename.lastIndexOf(".")).toLowerCase();
 
-  // Replace hyphens with spaces but keep underscores
-  const cleanName = nameWithoutExt.replace(/-/g, " ").trim();
+  // Replace hyphens with underscores
+  const cleanName = nameWithoutExt.replace(/-/g, "_").trim();
 
-  // Split by spaces and filter out empty strings
-  const parts = cleanName.split(/\s+/).filter(Boolean);
+  // Handle the "+" case - remove + and everything after it
+  const plusIndex = cleanName.indexOf("+");
+  const finalTrigger = plusIndex !== -1 ? cleanName.substring(0, plusIndex) : cleanName;
 
-  // Remove '+' and everything after it from each trigger
-  return parts.map((part) => {
-    const plusIndex = part.indexOf("+");
-    return plusIndex !== -1 ? part.substring(0, plusIndex) : part;
-  }).filter(Boolean);
+  // Return as array with a single item if not empty
+  return finalTrigger ? [ finalTrigger ] : [];
 }
 
 async function fileToBase64(file: File): Promise<string> {
@@ -790,7 +788,7 @@ async function processFiles() {
           : [];
 
         // Store file in IndexedDB if available
-        let soundId = null;
+        let soundId: string | null = null;
         if (isIndexedDBAvailable()) {
           soundId = await saveSoundToIndexedDB(nameWithoutExt, base64Data);
         }

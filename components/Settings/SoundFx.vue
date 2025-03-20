@@ -148,7 +148,7 @@
           </div>
         </div>
 
-        <div>
+        <div v-if="!newSound.base64">
           <label for="sound-url" class="mb-1 block text-sm font-medium text-white">Sound URL (MP3, WAV, etc.)</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-3 flex items-center text-white/60">
@@ -368,6 +368,13 @@ import AppTextarea from "@/components/AppTextarea.vue";
 import AppNotification from "@/components/AppNotification.vue";
 import AppModal from "@/components/AppModal.vue";
 import { useNotification } from "@/composables/useNotification";
+import {
+  deleteSoundFxFromIndexedDB,
+  getSoundFxFromIndexedDB,
+  isIndexedDBAvailable,
+  migrateSoundFxToIndexedDB,
+  saveSoundFxToIndexedDB,
+} from "@/utils/helpers";
 
 const emit = defineEmits([ "toggleSettings" ]);
 const config = ref<IConfig>();
@@ -431,6 +438,26 @@ onMounted(async () => {
       enabled: false,
       sounds: [],
     };
+    await AutodartsToolsConfig.setValue(config.value!);
+  }
+
+  // Migrate existing base64 sounds to IndexedDB if available
+  if (isIndexedDBAvailable() && config.value?.soundFx?.sounds?.length) {
+    try {
+      const migrationResult = await migrateSoundFxToIndexedDB(
+        config.value,
+        async (updatedConfig) => {
+          config.value = updatedConfig;
+          await AutodartsToolsConfig.setValue(updatedConfig);
+        },
+      );
+
+      if (migrationResult) {
+        console.log("Autodarts Tools: Successfully migrated soundFx sounds to IndexedDB");
+      }
+    } catch (error) {
+      console.error("Autodarts Tools: Error migrating soundFx sounds to IndexedDB:", error);
+    }
   }
 
   // Initialize sortable after the DOM is updated
@@ -504,20 +531,58 @@ function closeSoundModal() {
 
 function editSound(index: number) {
   const sound = config.value!.soundFx.sounds[index];
+
+  // Set up base form values
   newSound.value = {
     name: sound.name || "",
     text: sound.triggers?.join("\n") || "",
-    base64: sound.base64 || "",
+    base64: "", // We'll load this below if needed
     url: sound.url || "",
   };
+
+  // If we have a soundId, load from IndexedDB
+  if (sound.soundId && isIndexedDBAvailable()) {
+    getSoundFxFromIndexedDB(sound.soundId)
+      .then((base64Data) => {
+        if (base64Data) {
+          newSound.value.base64 = base64Data;
+        } else if (sound.base64) {
+          // Fallback to the base64 in config if exists
+          newSound.value.base64 = sound.base64;
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading sound from IndexedDB:", error);
+        // Fallback to the base64 in config if exists
+        if (sound.base64) {
+          newSound.value.base64 = sound.base64;
+        }
+      });
+  } else if (sound.base64) {
+    // Use the base64 in config
+    newSound.value.base64 = sound.base64;
+  }
+
   isEditMode.value = true;
   editingIndex.value = index;
   showSoundModal.value = true;
 }
 
-function saveSound() {
-  if (!config.value || !newSound.value.url || !newSound.value.text) {
-    showNotification("Please provide a sound URL and triggers", "error");
+async function saveSound() {
+  if (!config.value) {
+    showNotification("Configuration not loaded", "error");
+    return;
+  }
+
+  // Check if we have either a URL or base64 data
+  if (!newSound.value.url && !newSound.value.base64) {
+    showNotification("Please provide either a sound URL or upload a file", "error");
+    return;
+  }
+
+  // Check if we have triggers
+  if (!newSound.value.text) {
+    showNotification("Please provide at least one trigger", "error");
     return;
   }
 
@@ -536,11 +601,26 @@ function saveSound() {
     .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
 
+  // Store base64 data in IndexedDB if available
+  let soundId: string | null = null;
+  if (newSound.value.base64 && isIndexedDBAvailable()) {
+    soundId = await saveSoundFxToIndexedDB(
+      newSound.value.name.trim() || "Unnamed sound",
+      newSound.value.base64,
+    );
+
+    if (!soundId) {
+      // If IndexedDB failed, fall back to storing in config
+      console.warn("Failed to save sound to IndexedDB, falling back to local storage");
+    }
+  }
+
   // Create sound object
   const sound: ISound = {
     name: newSound.value.name.trim() || "",
     url: newSound.value.url || "",
-    base64: "",
+    base64: soundId ? "" : newSound.value.base64 || "", // Only store base64 in config if we couldn't store in IndexedDB
+    soundId: soundId || "", // Store the IndexedDB ID if available
     enabled: true, // New sounds are enabled by default
     triggers,
   };
@@ -549,6 +629,12 @@ function saveSound() {
     // Update existing sound
     const existingSound = config.value.soundFx.sounds[editingIndex.value];
     sound.enabled = existingSound.enabled; // Preserve enabled state when editing
+
+    // Delete old sound from IndexedDB if exists and different
+    if (existingSound.soundId && existingSound.soundId !== sound.soundId) {
+      await deleteSoundFxFromIndexedDB(existingSound.soundId);
+    }
+
     config.value.soundFx.sounds[editingIndex.value] = sound;
   } else {
     config.value.soundFx.sounds.unshift(sound);
@@ -558,8 +644,15 @@ function saveSound() {
   closeSoundModal();
 }
 
-function removeSound(index: number) {
+async function removeSound(index: number) {
   if (config.value && config.value.soundFx.sounds) {
+    const sound = config.value.soundFx.sounds[index];
+
+    // If sound is stored in IndexedDB, delete it
+    if (sound.soundId && isIndexedDBAvailable()) {
+      await deleteSoundFxFromIndexedDB(sound.soundId);
+    }
+
     config.value.soundFx.sounds.splice(index, 1);
   }
 }
@@ -570,7 +663,7 @@ function toggleSound(index: number) {
   }
 }
 
-function playSound(sound: ISound) {
+async function playSound(sound: ISound) {
   // Stop current audio if it exists
   if (currentAudio.value) {
     currentAudio.value.pause();
@@ -581,18 +674,30 @@ function playSound(sound: ISound) {
   const audio = new Audio();
   currentAudio.value = audio;
 
-  // Set the source based on what's available
-  if (sound.base64) {
-    audio.src = sound.base64;
-  } else if (sound.url) {
-    audio.src = sound.url;
-  } else {
-    // No audio source available
-    showNotification("No audio source available for this sound", "error");
-    return;
+  // Try to get base64 from IndexedDB first if sound has a soundId
+  let source = "";
+  if (sound.soundId && isIndexedDBAvailable()) {
+    const base64Data = await getSoundFxFromIndexedDB(sound.soundId);
+    if (base64Data) {
+      source = base64Data;
+    }
   }
 
-  // Play the sound
+  // If no source from IndexedDB, fall back to config values
+  if (!source) {
+    if (sound.base64) {
+      source = sound.base64;
+    } else if (sound.url) {
+      source = sound.url;
+    } else {
+      // No audio source available
+      showNotification("No audio source available for this sound", "error");
+      return;
+    }
+  }
+
+  // Set the source and play
+  audio.src = source;
   audio.play().catch((error) => {
     console.error("Error playing sound:", error);
     showNotification("Failed to play sound", "error");
@@ -673,17 +778,15 @@ function extractTriggerFromFilename(filename: string): string[] {
   // Remove file extension
   const nameWithoutExt = filename.substring(0, filename.lastIndexOf(".")).toLowerCase();
 
-  // Replace hyphens with spaces but keep underscores
-  const cleanName = nameWithoutExt.replace(/-/g, " ").trim();
+  // Replace hyphens with underscores
+  const cleanName = nameWithoutExt.replace(/-/g, "_").trim();
 
-  // Split by spaces and filter out empty strings
-  const parts = cleanName.split(/\s+/).filter(Boolean);
+  // Handle the "+" case - remove + and everything after it
+  const plusIndex = cleanName.indexOf("+");
+  const finalTrigger = plusIndex !== -1 ? cleanName.substring(0, plusIndex) : cleanName;
 
-  // Remove '+' and everything after it from each trigger
-  return parts.map((part) => {
-    const plusIndex = part.indexOf("+");
-    return plusIndex !== -1 ? part.substring(0, plusIndex) : part;
-  }).filter(Boolean);
+  // Return as array with a single item if not empty
+  return finalTrigger ? [ finalTrigger ] : [];
 }
 
 async function fileToBase64(file: File): Promise<string> {
@@ -714,11 +817,18 @@ async function processFiles() {
           ? extractTriggerFromFilename(file.name)
           : [];
 
+        // Store file in IndexedDB if available
+        let soundId: string | null = null;
+        if (isIndexedDBAvailable()) {
+          soundId = await saveSoundFxToIndexedDB(nameWithoutExt, base64Data);
+        }
+
         // Create sound object
         const sound: ISound = {
           name: nameWithoutExt,
           url: "",
-          base64: base64Data,
+          base64: soundId ? "" : base64Data, // Only store in config if not in IndexedDB
+          soundId: soundId || "", // Store the IndexedDB ID if available
           enabled: true,
           triggers,
         };
@@ -782,7 +892,17 @@ function closeDeleteAllModal() {
 async function deleteAllSounds() {
   if (!config.value) return;
 
-  // Clear all sounds
+  // Delete all sounds from IndexedDB
+  if (isIndexedDBAvailable()) {
+    // Delete individual sounds with their IDs to ensure cleanup
+    for (const sound of config.value.soundFx.sounds) {
+      if (sound.soundId) {
+        await deleteSoundFxFromIndexedDB(sound.soundId);
+      }
+    }
+  }
+
+  // Clear all sounds from the config
   config.value.soundFx.sounds = [];
 
   // Update config

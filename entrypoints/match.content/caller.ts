@@ -378,8 +378,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   if (winner) {
     playSound("gameshot");
-    const winnerPlayerIndex = gameData.match.winner;
-    const winnerPlayerName = gameData.match.players?.[winnerPlayerIndex]?.name;
+    const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
     if (winnerPlayerName) {
       playSound(winnerPlayerName.toLowerCase());
     }

@@ -93,6 +93,16 @@ export interface SoundDB extends DBSchema {
     };
     indexes: { "by-date": number };
   };
+  "sounds-fx": {
+    key: string;
+    value: {
+      id: string;
+      name: string;
+      base64: string;
+      dateAdded: number;
+    };
+    indexes: { "by-date": number };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<SoundDB>> | null = null;
@@ -112,15 +122,23 @@ export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
   }
 
   if (!dbPromise) {
-    dbPromise = openDB<SoundDB>("autodarts-tools-sounds", 1, {
-      upgrade(db) {
-        // Create a store for Caller sounds
-        const soundStore = db.createObjectStore("sounds-caller", {
-          keyPath: "id",
-        });
+    dbPromise = openDB<SoundDB>("autodarts-tools-sounds", 2, {
+      upgrade(db, oldVersion, newVersion) {
+        // Create a store for Caller sounds if it doesn't exist
+        if (!db.objectStoreNames.contains("sounds-caller")) {
+          const callerStore = db.createObjectStore("sounds-caller", {
+            keyPath: "id",
+          });
+          callerStore.createIndex("by-date", "dateAdded");
+        }
 
-        // Create index for sorting by date
-        soundStore.createIndex("by-date", "dateAdded");
+        // Create a store for SoundFx sounds if it doesn't exist
+        if (!db.objectStoreNames.contains("sounds-fx")) {
+          const soundFxStore = db.createObjectStore("sounds-fx", {
+            keyPath: "id",
+          });
+          soundFxStore.createIndex("by-date", "dateAdded");
+        }
       },
     });
   }
@@ -128,8 +146,25 @@ export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
   return dbPromise;
 }
 
-// Save a base64 sound to IndexedDB
+// Save a base64 sound to IndexedDB for caller
 export async function saveSoundToIndexedDB(
+  name: string,
+  base64: string,
+): Promise<string | null> {
+  return saveToIndexedDB("sounds-caller", name, base64);
+}
+
+// Save a base64 sound to IndexedDB for soundFx
+export async function saveSoundFxToIndexedDB(
+  name: string,
+  base64: string,
+): Promise<string | null> {
+  return saveToIndexedDB("sounds-fx", name, base64);
+}
+
+// Generic function to save to IndexedDB
+async function saveToIndexedDB(
+  storeName: "sounds-caller" | "sounds-fx",
   name: string,
   base64: string,
 ): Promise<string | null> {
@@ -145,66 +180,90 @@ export async function saveSoundToIndexedDB(
       dateAdded: Date.now(),
     };
 
-    await db.put("sounds-caller", soundData);
+    await db.put(storeName, soundData);
     return id;
   } catch (error) {
-    console.error("Error saving sound to IndexedDB:", error);
+    console.error(`Error saving sound to IndexedDB (${storeName}):`, error);
     return null;
   }
 }
 
-// Get a sound from IndexedDB by ID
+// Get a sound from IndexedDB by ID for caller
 export async function getSoundFromIndexedDB(id: string): Promise<string | null> {
+  return getFromIndexedDB("sounds-caller", id);
+}
+
+// Get a sound from IndexedDB by ID for soundFx
+export async function getSoundFxFromIndexedDB(id: string): Promise<string | null> {
+  return getFromIndexedDB("sounds-fx", id);
+}
+
+// Generic function to get from IndexedDB
+async function getFromIndexedDB(
+  storeName: "sounds-caller" | "sounds-fx",
+  id: string,
+): Promise<string | null> {
   try {
     const db = await getDB();
     if (!db) return null;
 
-    const sound = await db.get("sounds-caller", id);
+    const sound = await db.get(storeName, id);
     return sound ? sound.base64 : null;
   } catch (error) {
-    console.error("Error getting sound from IndexedDB:", error);
+    console.error(`Error getting sound from IndexedDB (${storeName}):`, error);
     return null;
   }
 }
 
-// Get all sounds from IndexedDB
-export async function getAllSoundsFromIndexedDB(): Promise<{ id: string; name: string; base64: string }[]> {
-  try {
-    const db = await getDB();
-    if (!db) return [];
-
-    const sounds = await db.getAll("sounds-caller");
-    return sounds.map(({ id, name, base64 }) => ({ id, name, base64 }));
-  } catch (error) {
-    console.error("Error getting all sounds from IndexedDB:", error);
-    return [];
-  }
+// Delete a sound from IndexedDB for caller
+export async function deleteSoundFromIndexedDB(id: string): Promise<boolean> {
+  return deleteFromIndexedDB("sounds-caller", id);
 }
 
-// Delete all sounds from IndexedDB
-export async function clearCallerSoundsFromIndexedDB(): Promise<boolean> {
+// Delete a sound from IndexedDB for soundFx
+export async function deleteSoundFxFromIndexedDB(id: string): Promise<boolean> {
+  return deleteFromIndexedDB("sounds-fx", id);
+}
+
+// Generic function to delete from IndexedDB
+async function deleteFromIndexedDB(
+  storeName: "sounds-caller" | "sounds-fx",
+  id: string,
+): Promise<boolean> {
   try {
     const db = await getDB();
     if (!db) return false;
 
-    await db.clear("sounds-caller");
+    await db.delete(storeName, id);
     return true;
   } catch (error) {
-    console.error("Error clearing sounds from IndexedDB:", error);
+    console.error(`Error deleting sound from IndexedDB (${storeName}):`, error);
     return false;
   }
 }
 
-// Delete a sound from IndexedDB
-export async function deleteSoundFromIndexedDB(id: string): Promise<boolean> {
+// Clear sounds from IndexedDB for caller
+export async function clearCallerSoundsFromIndexedDB(): Promise<boolean> {
+  return clearFromIndexedDB("sounds-caller");
+}
+
+// Clear sounds from IndexedDB for soundFx
+export async function clearSoundFxFromIndexedDB(): Promise<boolean> {
+  return clearFromIndexedDB("sounds-fx");
+}
+
+// Generic function to clear from IndexedDB
+async function clearFromIndexedDB(
+  storeName: "sounds-caller" | "sounds-fx",
+): Promise<boolean> {
   try {
     const db = await getDB();
     if (!db) return false;
 
-    await db.delete("sounds-caller", id);
+    await db.clear(storeName);
     return true;
   } catch (error) {
-    console.error("Error deleting sound from IndexedDB:", error);
+    console.error(`Error clearing sounds from IndexedDB (${storeName}):`, error);
     return false;
   }
 }
@@ -214,7 +273,35 @@ export async function migrateCallerSoundsToIndexedDB(
   config: IConfig,
   updateConfig: (updatedConfig: IConfig) => Promise<void>,
 ): Promise<boolean> {
-  if (!isIndexedDBAvailable() || !config?.caller?.sounds?.length) {
+  return migrateSoundsToIndexedDB(
+    "caller",
+    config,
+    updateConfig,
+    saveSoundToIndexedDB,
+  );
+}
+
+// Migration function for SoundFx
+export async function migrateSoundFxToIndexedDB(
+  config: IConfig,
+  updateConfig: (updatedConfig: IConfig) => Promise<void>,
+): Promise<boolean> {
+  return migrateSoundsToIndexedDB(
+    "soundFx",
+    config,
+    updateConfig,
+    saveSoundFxToIndexedDB,
+  );
+}
+
+// Generic migration function
+async function migrateSoundsToIndexedDB(
+  featureKey: "caller" | "soundFx",
+  config: IConfig,
+  updateConfig: (updatedConfig: IConfig) => Promise<void>,
+  saveFunction: (name: string, base64: string) => Promise<string | null>,
+): Promise<boolean> {
+  if (!isIndexedDBAvailable() || !config?.[featureKey]?.sounds?.length) {
     return false;
   }
 
@@ -222,7 +309,7 @@ export async function migrateCallerSoundsToIndexedDB(
   const updatedSounds: ISound[] = [];
 
   // Process each sound
-  for (const sound of config.caller.sounds) {
+  for (const sound of config[featureKey].sounds) {
     // Skip sounds that don't have base64 data
     if (!sound.base64) {
       updatedSounds.push(sound);
@@ -231,7 +318,7 @@ export async function migrateCallerSoundsToIndexedDB(
 
     try {
       // Save to IndexedDB
-      const soundId = await saveSoundToIndexedDB(
+      const soundId = await saveFunction(
         sound.name || "Migrated Sound",
         sound.base64,
       );
@@ -249,7 +336,7 @@ export async function migrateCallerSoundsToIndexedDB(
         updatedSounds.push(sound);
       }
     } catch (error) {
-      console.error("Error migrating sound to IndexedDB:", error);
+      console.error(`Error migrating ${featureKey} sound to IndexedDB:`, error);
       // Keep the original if there was an error
       updatedSounds.push(sound);
     }
@@ -259,8 +346,8 @@ export async function migrateCallerSoundsToIndexedDB(
   if (migrated) {
     const updatedConfig: IConfig = {
       ...config,
-      caller: {
-        ...config.caller,
+      [featureKey]: {
+        ...config[featureKey],
         sounds: updatedSounds,
       },
     };

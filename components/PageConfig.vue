@@ -340,7 +340,7 @@ import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
 import type { IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
-import { clearCallerSoundsFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
+import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppNotification from "@/components/AppNotification.vue";
@@ -603,11 +603,12 @@ function resetAllSettings() {
     "Reset All Settings",
     "This will reset all settings to their default values. All your customizations will be lost. Are you sure you want to continue?",
     async () => {
-      // Clear the IndexedDB sound files for the caller
+      // Clear the IndexedDB sound files
       if (isIndexedDBAvailable()) {
         try {
           await clearCallerSoundsFromIndexedDB();
-          console.log("Autodarts Tools: IndexedDB caller sounds cleared");
+          await clearSoundFxFromIndexedDB();
+          console.log("Autodarts Tools: IndexedDB sounds cleared");
         } catch (error) {
           console.error("Autodarts Tools: Error clearing IndexedDB sounds", error);
         }
