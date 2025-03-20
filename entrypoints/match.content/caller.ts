@@ -362,6 +362,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       playSound(currentScore.toString());
     }
   }
+
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
 
@@ -374,22 +375,46 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   const winner: boolean = gameData.match.winner >= 0 || (gameData.match.variant === "X01" && gameData.match.gameScores[currentPlayerIndex] === 0);
   const busted: boolean = gameData.match.turns[0].busted;
   const points: number = gameData.match.turns[0].points;
+  const score: number = gameData.match.turns[0].score;
   const combinedThrows: string = gameData.match.turns[0].throws.map(t => t.segment.name.toLowerCase()).join("_");
 
-  if (winner) {
-    playSound("gameshot");
-    const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
-    if (winnerPlayerName) {
-      playSound(winnerPlayerName.toLowerCase());
+  // For non-Cricket variants, use normal sound logic
+  if (gameData.match.variant !== "Cricket") {
+    if (winner) {
+      playSound("gameshot");
+      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
+      if (winnerPlayerName) {
+        playSound(winnerPlayerName.toLowerCase());
+      }
+    } else if (busted) {
+      playSound("busted");
+    } else if (isLastThrow) {
+      if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
+      // Only play points sound if there's more than one player
+      if (gameData.match.players && gameData.match.players.length > 1) {
+        playSound(points.toString());
+      }
+      playSound(combinedThrows);
+    } else {
+      if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
     }
-  } else if (busted) {
-    playSound("busted");
-  } else if (isLastThrow) {
-    if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
-    playSound(points.toString());
-    playSound(combinedThrows);
   } else {
-    if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
+    // For Cricket, handle only winner and busted sounds (not the individual throws)
+    if (winner) {
+      playSound("gameshot");
+      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
+      if (winnerPlayerName) {
+        playSound(winnerPlayerName.toLowerCase());
+      }
+    } else if (busted) {
+      playSound("busted");
+    } else if (gameData.match.players && gameData.match.players.length > 1 && isLastThrow) {
+      if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
+      playSound(score.toString());
+    } else {
+      if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
+    }
+    // Note: we don't play individual throw sounds as we've handled cricket_hit/cricket_miss above
   }
 }
 

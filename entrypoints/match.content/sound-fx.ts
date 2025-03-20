@@ -327,6 +327,40 @@ function removeInteractionNotification(): void {
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
   if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns?.length) return;
 
+  // For Cricket, trigger appropriate sound based on what was hit
+  if (gameData.match.variant === "Cricket"
+      && gameData.match.turns[0].throws.length > 0
+      && (!oldGameData?.match?.turns?.[0]?.throws
+      || gameData.match.turns[0].throws.length > oldGameData.match.turns[0].throws.length)) {
+    const latestThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
+    if (latestThrow) {
+      // Get the segment number (extract number from segment name)
+      const segmentName = latestThrow.segment.name.toLowerCase();
+      let segmentNumber = 0;
+
+      if (segmentName === "bull") {
+        segmentNumber = 25;
+      } else if (segmentName.includes("miss") || segmentName.includes("outside")) {
+        segmentNumber = 0;
+      } else {
+        // Extract number from segment name (s1, d2, t3, etc.)
+        const match = segmentName.match(/[sdt](\d+)/i);
+        if (match && match[1]) {
+          segmentNumber = Number.parseInt(match[1], 10);
+        }
+      }
+
+      // Cricket targets are 15-20 and Bull (25)
+      if (segmentNumber >= 15) {
+        // Target Hit - Anything 15-Bull
+        playSound("cricket_hit");
+      } else {
+        // Target Miss - Anything Miss-14
+        playSound("cricket_miss");
+      }
+    }
+  }
+
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
 
@@ -341,57 +375,97 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   const points: number = gameData.match.turns[0].points;
   const combinedThrows: string = gameData.match.turns[0].throws.map(t => t.segment.name.toLowerCase()).join("_");
 
-  if (winner) {
-    // Check if there's a winner player index and name available
-    const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
+  // For non-Cricket variants, use normal sound logic
+  if (gameData.match.variant !== "Cricket") {
+    if (winner) {
+      // Check if there's a winner player index and name available
+      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
 
-    if (winnerPlayerName) {
-      // First try to play player-specific gameshot sound with underscores
-      const playerSpecificTrigger = `ambient_gameshot_${winnerPlayerName.toLowerCase().replace(/\s+/g, "_")}`;
-      console.log(`Autodarts Tools: Trying player-specific gameshot sound "${playerSpecificTrigger}"`);
+      if (winnerPlayerName) {
+        // First try to play player-specific gameshot sound with underscores
+        const playerSpecificTrigger = `ambient_gameshot_${winnerPlayerName.toLowerCase().replace(/\s+/g, "_")}`;
+        console.log(`Autodarts Tools: Trying player-specific gameshot sound "${playerSpecificTrigger}"`);
 
-      // Check if the player-specific sound with underscores exists
-      const playerSpecificSoundExists = config?.soundFx?.sounds?.some(sound =>
-        sound.enabled && sound.triggers && (
-          sound.triggers.includes(playerSpecificTrigger)
-          || sound.triggers.includes(playerSpecificTrigger.replace("ambient_", ""))
-        ),
-      );
-
-      if (playerSpecificSoundExists) {
-        playSound(playerSpecificTrigger);
-      } else {
-        // Try with spaces instead of underscores
-        const playerSpecificTriggerWithSpaces = `ambient_gameshot_${winnerPlayerName.toLowerCase()}`;
-        console.log(`Autodarts Tools: Trying alternate player-specific gameshot sound "${playerSpecificTriggerWithSpaces}"`);
-
-        const playerSpecificSoundWithSpacesExists = config?.soundFx?.sounds?.some(sound =>
+        // Check if the player-specific sound with underscores exists
+        const playerSpecificSoundExists = config?.soundFx?.sounds?.some(sound =>
           sound.enabled && sound.triggers && (
-            sound.triggers.includes(playerSpecificTriggerWithSpaces)
-            || sound.triggers.includes(playerSpecificTriggerWithSpaces.replace("ambient_", ""))
+            sound.triggers.includes(playerSpecificTrigger)
+            || sound.triggers.includes(playerSpecificTrigger.replace("ambient_", ""))
           ),
         );
 
-        if (playerSpecificSoundWithSpacesExists) {
-          playSound(playerSpecificTriggerWithSpaces);
+        if (playerSpecificSoundExists) {
+          playSound(playerSpecificTrigger);
         } else {
-          // Fallback to regular gameshot sound if neither variant exists
-          console.log(`Autodarts Tools: No player-specific gameshot sound found for "${winnerPlayerName}", falling back to standard gameshot`);
-          playSound("ambient_gameshot");
+          // Try with spaces instead of underscores
+          const playerSpecificTriggerWithSpaces = `ambient_gameshot_${winnerPlayerName.toLowerCase()}`;
+          console.log(`Autodarts Tools: Trying alternate player-specific gameshot sound "${playerSpecificTriggerWithSpaces}"`);
+
+          const playerSpecificSoundWithSpacesExists = config?.soundFx?.sounds?.some(sound =>
+            sound.enabled && sound.triggers && (
+              sound.triggers.includes(playerSpecificTriggerWithSpaces)
+              || sound.triggers.includes(playerSpecificTriggerWithSpaces.replace("ambient_", ""))
+            ),
+          );
+
+          if (playerSpecificSoundWithSpacesExists) {
+            playSound(playerSpecificTriggerWithSpaces);
+          } else {
+            // Fallback to regular gameshot sound if neither variant exists
+            console.log(`Autodarts Tools: No player-specific gameshot sound found for "${winnerPlayerName}", falling back to standard gameshot`);
+            playSound("ambient_gameshot");
+          }
         }
+      } else {
+        // Fallback if no player name available
+        playSound("ambient_gameshot");
       }
+    } else if (busted) {
+      playSound("ambient_busted");
+    } else if (isLastThrow) {
+      playSound(`ambient_${throwName.toLowerCase()}`);
+      playSound(`ambient_${points}`);
+      playSound(`ambient_${combinedThrows}`);
     } else {
-      // Fallback if no player name available
-      playSound("ambient_gameshot");
+      playSound(`ambient_${throwName.toLowerCase()}`);
     }
-  } else if (busted) {
-    playSound("ambient_busted");
-  } else if (isLastThrow) {
-    playSound(`ambient_${throwName.toLowerCase()}`);
-    playSound(`ambient_${points}`);
-    playSound(`ambient_${combinedThrows}`);
   } else {
-    playSound(`ambient_${throwName.toLowerCase()}`);
+    // For Cricket, handle winner and busted sounds (not the individual throws which are handled above)
+    if (winner) {
+      // Same winner logic as non-Cricket
+      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
+
+      if (winnerPlayerName) {
+        const playerSpecificTrigger = `ambient_gameshot_${winnerPlayerName.toLowerCase().replace(/\s+/g, "_")}`;
+        if (config?.soundFx?.sounds?.some(sound =>
+          sound.enabled && sound.triggers && (
+            sound.triggers.includes(playerSpecificTrigger)
+            || sound.triggers.includes(playerSpecificTrigger.replace("ambient_", ""))
+          ),
+        )) {
+          playSound(playerSpecificTrigger);
+        } else {
+          const playerSpecificTriggerWithSpaces = `ambient_gameshot_${winnerPlayerName.toLowerCase()}`;
+          if (config?.soundFx?.sounds?.some(sound =>
+            sound.enabled && sound.triggers && (
+              sound.triggers.includes(playerSpecificTriggerWithSpaces)
+              || sound.triggers.includes(playerSpecificTriggerWithSpaces.replace("ambient_", ""))
+            ),
+          )) {
+            playSound(playerSpecificTriggerWithSpaces);
+          } else {
+            playSound("ambient_gameshot");
+          }
+        }
+      } else {
+        playSound("ambient_gameshot");
+      }
+    } else if (busted) {
+      playSound("ambient_busted");
+    }
+
+    // Note: For Cricket, we don't play the individual throw sounds in the usual way
+    // as we've already handled cricket_hit and cricket_miss above
   }
 }
 
@@ -548,7 +622,7 @@ function playSound(trigger: string): void {
 
     const firstChar = triggerWithoutAmbient.charAt(0).toLowerCase();
 
-    // Check for miss prefix (m) and fallback to "outside"
+    // Check for miss prefix (m) and fallback to "outside" or "cricket_miss" for Cricket
     // But only if the trigger doesn't contain an underscore (to avoid combined throws)
     if (firstChar === "m" && !triggerWithoutAmbient.includes("_")) {
       // Existing miss fallback logic...
@@ -673,17 +747,30 @@ function playSound(trigger: string): void {
     // Rest of the original fallback logic...
   }
 
-  // Special case: fallback from "miss" to "outside"
+  // Special case: fallback from "miss" to "outside" or "cricket_miss" for Cricket
   if (!matchingSounds.length && trigger.toLowerCase() === "ambient_miss") {
+    // For Cricket variant, check for cricket_miss sound first
     matchingSounds = config.soundFx.sounds.filter(sound =>
       sound.enabled && sound.triggers && (
-        sound.triggers.includes("ambient_outside")
-        || sound.triggers.includes("outside")
+        sound.triggers.includes("ambient_cricket_miss")
+        || sound.triggers.includes("cricket_miss")
       ),
     );
 
     if (matchingSounds.length) {
-      console.log("Autodarts Tools: Using fallback sound for \"ambient_miss\" -> \"ambient_outside\" or \"outside\"");
+      console.log("Autodarts Tools: Using Cricket-specific fallback sound \"cricket_miss\"");
+    } else {
+      // Fall back to outside if cricket_miss not found
+      matchingSounds = config.soundFx.sounds.filter(sound =>
+        sound.enabled && sound.triggers && (
+          sound.triggers.includes("ambient_outside")
+          || sound.triggers.includes("outside")
+        ),
+      );
+
+      if (matchingSounds.length) {
+        console.log("Autodarts Tools: Using fallback sound for \"ambient_miss\" -> \"ambient_outside\" or \"outside\"");
+      }
     }
   }
 

@@ -463,6 +463,20 @@ export const defaultConfig: IConfig = {
         enabled: true,
         triggers: [ "ambient_gameshot" ],
       },
+      {
+        name: "cricket_miss",
+        url: "https://autodarts.x10.mx/sound_double_windart.wav",
+        base64: "",
+        enabled: true,
+        triggers: [ "cricket_miss" ],
+      },
+      {
+        name: "cricket_hit",
+        url: "https://autodarts.x10.mx/bonus-points.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "cricket_hit" ],
+      },
     ],
   },
 };
