@@ -369,9 +369,11 @@ import AppNotification from "@/components/AppNotification.vue";
 import AppModal from "@/components/AppModal.vue";
 import { useNotification } from "@/composables/useNotification";
 import {
+  base64toBlob,
   deleteSoundFxFromIndexedDB,
   getSoundFxFromIndexedDB,
   isIndexedDBAvailable,
+  isSafari,
   migrateSoundFxToIndexedDB,
   saveSoundFxToIndexedDB,
 } from "@/utils/helpers";
@@ -670,16 +672,32 @@ async function playSound(sound: ISound) {
     currentAudio.value.currentTime = 0;
   }
 
-  // Create an audio element
+  // Create an audio element with preload enabled
   const audio = new Audio();
+  audio.preload = "auto";
   currentAudio.value = audio;
 
   // Try to get base64 from IndexedDB first if sound has a soundId
   let source = "";
+  let blobUrl = null;
+
   if (sound.soundId && isIndexedDBAvailable()) {
     const base64Data = await getSoundFxFromIndexedDB(sound.soundId);
     if (base64Data) {
       source = base64Data;
+
+      // For Safari: convert base64 to blob for better compatibility
+      if (isSafari()) {
+        try {
+          const blob = base64toBlob(base64Data);
+          blobUrl = URL.createObjectURL(blob);
+          source = blobUrl;
+        } catch (error) {
+          console.error("Error creating blob from base64:", error);
+          // Fall back to direct base64 if blob creation fails
+          source = base64Data;
+        }
+      }
     }
   }
 
@@ -687,6 +705,19 @@ async function playSound(sound: ISound) {
   if (!source) {
     if (sound.base64) {
       source = sound.base64;
+
+      // For Safari: convert base64 to blob for better compatibility
+      if (isSafari()) {
+        try {
+          const blob = base64toBlob(sound.base64);
+          blobUrl = URL.createObjectURL(blob);
+          source = blobUrl;
+        } catch (error) {
+          console.error("Error creating blob from base64:", error);
+          // Fall back to direct base64 if blob creation fails
+          source = sound.base64;
+        }
+      }
     } else if (sound.url) {
       source = sound.url;
     } else {
@@ -696,11 +727,40 @@ async function playSound(sound: ISound) {
     }
   }
 
-  // Set the source and play
+  // Set the source
   audio.src = source;
+
+  // Set up event handlers for cleanup
+  if (blobUrl) {
+    audio.addEventListener("ended", () => {
+      URL.revokeObjectURL(blobUrl);
+    });
+
+    audio.addEventListener("error", () => {
+      URL.revokeObjectURL(blobUrl);
+      console.error("Error playing audio");
+      showNotification("Failed to play sound", "error");
+
+      // Fallback: try direct source if blob approach failed
+      if (sound.base64 && source !== sound.base64) {
+        const fallbackAudio = new Audio();
+        fallbackAudio.src = sound.base64;
+        fallbackAudio.play().catch((err) => {
+          console.error("Fallback playback also failed:", err);
+        });
+      }
+    });
+  }
+
+  // Play the audio
   audio.play().catch((error) => {
     console.error("Error playing sound:", error);
     showNotification("Failed to play sound", "error");
+
+    // Revoke blob URL if there was an error
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+    }
   });
 }
 

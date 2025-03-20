@@ -20,6 +20,7 @@ export default defineConfig({
     host_permissions: [
       "*://play.autodarts.io/*",
       "*://api.autodarts.io/*",
+      "<all_urls>",
     ],
     permissions: [
       "storage",

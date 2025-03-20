@@ -114,6 +114,66 @@ export function isIndexedDBAvailable(): boolean {
          && window.indexedDB !== null;
 }
 
+// Convert base64 to blob for better browser compatibility (especially Safari)
+export function base64toBlob(base64Data: string): Blob {
+  try {
+    // Check if the base64 data already has a data URI prefix
+    if (!base64Data.includes("data:")) {
+      // Add a default audio MIME type if none is present
+      base64Data = `data:audio/mpeg;base64,${base64Data}`;
+    }
+
+    // Safari has issues with certain complex base64 strings containing metadata
+    // Strip the data to just the essential parts if we're on Safari
+    if (isSafari()) {
+      try {
+        // Extract content type and actual base64 data
+        const parts = base64Data.split(";base64,");
+        const contentType = parts[0].split(":")[1] || "audio/mpeg";
+
+        // Get just the base64 data
+        const base64Content = parts[1];
+
+        // Create a simpler data URI without the problematic metadata
+        base64Data = `data:${contentType};base64,${base64Content}`;
+
+        // For M4A files specifically, which commonly cause issues in Safari
+        if (base64Content.includes("ftypM4A") || base64Content.includes("M4A")
+            || contentType.includes("mp4") || contentType.includes("m4a")) {
+          // Force the content type to audio/mp4 for M4A files
+          base64Data = `data:audio/mp4;base64,${base64Content}`;
+        }
+      } catch (parseError) {
+        console.warn("Error parsing base64 data:", parseError);
+        // Fall back to original base64Data if parsing fails
+      }
+    }
+
+    // Extract content type and actual base64 data
+    const parts = base64Data.split(";base64,");
+    const contentType = parts[0].split(":")[1] || "audio/mpeg";
+    const base64Content = parts[1];
+
+    // Safari has issues with certain audio files containing metadata
+    // Try to determine a more specific MIME type if possible
+    const detectedType = detectAudioMimeType(base64Content);
+    const finalContentType = detectedType || contentType;
+
+    const raw = window.atob(base64Content);
+    const rawLength = raw.length;
+    const uInt8Array = new Uint8Array(rawLength);
+
+    for (let i = 0; i < rawLength; ++i) {
+      uInt8Array[i] = raw.charCodeAt(i);
+    }
+
+    return new Blob([ uInt8Array ], { type: finalContentType });
+  } catch (error) {
+    console.error("Error converting base64 to blob:", error);
+    return new Blob([ "" ], { type: "audio/mpeg" });
+  }
+}
+
 // Initialize the IndexedDB database
 export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
   if (!isIndexedDBAvailable()) {
@@ -212,7 +272,25 @@ async function getFromIndexedDB(
     if (!db) return null;
 
     const sound = await db.get(storeName, id);
-    return sound ? sound.base64 : null;
+    if (!sound) return null;
+
+    // Normalize the base64 data to ensure it has correct format for Safari
+    let base64 = sound.base64;
+
+    // If it's a Safari browser, make sure the MIME type is properly set
+    if (isSafari() && base64.includes("data:")) {
+      // Try to detect the correct MIME type from the data URI
+      const mimeType = base64.split(";")[0].split(":")[1];
+
+      // If we can't detect or it's an ambiguous type, default to audio/mpeg
+      if (!mimeType || mimeType === "application/octet-stream") {
+        // Extract the base64 content and create a new data URI with audio/mpeg MIME type
+        const base64Content = base64.split(";base64,")[1];
+        base64 = `data:audio/mpeg;base64,${base64Content}`;
+      }
+    }
+
+    return base64;
   } catch (error) {
     console.error(`Error getting sound from IndexedDB (${storeName}):`, error);
     return null;
@@ -390,4 +468,93 @@ async function migrateSoundsToIndexedDB(
   }
 
   return migrated;
+}
+
+// Utility function to fetch resources through the background script (bypassing CORS)
+export async function backgroundFetch(url: string, options: RequestInit = {}): Promise<{
+  ok: boolean;
+  status?: number;
+  statusText?: string;
+  data?: string;
+  error?: string;
+}> {
+  try {
+    // Send a message to the background script to perform the fetch
+    const response = await browser.runtime.sendMessage({
+      type: "fetch",
+      url,
+      options,
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Error in backgroundFetch:", error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+// Add this to utils/helpers.ts
+export function detectAudioMimeType(base64Data: string): string {
+  // Get the actual data part without the prefix
+  const base64Content = typeof base64Data === "string" && base64Data.includes("data:")
+    ? base64Data.split(";base64,")[1]
+    : base64Data;
+
+  if (!base64Content || typeof base64Content !== "string") {
+    return "audio/mpeg"; // Default if invalid input
+  }
+
+  try {
+    // MP3 detection - look for ID3 or MPEG header patterns
+    if (base64Content.startsWith("SUQz")
+        || base64Content.startsWith("ID3")
+        || base64Content.includes("LAME")
+        || base64Content.startsWith("//M")
+        || base64Content.startsWith("//Ug")
+        || base64Content.startsWith("AAAA")) {
+      return "audio/mpeg";
+    }
+
+    // M4A/AAC detection
+    if (base64Content.includes("ftypM4A")
+        || base64Content.includes("M4A")
+        || base64Content.includes("mp42")
+        || base64Content.includes("MOOV")
+        || base64Content.includes("ftyp")) {
+      return "audio/mp4";
+    }
+
+    // WAV detection
+    if (base64Content.startsWith("RIFF")
+        || base64Content.startsWith("UklG") // RIFF in base64
+        || base64Content.includes("WAVE")
+        || base64Content.includes("wave")) {
+      return "audio/wav";
+    }
+
+    // OGG detection
+    if (base64Content.startsWith("T0RnZ")
+        || base64Content.startsWith("Og==") // "O" in base64
+        || base64Content.includes("vorbis")
+        || base64Content.includes("vorb")) {
+      return "audio/ogg";
+    }
+
+    // Look for other common audio format markers
+    if (base64Content.includes("FLAC")) {
+      return "audio/flac";
+    }
+
+    if (base64Content.includes("WebM") || base64Content.includes("webm")) {
+      return "audio/webm";
+    }
+  } catch (error) {
+    console.warn("Error in MIME type detection:", error);
+  }
+
+  // Default to MP3 if we can't detect the format
+  return "audio/mpeg";
 }

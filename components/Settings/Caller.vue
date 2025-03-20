@@ -18,6 +18,10 @@
                 <span class="icon-[pixelarticons--trash] mr-1" />
                 <span class="whitespace-nowrap">Delete All</span>
               </AppButton>
+              <AppButton @click="openImportURLModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
+                <span class="icon-[pixelarticons--download] mr-1" />
+                <span class="whitespace-nowrap">Import from URL</span>
+              </AppButton>
               <AppButton @click="openUploadModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
                 <span class="icon-[pixelarticons--upload] mr-1" />
                 <span class="whitespace-nowrap">Upload Files</span>
@@ -320,6 +324,101 @@
       </template>
     </AppModal>
 
+    <!-- Import URL Modal -->
+    <AppModal
+      @close="closeImportURLModal"
+      :show="showImportURLModal"
+      title="Import Sounds from URL"
+    >
+      <div class="space-y-4">
+        <div>
+          <label for="preset-url" class="mb-1 block text-sm font-medium text-white">Predefined Caller Sets (Optional)</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 z-10 flex items-center text-white/60">
+              <span class="icon-[pixelarticons--user]" />
+            </span>
+            <AppSelect
+              id="preset-url"
+              v-model="selectedPresetURL"
+              :options="callerSets"
+              class="pl-9"
+            />
+          </div>
+
+          <p class="mt-2 text-xs text-white/60">
+            Some predefined caller sets may not work using Safari. Also Tools for Autodarts is not responsible for the content of the caller sets.
+          </p>
+        </div>
+
+        <div>
+          <label for="base-url" class="mb-1 block text-sm font-medium text-white">Base URL</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-white/60">
+              <span class="icon-[pixelarticons--link]" />
+            </span>
+            <AppInput
+              id="base-url"
+              v-model="baseURL"
+              type="url"
+              placeholder="https://example.com/sounds"
+              class="pl-9"
+            />
+          </div>
+          <p class="mt-2 text-xs text-white/60">
+            Enter a base URL where sounds are stored. The system will attempt to fetch sounds for values 0-180 with .mp3 and .wav extensions.
+          </p>
+          <div v-if="baseURLError" class="mt-1 text-sm text-red-500">
+            {{ baseURLError }}
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center">
+          <label class="flex cursor-pointer items-center">
+            <input
+              v-model="generateTriggersFromURLFilenames"
+              type="checkbox"
+              class="form-checkbox size-4 rounded text-blue-600 focus:ring-blue-500"
+              checked
+              disabled
+            >
+            <span class="ml-2 text-sm">Generate triggers from filenames</span>
+          </label>
+          <span
+            class="icon-[pixelarticons--info-box] ml-2 cursor-help text-white/50"
+            title="If enabled, triggers will be automatically generated from filenames. For example, a file named '180.mp3' will trigger on '180' scores."
+          />
+        </div>
+
+        <!-- Progress display -->
+        <div v-if="isImporting">
+          <div class="mb-2 flex items-center justify-between">
+            <span class="text-sm">Importing sounds...</span>
+            <span class="text-sm">{{ importedCount }} found</span>
+          </div>
+          <div class="h-2 overflow-hidden rounded-full bg-white/10">
+            <div
+              class="h-full rounded-full bg-green-500 transition-all duration-300"
+              :style="`width: ${(importProgress / 181) * 100}%`"
+            />
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <AppButton @click="closeImportURLModal">
+          Cancel
+        </AppButton>
+        <AppButton
+          @click="fetchSoundsFromURL"
+          type="success"
+          :disabled="!baseURL || isImporting"
+          :loading="isImporting"
+        >
+          Fetch Sounds
+        </AppButton>
+      </template>
+    </AppModal>
+
     <!-- Notification -->
     <AppNotification
       @close="hideNotification"
@@ -398,10 +497,14 @@ import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
 import AppNotification from "../AppNotification.vue";
+import AppSelect from "../AppSelect.vue";
 import { AutodartsToolsConfig, type IConfig, type ISound, updateConfigIfChanged } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
 import {
+  backgroundFetch,
+  base64toBlob,
   deleteSoundFromIndexedDB,
+  detectAudioMimeType,
   getSoundFromIndexedDB,
   isIndexedDBAvailable,
   migrateCallerSoundsToIndexedDB,
@@ -448,6 +551,36 @@ const showDeleteAllModal = ref(false);
 
 // Audio player reference for stopping previous sounds
 const currentAudio = ref<HTMLAudioElement | null>(null);
+
+// Import URL Modal related refs
+const showImportURLModal = ref(false);
+const baseURL = ref("");
+const baseURLError = ref("");
+const generateTriggersFromURLFilenames = ref(true);
+const isImporting = ref(false);
+const importProgress = ref(0);
+const importedCount = ref(0);
+const selectedPresetURL = ref("");
+
+// Predefined caller sets for the select input
+const callerSets = [
+  { value: "", label: "Select a caller set (optional)" },
+  { value: "https://autodarts.x10.mx/russ_bray", label: "Russ Bray" },
+  { value: "https://autodarts.x10.mx/georgeno", label: "Georgeno" },
+  { value: "https://autodarts.x10.mx/shorty", label: "Shorty" },
+  { value: "https://autodarts.x10.mx/haulpinks", label: "Haulpinks" },
+  { value: "https://autodarts.x10.mx/lothar", label: "Lothar" },
+  { value: "https://autodarts.x10.mx/lidarts", label: "Lidarts" },
+  { value: "https://autodarts.x10.mx/bayrisch", label: "Bayrisch" },
+  { value: "https://autodarts.x10.mx/1_male_eng", label: "Male English" },
+];
+
+// Watch for changes to selectedPresetURL and update baseURL
+watch(selectedPresetURL, (newValue) => {
+  if (newValue) {
+    baseURL.value = newValue;
+  }
+});
 
 // Computed property for lowercase text handling
 const lowercaseText = computed({
@@ -920,36 +1053,74 @@ async function playSound(sound: ISound) {
 
   // Create an audio element
   const audio = new Audio();
+  audio.preload = "auto"; // Ensure preloading is enabled
   currentAudio.value = audio;
 
-  // Try to get base64 from IndexedDB first if sound has a soundId
-  let source = "";
-  if (sound.soundId && isIndexedDBAvailable()) {
-    const base64Data = await getSoundFromIndexedDB(sound.soundId);
-    if (base64Data) {
-      source = base64Data;
+  try {
+    // Try to get base64 from IndexedDB first if sound has a soundId
+    let source = "";
+    if (sound.soundId && isIndexedDBAvailable()) {
+      const base64Data = await getSoundFromIndexedDB(sound.soundId);
+      if (base64Data) {
+        source = base64Data;
+      }
     }
-  }
 
-  // If no source from IndexedDB, fall back to config values
-  if (!source) {
-    if (sound.base64) {
-      source = sound.base64;
-    } else if (sound.url) {
-      source = sound.url;
-    } else {
-      // No audio source available
-      showNotification("No audio source available for this sound", "error");
-      return;
+    // If no source from IndexedDB, fall back to config values
+    if (!source) {
+      if (sound.base64) {
+        source = sound.base64;
+      } else if (sound.url) {
+        source = sound.url;
+      } else {
+        // No audio source available
+        showNotification("No audio source available for this sound", "error");
+        return;
+      }
     }
-  }
 
-  // Set the source and play
-  audio.src = source;
-  audio.play().catch((error) => {
+    // Use blob approach for all browsers, but especially Safari
+    // This avoids the NotSupportedError on Safari
+    if (source.startsWith("data:")) {
+      try {
+        const blob = base64toBlob(source);
+        const blobUrl = URL.createObjectURL(blob);
+
+        // Set up event listeners for tracking success/failure
+        audio.oncanplaythrough = () => {
+          console.log("Sound loaded successfully");
+        };
+
+        audio.onerror = (e) => {
+          console.error("Error loading sound:", e);
+          URL.revokeObjectURL(blobUrl);
+          showNotification("Failed to play sound", "error");
+        };
+
+        // Set up cleanup when audio playback ends
+        audio.onended = () => {
+          URL.revokeObjectURL(blobUrl);
+        };
+
+        // Set the source to the blob URL
+        audio.src = blobUrl;
+
+        // Play the sound
+        await audio.play();
+        return;
+      } catch (error) {
+        console.error("Error creating/playing blob URL:", error);
+        // Continue to fallback method if blob approach fails
+      }
+    }
+
+    // Fallback: Set the source directly and play
+    audio.src = source;
+    await audio.play();
+  } catch (error) {
     console.error("Error playing sound:", error);
     showNotification("Failed to play sound", "error");
-  });
+  }
 }
 
 function toggleFeature() {
@@ -962,6 +1133,211 @@ function toggleFeature() {
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
     emit("toggleSettings", "caller");
+  }
+}
+
+// Import URL related functions
+function openImportURLModal() {
+  showImportURLModal.value = true;
+  baseURL.value = "";
+  baseURLError.value = "";
+  importProgress.value = 0;
+  importedCount.value = 0;
+  selectedPresetURL.value = "";
+}
+
+function closeImportURLModal() {
+  if (isImporting.value) {
+    // Ask for confirmation before closing during import
+    if (confirm("Import in progress. Are you sure you want to cancel?")) {
+      isImporting.value = false;
+      showImportURLModal.value = false;
+      selectedPresetURL.value = "";
+    }
+  } else {
+    showImportURLModal.value = false;
+    selectedPresetURL.value = "";
+  }
+}
+
+async function fetchSoundsFromURL() {
+  if (!config.value) return;
+
+  // Validate URL
+  try {
+    // Ensure URL starts with https://
+    if (!baseURL.value.startsWith("https://")) {
+      baseURLError.value = "URL must start with https:// for security reasons";
+      return;
+    }
+
+    // Test if URL is valid
+    const urlObj = new URL(baseURL.value);
+    baseURLError.value = "";
+  } catch (error) {
+    baseURLError.value = "Invalid URL format";
+    return;
+  }
+
+  // Start import process
+  isImporting.value = true;
+  importProgress.value = 0;
+  importedCount.value = 0;
+
+  try {
+    // Special named sounds to check
+    const specialSounds = [
+      { filename: "gameshot", triggers: [ "gameshot" ] },
+      { filename: "game on", triggers: [ "gameon" ] },
+      { filename: "miss_3rd_dart", triggers: [ "miss", "busted" ] },
+    ];
+
+    // Check for special named files first
+    for (const specialSound of specialSounds) {
+      const extensions = [ ".mp3", ".wav" ];
+
+      for (const ext of extensions) {
+        // Format the URL - handle spaces in filenames
+        const encodedFilename = encodeURIComponent(specialSound.filename);
+        const soundURL = `${baseURL.value.endsWith("/") ? baseURL.value : `${baseURL.value}/`}${encodedFilename}${ext}`;
+
+        try {
+          // Use the backgroundFetch utility to bypass CORS
+          const response = await backgroundFetch(soundURL);
+
+          // If found, process it
+          if (response.ok && response.data) {
+            // Get the correct MIME type based on the actual content
+            const detectedType = detectAudioMimeType(response.data);
+            const base64Content = response.data.includes("data:")
+              ? response.data.split(";base64,")[1]
+              : response.data;
+
+            // Create a properly formatted data URI with the correct MIME type
+            const base64Data = `data:${detectedType};base64,${base64Content}`;
+
+            // Store in IndexedDB if available
+            let soundId: string | null = null;
+            if (isIndexedDBAvailable()) {
+              soundId = await saveSoundToIndexedDB(specialSound.filename, base64Data);
+            }
+
+            // Create sound object with specified triggers
+            const sound: ISound = {
+              name: specialSound.filename,
+              url: "",
+              base64: soundId ? "" : base64Data,
+              soundId: soundId || "",
+              enabled: true,
+              triggers: specialSound.triggers,
+            };
+
+            // Add to sounds array
+            config.value.caller.sounds.unshift(sound);
+            importedCount.value++;
+
+            // Found a sound with this name, no need to try other extensions
+            break;
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch ${soundURL}:`, error);
+        }
+
+        // Add a small delay between requests
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    // Process numbers from 0 to 180
+    for (let i = 0; i <= 180; i++) {
+      importProgress.value = i;
+
+      // Try both mp3 and wav extensions
+      const extensions = [ ".mp3", ".wav" ];
+
+      for (const ext of extensions) {
+        const soundURL = `${baseURL.value.endsWith("/") ? baseURL.value : `${baseURL.value}/`}${i}${ext}`;
+
+        try {
+          // Use the backgroundFetch utility instead of direct fetch to bypass CORS
+          const response = await backgroundFetch(soundURL);
+
+          // If found, process it
+          if (response.ok && response.data) {
+            // Get the correct MIME type based on the actual content
+            const detectedType = detectAudioMimeType(response.data);
+            const base64Content = response.data.includes("data:")
+              ? response.data.split(";base64,")[1]
+              : response.data;
+
+            // Create a properly formatted data URI with the correct MIME type
+            const base64Data = `data:${detectedType};base64,${base64Content}`;
+
+            // Extract filename for the sound name
+            const filename = `${i}${ext}`;
+            const nameWithoutExt = filename.substring(0, filename.lastIndexOf("."));
+
+            // Generate triggers if option is enabled
+            const triggers = generateTriggersFromURLFilenames.value
+              ? extractTriggerFromFilename(filename)
+              : [];
+
+            // Store in IndexedDB if available
+            let soundId: string | null = null;
+            if (isIndexedDBAvailable()) {
+              soundId = await saveSoundToIndexedDB(nameWithoutExt, base64Data);
+            }
+
+            // Create sound object
+            const sound: ISound = {
+              name: nameWithoutExt,
+              url: "", // Leave URL blank
+              base64: soundId ? "" : base64Data, // Only store in config if not in IndexedDB
+              soundId: soundId || "", // Store the IndexedDB ID if available
+              enabled: true,
+              triggers,
+            };
+
+            // Add to sounds array
+            config.value.caller.sounds.unshift(sound);
+            importedCount.value++;
+
+            // Found a sound with this number, no need to try other extensions
+            break;
+          }
+        } catch (error) {
+          // Silently fail for individual sound fetches
+          console.warn(`Failed to fetch ${soundURL}:`, error);
+        }
+
+        // Add a small delay between requests to not overwhelm the server
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      // Add a small delay between numbers
+      if (i % 10 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Update config
+    const currentConfig = await AutodartsToolsConfig.getValue();
+    await updateConfigIfChanged(currentConfig, config.value, "caller");
+    await nextTick();
+
+    // Show success notification
+    showNotification(`Successfully imported ${importedCount.value} sounds from URL`);
+  } catch (error) {
+    console.error("Error during import process:", error);
+    showNotification("Error importing sounds from URL", "error");
+  } finally {
+    isImporting.value = false;
+    // Close modal if any sounds were imported
+    if (importedCount.value > 0) {
+      closeImportURLModal();
+    }
   }
 }
 </script>

@@ -217,8 +217,11 @@ function abortAnimation(): void {
 }
 
 function getAnimationUrl(trigger: string): string | undefined {
+  // Ensure animations.data is an array before filtering
+  const animationsData = config.value?.animations?.data || [];
+
   // Find all animations that match the trigger
-  const matchingAnimations = config.value.animations.data.filter(a => a.triggers.includes(trigger) && a.enabled);
+  const matchingAnimations = animationsData.filter(a => a.triggers.includes(trigger) && a.enabled);
 
   // If no matching animations, return undefined
   if (!matchingAnimations.length) return undefined;

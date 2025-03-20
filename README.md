@@ -84,6 +84,23 @@ You can assign sounds to be played based on these triggers:
   - `outside`: When a dart lands outside the scoring area
   - `[playername]`: Player name sounds play automatically when it's their turn
 
+#### Predefined Caller Sets
+The extension comes with ready-to-use caller sets that you can easily import:
+
+- **Russ Bray**: Famous PDC caller known as "The Voice"
+- **Georgeno**: Alternative caller voice set
+- **Shorty**: Short-style announcements
+- **Haulpinks**: Distinctive calling style
+- **Lothar**: German language caller
+- **Lidarts**: Caller sounds from the Lidarts platform
+- **Bayrisch**: Bavarian dialect caller
+- **Male English**: Standard male English announcements
+
+Simply select one of these presets when adding sounds through the "Import from URL" option in the Caller settings.
+
+> [!NOTE]
+> Some predefined caller sets may not work in Safari due to browser restrictions. Tools for Autodarts is not responsible for the content of these caller sets.
+
 #### Intelligent Fallback System
 The caller has a sophisticated fallback system to provide complete coverage even with limited sound files:
 - **Segment Announcements**: If a specific segment sound (e.g., `s20`) isn't available, it automatically plays just the number (`20`)
