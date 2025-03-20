@@ -241,7 +241,7 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
     }
     default: {
       console.log("Unknown channel", channel);
-      console.log(data);
+      // console.log(data);
 
       break;
     }
