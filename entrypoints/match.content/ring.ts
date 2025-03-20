@@ -62,8 +62,10 @@ async function applyRingStyles() {
   const ringColorEnabled = config.ring.colorEnabled;
   const ringColor = config.ring.color;
 
+  const gameMode = document.querySelector("#ad-ext-game-variant")?.textContent;
+
   // Get board view container
-  const boardViewContainer = document.getElementById("ad-ext-turn")?.nextElementSibling;
+  const boardViewContainer = gameMode === "Cricket" ? document.getElementById("ad-ext-turn")?.nextElementSibling?.children[1]?.querySelector(".showAnimations")?.parentElement?.parentElement : document.getElementById("ad-ext-turn")?.nextElementSibling;
   if (!boardViewContainer) return;
 
   // Set up container and numbers element

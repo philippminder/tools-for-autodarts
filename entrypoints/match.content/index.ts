@@ -118,51 +118,51 @@ async function initMatch(ctx, url: string) {
   }
 
   if (config.disableTakeout.enabled) {
-    await initScript(disableTakeout, url);
+    await initScript(disableTakeout, url).catch(console.error);
   }
 
   if (config.colors.enabled) {
-    await initScript(colorChange, url);
+    await initScript(colorChange, url).catch(console.error);
   }
 
   if (config.takeout.enabled) {
-    await initTakeout(ctx);
+    await initTakeout(ctx).catch(console.error);
   }
 
   if (config.nextPlayerOnTakeOutStuck.enabled) {
-    await initScript(nextPlayerOnTakeOutStuck, url);
+    await initScript(nextPlayerOnTakeOutStuck, url).catch(console.error);
   }
 
   if (config.automaticNextLeg.enabled) {
-    await initScript(automaticNextLeg, url);
+    await initScript(automaticNextLeg, url).catch(console.error);
   }
 
   if (config.smallerScores.enabled) {
-    await initScript(smallerScores, url);
+    await initScript(smallerScores, url).catch(console.error);
   }
 
   if (config.hideMenuInMatch.enabled) {
-    await initScript(hideMenuInMatch, url);
+    await initScript(hideMenuInMatch, url).catch(console.error);
   }
 
   if (config.largerLegsSets.enabled) {
-    await initScript(largerLegsSets, url);
+    await initScript(largerLegsSets, url).catch(console.error);
   }
 
   if (config.largerPlayerMatchData.enabled) {
-    await initScript(largerPlayerMatchData, url);
+    await initScript(largerPlayerMatchData, url).catch(console.error);
   }
 
   if (config.largerPlayerNames.enabled) {
-    await initScript(largerPlayerNames, url);
+    await initScript(largerPlayerNames, url).catch(console.error);
   }
 
   if (config.winnerAnimation.enabled) {
-    await initScript(winnerAnimation, url);
+    await initScript(winnerAnimation, url).catch(console.error);
   }
 
   if (config.ring.enabled) {
-    await initScript(ring, url);
+    await initScript(ring, url).catch(console.error);
   }
 
   if (config.animations.enabled) {
@@ -170,15 +170,15 @@ async function initMatch(ctx, url: string) {
   }
 
   if (config.ring.enabled) {
-    await initScript(ring, url);
+    await initScript(ring, url).catch(console.error);
   }
 
   if (config.caller.enabled) {
-    await initScript(caller, url);
+    await initScript(caller, url).catch(console.error);
   }
 
   if (config.soundFx.enabled) {
-    await initScript(soundFx, url);
+    await initScript(soundFx, url).catch(console.error);
   }
 }
 

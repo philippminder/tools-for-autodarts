@@ -58,15 +58,15 @@ export default defineContentScript({
 
         if (config.discord.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");
-          await initScript(discordWebhooks, url);
+          await initScript(discordWebhooks, url).catch(console.error);
         }
         if (config.autoStart.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");
-          await initScript(autoStart, url);
+          await initScript(autoStart, url).catch(console.error);
         }
         if (config.shufflePlayers.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");
-          await initScript(shufflePlayers, url);
+          await initScript(shufflePlayers, url).catch(console.error);
         }
         if (config.recentLocalPlayers.enabled) {
           const div = document.querySelector("autodarts-tools-recent-local-players");
