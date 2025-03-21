@@ -379,7 +379,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   if (gameData.match.variant !== "Cricket") {
     if (winner) {
       // Check if there's a winner player index and name available
-      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
+      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.gameWinner)?.name;
 
       if (winnerPlayerName) {
         // First try to play player-specific gameshot sound with underscores
@@ -433,7 +433,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     // For Cricket, handle winner and busted sounds (not the individual throws which are handled above)
     if (winner) {
       // Same winner logic as non-Cricket
-      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
+      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.gameWinner)?.name;
 
       if (winnerPlayerName) {
         const playerSpecificTrigger = `ambient_gameshot_${winnerPlayerName.toLowerCase().replace(/\s+/g, "_")}`;

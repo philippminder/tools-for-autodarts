@@ -87,13 +87,14 @@ const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/discord-webhooks.png");
 
+// TODO: Fix: Components on PageConfig are getting mounted multiple times (3)
+
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
 watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
   await updateConfigIfChanged(currentConfig, config.value, "discord");
 }, { deep: true });
 
