@@ -17,10 +17,10 @@
               <!-- Ring Color Settings -->
               <div class="grid grid-cols-[5rem_5rem_5rem_auto] items-center gap-4">
                 <p>Ring color</p>
-                <AppToggle v-model="config.ring.colorEnabled" />
+                <AppToggle v-model="localConfig.ring.colorEnabled" />
                 <input
-                  v-if="config.ring.colorEnabled"
-                  v-model="config.ring.color"
+                  v-if="localConfig.ring.colorEnabled"
+                  v-model="localConfig.ring.color"
                   type="color"
                   class="size-full overflow-hidden rounded border-none border-transparent p-0 outline-none"
                 >
@@ -30,7 +30,7 @@
               <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
                 <p>Ring size</p>
                 <input
-                  v-model="config.ring.size"
+                  v-model="localConfig.ring.size"
                   type="number"
                   min="1"
                   max="9"
@@ -60,13 +60,13 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'ring')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'ring')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
-            :type="config.ring.enabled ? 'success' : 'default'"
+            :type="localConfig.ring.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.ring.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="localConfig.ring.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -79,38 +79,53 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppToggle from "../AppToggle.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { type IConfig } from "@/utils/storage";
+import { safeClone } from "@/utils/helpers";
 
-const emit = defineEmits([ "toggleSettings" ]);
+const props = defineProps<{
+  config: IConfig;
+}>();
 
+const emit = defineEmits([ "toggle", "settingChange" ]);
+const localConfig = ref<IConfig>(safeClone(props.config));
 const imageUrl = browser.runtime.getURL("/images/ring.png");
+const isUpdatingFromProps = ref(false);
+const isEmittingChanges = ref(false);
 
-const activeSettings = useStorage("adt:active-settings", "ring");
-const config = ref<IConfig>();
-
-onMounted(async () => {
-  config.value = await AutodartsToolsConfig.getValue();
+// Watch for prop changes to update local config
+watch(() => props.config, (newConfig) => {
+  if (newConfig && !isEmittingChanges.value) {
+    isUpdatingFromProps.value = true;
+    localConfig.value = safeClone(newConfig);
+    nextTick(() => {
+      isUpdatingFromProps.value = false;
+    });
+  }
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "ring");
+// Watch for local changes to emit to parent
+watch(localConfig, () => {
+  if (!isUpdatingFromProps.value) {
+    isEmittingChanges.value = true;
+    emit("settingChange", { ring: localConfig.value.ring });
+    nextTick(() => {
+      isEmittingChanges.value = false;
+    });
+  }
 }, { deep: true });
 
 function toggleFeature() {
-  if (!config.value) return;
+  if (!localConfig.value) return;
 
   // Toggle the feature
-  const wasEnabled = config.value.ring.enabled;
-  config.value.ring.enabled = !wasEnabled;
+  const wasEnabled = localConfig.value.ring.enabled;
+  localConfig.value.ring.enabled = !wasEnabled;
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "ring");
+    emit("toggle", "ring");
   }
 }
 </script>

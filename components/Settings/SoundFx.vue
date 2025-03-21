@@ -100,7 +100,7 @@
                     {{ sound.url || "Uploaded" }}
                   </div>
                   <div class="mt-1 truncate font-mono uppercase">
-                    {{ sound.triggers?.join(', ') || 'No triggers' }}
+                    {{ Array.isArray(sound.triggers) ? sound.triggers.join(', ') : 'No triggers' }}
                   </div>
                   <div class="mt-1 flex justify-between">
                     <button
@@ -339,7 +339,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'sound-fx')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'sound-fx')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.soundFx?.enabled ? 'success' : 'default'"
@@ -378,7 +378,7 @@ import {
   saveSoundFxToIndexedDB,
 } from "@/utils/helpers";
 
-const emit = defineEmits([ "toggleSettings" ]);
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 
 const imageUrl = browser.runtime.getURL("/images/sound-fx.png");
@@ -537,7 +537,7 @@ function editSound(index: number) {
   // Set up base form values
   newSound.value = {
     name: sound.name || "",
-    text: sound.triggers?.join("\n") || "",
+    text: Array.isArray(sound.triggers) ? sound.triggers.join("\n") : "",
     base64: "", // We'll load this below if needed
     url: sound.url || "",
   };
@@ -598,10 +598,15 @@ async function saveSound() {
   urlError.value = "";
 
   // Convert text to array of triggers (split by newline and filter empty lines)
-  const triggers = newSound.value.text
+  let triggers = newSound.value.text
     .split("\n")
     .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
+
+  // Ensure triggers is an array
+  if (!Array.isArray(triggers)) {
+    triggers = [];
+  }
 
   // Store base64 data in IndexedDB if available
   let soundId: string | null = null;
@@ -679,7 +684,7 @@ async function playSound(sound: ISound) {
 
   // Try to get base64 from IndexedDB first if sound has a soundId
   let source = "";
-  let blobUrl = null;
+  let blobUrl: string | undefined;
 
   if (sound.soundId && isIndexedDBAvailable()) {
     const base64Data = await getSoundFxFromIndexedDB(sound.soundId);
@@ -773,7 +778,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "sound-fx");
+    emit("toggle", "sound-fx");
   }
 }
 
@@ -925,8 +930,8 @@ function sortSoundsByTriggers() {
   // Sort sounds by their first trigger alphabetically
   config.value.soundFx.sounds.sort((a, b) => {
     // Get first trigger from each sound, or empty string if no triggers
-    const triggerA = a.triggers && a.triggers.length > 0 ? a.triggers[0] : "";
-    const triggerB = b.triggers && b.triggers.length > 0 ? b.triggers[0] : "";
+    const triggerA = Array.isArray(a.triggers) && a.triggers.length > 0 ? a.triggers[0] : "";
+    const triggerB = Array.isArray(b.triggers) && b.triggers.length > 0 ? b.triggers[0] : "";
 
     // Sort numerically if both are numbers
     if (!Number.isNaN(Number(triggerA)) && !Number.isNaN(Number(triggerB))) {

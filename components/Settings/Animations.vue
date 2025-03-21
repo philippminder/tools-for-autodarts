@@ -135,7 +135,7 @@
                 <!-- Info section -->
                 <div class="absolute inset-x-0 bottom-0 bg-black/70 p-2 text-xs">
                   <div class="truncate font-mono uppercase">
-                    {{ animation.triggers.join(', ') }}
+                    {{ Array.isArray(animation.triggers) ? animation.triggers.join(', ') : '' }}
                   </div>
                   <div class="mt-1 flex justify-end">
                     <button
@@ -227,7 +227,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'animations')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'animations')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.animations.enabled ? 'success' : 'default'"
@@ -246,7 +246,6 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import Sortable from "sortablejs";
 import { computed } from "vue";
 import AppButton from "../AppButton.vue";
@@ -254,10 +253,9 @@ import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
 import AppSelect from "../AppSelect.vue";
-import { AutodartsToolsConfig, type IAnimation, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IAnimation, type IConfig, defaultConfig, updateConfigIfChanged } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "animations");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/animations.png");
 const showAnimationModal = ref(false);
@@ -290,10 +288,21 @@ s25
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
+  console.log("Animations component mounted, loaded config:", config.value?.animations);
 
-  // Initialize animations array if it doesn't exist
-  if (!config.value?.animations.data) {
+  if (!Array.isArray(config.value!.animations.data)) {
+    console.log("animations.data is not an array, initializing empty array");
     config.value!.animations.data = [];
+  } else if (config.value!.animations.data.length === 0) {
+    console.log("animations.data is empty, using default animations from storage");
+    // Get a fresh copy of the default animations from defaultConfig
+    const defaultAnimations = JSON.parse(JSON.stringify(defaultConfig.animations.data));
+    config.value!.animations.data = defaultAnimations;
+    // Save the updated config with default animations
+    await AutodartsToolsConfig.setValue(config.value);
+    console.log("Added default animations:", defaultAnimations.length);
+  } else {
+    console.log("animations.data length:", config.value!.animations.data.length);
   }
 
   // Initialize delay and duration if they don't exist
@@ -318,6 +327,7 @@ watch(config, async () => {
   const currentConfig = await AutodartsToolsConfig.getValue();
   await nextTick();
   await updateConfigIfChanged(currentConfig, config.value, "animations");
+  emit("settingChange", config.value?.animations);
 }, { deep: true });
 
 function initSortable() {
@@ -377,7 +387,9 @@ function openAddAnimationModal() {
 function editAnimation(index: number) {
   newAnimation.value = {
     url: config.value!.animations.data[index].url,
-    text: config.value!.animations.data[index].triggers.join("\n"),
+    text: Array.isArray(config.value!.animations.data[index].triggers)
+      ? config.value!.animations.data[index].triggers.join("\n")
+      : "",
   };
   isEditMode.value = true;
   editingIndex.value = index;
@@ -398,7 +410,7 @@ function saveAnimation() {
   // Create animation object
   const animation: IAnimation = {
     url: newAnimation.value.url.trim(),
-    triggers,
+    triggers: Array.isArray(triggers) ? triggers : [], // Ensure triggers is an array
     enabled: true, // New animations are enabled by default
   };
 
@@ -439,6 +451,12 @@ function toggleAnimation(index: number) {
 function migrateAnimations() {
   if (!config.value?.animations.data) return;
 
+  // Ensure animations.data is an array before using forEach
+  if (!Array.isArray(config.value.animations.data)) {
+    config.value.animations.data = [];
+    return;
+  }
+
   // Add enabled property to any animations that don't have it
   config.value.animations.data.forEach((animation) => {
     if (animation.enabled === undefined) {
@@ -456,7 +474,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "animations");
+    emit("toggle", "animations");
   }
 }
 </script>

@@ -135,7 +135,7 @@
                     {{ sound.url || "Uploaded" }}
                   </div>
                   <div class="mt-1 truncate font-mono uppercase">
-                    {{ sound.triggers?.join(', ') || 'No triggers' }}
+                    {{ Array.isArray(sound.triggers) ? sound.triggers.join(', ') : 'No triggers' }}
                   </div>
                   <div class="mt-1 flex justify-between">
                     <button
@@ -470,7 +470,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'caller')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'caller')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config?.caller?.enabled ? 'success' : 'default'"
@@ -489,7 +489,6 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import { computed, onMounted, ref, watch } from "vue";
 import Sortable from "sortablejs";
 import AppButton from "../AppButton.vue";
@@ -511,7 +510,7 @@ import {
   saveSoundToIndexedDB,
 } from "@/utils/helpers";
 
-const emit = defineEmits([ "toggleSettings" ]);
+const emit = defineEmits([ "toggle", "settingChange" ]);
 
 const textareaPlaceholder = `180
 s60
@@ -519,7 +518,6 @@ s50
 s25
 ...`;
 
-const activeSettings = useStorage("adt:active-settings", "caller");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/caller.png");
 const showSoundModal = ref(false);
@@ -595,13 +593,21 @@ const { notification, showNotification, hideNotification } = useNotification();
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 
-  // Initialize caller object if it doesn't exist
-  if (!config.value?.caller || !config.value.caller.sounds) {
+  // Initialize caller object if it doesn't exist or if its parts are missing
+  if (!config.value?.caller) {
     config.value!.caller = {
       enabled: false,
       callEveryDart: false,
       callCheckout: false,
       sounds: [],
+    };
+  } else {
+    // Ensure components of the caller object are initialized
+    config.value.caller = {
+      enabled: config.value.caller.enabled ?? false,
+      callEveryDart: config.value.caller.callEveryDart ?? false,
+      callCheckout: config.value.caller.callCheckout ?? false,
+      sounds: Array.isArray(config.value.caller.sounds) ? config.value.caller.sounds : [],
     };
   }
 
@@ -695,7 +701,7 @@ function editSound(index: number) {
   // Set up base form values
   newSound.value = {
     url: sound.url || "",
-    text: sound.triggers?.join("\n") || "",
+    text: Array.isArray(sound.triggers) ? sound.triggers.join("\n") : "",
     name: sound.name || "",
     base64: "", // We'll load this below if needed
   };
@@ -759,10 +765,15 @@ async function saveSound() {
   urlError.value = "";
 
   // Convert text to array of triggers (split by newline and filter empty lines)
-  const triggers = newSound.value.text
+  let triggers = newSound.value.text
     .split("\n")
     .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
+
+  // Ensure triggers is an array
+  if (!Array.isArray(triggers)) {
+    triggers = [];
+  }
 
   // Store base64 data in IndexedDB if available
   let soundId: string | null = null;
@@ -932,6 +943,14 @@ async function processFiles() {
   isProcessing.value = true;
 
   try {
+    // Ensure config.value.caller.sounds is an array
+    if (!config.value.caller || !Array.isArray(config.value.caller.sounds)) {
+      config.value.caller = {
+        ...config.value.caller,
+        sounds: [],
+      };
+    }
+
     for (const file of selectedFiles.value) {
       try {
         // Convert file to base64
@@ -995,8 +1014,8 @@ function sortSoundsByTriggers() {
   // Sort sounds by their first trigger alphabetically
   config.value.caller.sounds.sort((a, b) => {
     // Get first trigger from each sound, or empty string if no triggers
-    const triggerA = a.triggers && a.triggers.length > 0 ? a.triggers[0] : "";
-    const triggerB = b.triggers && b.triggers.length > 0 ? b.triggers[0] : "";
+    const triggerA = Array.isArray(a.triggers) && a.triggers.length > 0 ? a.triggers[0] : "";
+    const triggerB = Array.isArray(b.triggers) && b.triggers.length > 0 ? b.triggers[0] : "";
 
     // Sort numerically if both are numbers
     if (!Number.isNaN(Number(triggerA)) && !Number.isNaN(Number(triggerB))) {
@@ -1132,7 +1151,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "caller");
+    emit("toggle", "caller");
   }
 }
 
@@ -1177,6 +1196,14 @@ async function fetchSoundsFromURL() {
   } catch (error) {
     baseURLError.value = "Invalid URL format";
     return;
+  }
+
+  // Ensure config.value.caller.sounds is an array
+  if (!config.value.caller || !Array.isArray(config.value.caller.sounds)) {
+    config.value.caller = {
+      ...config.value.caller,
+      sounds: [],
+    };
   }
 
   // Start import process

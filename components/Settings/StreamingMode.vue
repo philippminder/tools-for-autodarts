@@ -155,7 +155,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'streaming-mode')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'streaming-mode')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.streamingMode.enabled ? 'success' : 'default'"
@@ -180,8 +180,7 @@ import AppToggle from "../AppToggle.vue";
 import AppRadioGroup from "../AppRadioGroup.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "streaming-mode");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const streamingModeBackgroundFileSelect = ref() as Ref<HTMLInputElement>;
 const backgroundMode = ref(true);
@@ -217,7 +216,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "streaming-mode");
+    emit("toggle", "streaming-mode");
   }
 }
 

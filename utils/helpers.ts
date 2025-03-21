@@ -558,3 +558,12 @@ export function detectAudioMimeType(base64Data: string): string {
   // Default to MP3 if we can't detect the format
   return "audio/mpeg";
 }
+
+/**
+ * Safely clone objects that might contain non-cloneable properties
+ * @param obj The object to clone
+ * @returns A deep clone of the object
+ */
+export function safeClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}

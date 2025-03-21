@@ -14,13 +14,13 @@
         </p>
       </div>
       <div class="flex">
-        <div @click="$emit('toggleSettings', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+        <div @click="$emit('toggle', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
           @click="toggleFeature"
-          :type="config.autoStart.enabled ? 'success' : 'default'"
+          :type="localConfig.autoStart.enabled ? 'success' : 'default'"
           class="aspect-square !size-10 rounded-full p-0"
         >
-          <span v-if="config.autoStart.enabled" class="icon-[pixelarticons--check]" />
+          <span v-if="localConfig.autoStart.enabled" class="icon-[pixelarticons--check]" />
           <span v-else class="icon-[pixelarticons--close]" />
         </AppButton>
       </div>
@@ -32,36 +32,56 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { type IConfig } from "@/utils/storage";
+import { safeClone } from "@/utils/helpers";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "auto-start");
-const config = ref<IConfig>();
+const props = defineProps<{
+  config: IConfig;
+}>();
+
+const emit = defineEmits([ "toggle", "settingChange" ]);
+const localConfig = ref<IConfig>(safeClone(props.config));
 const imageUrl = ref<string>();
+const isUpdatingFromProps = ref(false);
+const isEmittingChanges = ref(false);
 
 function toggleFeature() {
-  if (!config.value) return;
+  if (!localConfig.value) return;
 
   // Toggle the feature
-  const wasEnabled = config.value.autoStart.enabled;
-  config.value.autoStart.enabled = !wasEnabled;
+  const wasEnabled = localConfig.value.autoStart.enabled;
+  localConfig.value.autoStart.enabled = !wasEnabled;
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "auto-start");
+    emit("toggle", "auto-start");
   }
 }
 
-onMounted(async () => {
-  config.value = await AutodartsToolsConfig.getValue();
+onMounted(() => {
   imageUrl.value = browser.runtime.getURL("images/auto-start.png");
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "autoStart");
+// Watch for prop changes to update local config
+watch(() => props.config, (newConfig) => {
+  if (newConfig && !isEmittingChanges.value) {
+    isUpdatingFromProps.value = true;
+    localConfig.value = safeClone(newConfig);
+    nextTick(() => {
+      isUpdatingFromProps.value = false;
+    });
+  }
+});
+
+// Watch for local changes to emit to parent
+watch(localConfig, () => {
+  if (!isUpdatingFromProps.value) {
+    isEmittingChanges.value = true;
+    emit("settingChange", { autoStart: localConfig.value.autoStart });
+    nextTick(() => {
+      isEmittingChanges.value = false;
+    });
+  }
 }, { deep: true });
 </script>

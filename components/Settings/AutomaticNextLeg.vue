@@ -49,7 +49,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'automatic-next-leg')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'automatic-next-leg')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.automaticNextLeg.enabled ? 'success' : 'default'"
@@ -70,8 +70,7 @@ import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "automatic-next-leg");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 
 onMounted(async () => {
@@ -93,7 +92,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "automatic-next-leg");
+    emit("toggle", "automatic-next-leg");
   }
 }
 </script>

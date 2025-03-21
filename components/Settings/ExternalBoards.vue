@@ -13,7 +13,7 @@
         </p>
       </div>
       <div class="flex">
-        <div @click="$emit('toggleSettings', 'external-boards')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+        <div @click="$emit('toggle', 'external-boards')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
           @click="toggleFeature"
           :type="config.externalBoards.enabled ? 'success' : 'default'"
@@ -36,8 +36,7 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "@/components/AppButton.vue";
 import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "external-boards");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/external-boards.png");
 
@@ -50,7 +49,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "external-boards");
+    emit("toggle", "external-boards");
   }
 }
 
