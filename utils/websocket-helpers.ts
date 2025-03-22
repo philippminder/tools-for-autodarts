@@ -249,6 +249,7 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
       break;
     }
     case "autodarts.boards": {
+      break;
       data = data as IBoard;
       const gameData = await AutodartsToolsGameData.getValue();
 

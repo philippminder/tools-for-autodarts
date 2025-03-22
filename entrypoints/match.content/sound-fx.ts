@@ -1,4 +1,3 @@
-import { isEqual } from "lodash";
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, type IConfig, type ISound } from "@/utils/storage";
 import { getSoundFxFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
@@ -326,8 +325,7 @@ function removeInteractionNotification(): void {
  * Process game data to trigger sounds based on game events
  */
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
-  if (!gameData.match || !oldGameData?.match || isEqual(gameData.match, oldGameData.match)
-      || gameData.match.activated !== undefined || !gameData.match.turns?.length) return;
+  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns?.length) return;
 
   // For Cricket, trigger appropriate sound based on what was hit
   if (gameData.match.variant === "Cricket"

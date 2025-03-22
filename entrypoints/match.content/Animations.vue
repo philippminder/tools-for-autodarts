@@ -23,7 +23,6 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
-import { isEqual } from "lodash";
 import { AutodartsToolsConfig } from "@/utils/storage";
 import type { IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
@@ -75,8 +74,8 @@ onMounted(async () => {
 
   try {
     config.value = await AutodartsToolsConfig.getValue();
-    AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
-      processGameData(gameData, oldGameData);
+    AutodartsToolsGameData.watch((gameData: IGameData) => {
+      processGameData(gameData);
     });
 
     // Update board position
@@ -132,8 +131,7 @@ function hideAnimation(): void {
  * INFO:
  * 50 will get processed as "bull"
  */
-async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
-  if (isEqual(gameData.match, oldGameData.match)) return;
+async function processGameData(gameData: IGameData): Promise<void> {
   if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns?.length) return;
 
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
