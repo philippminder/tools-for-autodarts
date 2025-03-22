@@ -397,7 +397,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   if (gameData.match.variant !== "Cricket") {
     if (winner) {
       // Check if there's a winner player index and name available
-      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.gameWinner)?.name;
+      const winnerPlayerName = gameData.match.players?.[gameData.match.gameWinner]?.name;
 
       if (winnerPlayerName) {
         // First try to play player-specific gameshot sound with underscores
