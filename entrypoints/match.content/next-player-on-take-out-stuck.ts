@@ -1,9 +1,9 @@
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { waitForElementWithTextContent } from "@/utils";
-import type { IGameData } from "@/utils/game-data-storage";
-import { AutodartsToolsGameData } from "@/utils/game-data-storage";
+import type { IBoard } from "@/utils/board-data-storage";
+import { AutodartsToolsBoardData } from "@/utils/board-data-storage";
 
-let gameDataWatcherUnwatch: any;
+let boardDataWatcherUnwatch: any;
 
 // Create a map to store event listeners
 const eventListenersMap = new Map();
@@ -56,15 +56,15 @@ export async function nextPlayerOnTakeOutStuck() {
       document.addEventListener("click", remove);
     }
 
-    if (gameDataWatcherUnwatch) return;
+    if (boardDataWatcherUnwatch) return;
 
-    gameDataWatcherUnwatch = AutodartsToolsGameData.watch(async (gameData: IGameData, oldGameData: IGameData) => {
+    boardDataWatcherUnwatch = AutodartsToolsBoardData.watch(async (boardData: IBoard) => {
       const nextBtnTextEl = document.getElementById("ad-ext_next-leg-text");
       nextBtnTextEl?.remove();
 
       if (takeOutTimout) clearInterval(takeOutTimout);
 
-      if (gameData.board?.status === "Takeout in progress") {
+      if (boardData.status === "Takeout in progress") {
         const nextBtn = await waitForElementWithTextContent("button", "Next", 1000);
         if (!nextBtn) return;
 
@@ -92,7 +92,7 @@ export async function nextPlayerOnTakeOutStuck() {
             element?.remove();
           }
         }, 1000);
-      } else if (oldGameData.match?.player !== gameData.match?.player) {
+      } else if (boardData.status !== "Takeout in progress") {
         remove();
       }
     });
@@ -102,7 +102,7 @@ export async function nextPlayerOnTakeOutStuck() {
 }
 
 export function nextPlayerOnTakeOutStuckOnRemove() {
-  if (gameDataWatcherUnwatch) {
-    gameDataWatcherUnwatch();
+  if (boardDataWatcherUnwatch) {
+    boardDataWatcherUnwatch();
   }
 }
