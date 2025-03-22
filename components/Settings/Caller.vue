@@ -499,7 +499,7 @@ import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
 import AppNotification from "../AppNotification.vue";
 import AppSelect from "../AppSelect.vue";
-import { AutodartsToolsConfig, type IConfig, type ISound, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, type ISound } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
 import {
   backgroundFetch,
@@ -953,9 +953,9 @@ async function processFiles() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Update config and wait for 100ms
-    const currentConfig = await AutodartsToolsConfig.getValue();
-    await updateConfigIfChanged(currentConfig, config.value, "caller");
-    await nextTick();
+    await AutodartsToolsConfig.setValue(toRaw(config.value));
+    emit("settingChange");
+    console.log("Caller setting changed");
 
     // Show notification
     showNotification(`Successfully added ${selectedFiles.value.length} sounds`);
@@ -1018,8 +1018,9 @@ async function deleteAllSounds() {
   config.value.caller.sounds = [];
 
   // Update config
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await updateConfigIfChanged(currentConfig, config.value, "caller");
+  await AutodartsToolsConfig.setValue(toRaw(config.value));
+  emit("settingChange");
+  console.log("Caller setting changed");
 
   // Close modal and show notification
   closeDeleteAllModal();
@@ -1313,9 +1314,10 @@ async function fetchSoundsFromURL() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Update config
-    const currentConfig = await AutodartsToolsConfig.getValue();
-    await updateConfigIfChanged(currentConfig, config.value, "caller");
-    await nextTick();
+
+    await AutodartsToolsConfig.setValue(toRaw(config.value!));
+    emit("settingChange");
+    console.log("Caller setting changed");
 
     // Show success notification
     showNotification(`Successfully imported ${importedCount.value} sounds from URL`);

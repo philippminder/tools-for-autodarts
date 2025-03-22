@@ -877,8 +877,9 @@ async function processFiles() {
     }
 
     // Update config
-    const currentConfig = await AutodartsToolsConfig.getValue();
-    await AutodartsToolsConfig.setValue(toRaw(currentConfig));
+    await AutodartsToolsConfig.setValue(toRaw(config.value));
+    emit("settingChange");
+    console.log("Sound FX setting changed");
 
     // Show notification
     showNotification(`Successfully added ${selectedFiles.value.length} sounds`);
@@ -942,8 +943,9 @@ async function deleteAllSounds() {
   config.value.soundFx.sounds = [];
 
   // Update config
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await AutodartsToolsConfig.setValue(toRaw(currentConfig));
+  await AutodartsToolsConfig.setValue(toRaw(config.value));
+  emit("settingChange");
+  console.log("Sound FX setting changed");
 
   // Close modal and show notification
   closeDeleteAllModal();
