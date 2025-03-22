@@ -1,3 +1,4 @@
+import { AutodartsToolsBoardData, type IBoard } from "./board-data-storage";
 import { AutodartsToolsGameData } from "./game-data-storage";
 
 interface IUserSettings {
@@ -195,13 +196,6 @@ export interface IMatch {
   chalkboards?: IChalkboard[];
 }
 
-export interface IBoard {
-  connected: boolean;
-  event: string;
-  numThrows: number;
-  status: string;
-}
-
 export async function processWebSocketMessage(channel: string, data: ILobbies | IMatch | IBoard) {
   // do a switch on the channel
   switch (channel) {
@@ -249,13 +243,12 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
       break;
     }
     case "autodarts.boards": {
-      break;
       data = data as IBoard;
-      const gameData = await AutodartsToolsGameData.getValue();
+      const boardData = await AutodartsToolsBoardData.getValue();
 
-      AutodartsToolsGameData.setValue({
-        ...gameData,
-        board: data as IBoard,
+      AutodartsToolsBoardData.setValue({
+        ...boardData,
+        ...data,
       });
 
       break;

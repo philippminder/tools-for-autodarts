@@ -257,6 +257,7 @@ async function initTakeout(ctx) {
     position: "inline",
     anchor: "#root > div > div:nth-of-type(2)",
     onMount: (container) => {
+      console.log("Autodarts Tools: Takeout initialized");
       const takeout = createApp(Takeout);
       takeout.mount(container);
       if (window.matchMedia("(prefers-color-scheme: dark)").matches) {

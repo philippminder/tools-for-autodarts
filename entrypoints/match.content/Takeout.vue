@@ -27,39 +27,32 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
-import { isEqual } from "lodash";
 import { waitForElementWithTextContent } from "@/utils";
-import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
+import { AutodartsToolsBoardData, type IBoard } from "@/utils/board-data-storage";
 
 const show = ref<boolean>(false);
-let gameDataWatcherUnwatch: any;
+let boardDataWatcherUnwatch: any;
 
 onMounted(() => {
-  gameDataWatcherUnwatch = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
-    checkStatus(gameData, oldGameData).catch(console.error);
+  boardDataWatcherUnwatch = AutodartsToolsBoardData.watch((boardData: IBoard) => {
+    checkStatus(boardData).catch(console.error);
   });
 });
 
 onUnmounted(() => {
-  if (gameDataWatcherUnwatch) {
-    gameDataWatcherUnwatch();
+  if (boardDataWatcherUnwatch) {
+    boardDataWatcherUnwatch();
   }
 });
 
-async function checkStatus(gameData: IGameData, oldGameData: IGameData) {
-  if (isEqual(gameData.board, oldGameData.board)) return;
-
-  const boardstatus: string | undefined = gameData.board?.status;
-  show.value = boardstatus === "Takeout in progress";
-
-  if (gameData.match?.player !== oldGameData.match?.player) {
-    show.value = false;
-  }
+async function checkStatus(boardData: IBoard) {
+  const boardStatus: string | undefined = boardData.status;
+  show.value = boardStatus === "Takeout in progress";
 }
 
 async function handleBackdropClick() {
   show.value = false;
-  await (await waitForElementWithTextContent("button", "Reset"))?.click();
+  (await waitForElementWithTextContent("button", "Reset"))?.click();
 }
 </script>
 
