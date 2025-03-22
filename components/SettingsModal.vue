@@ -12,7 +12,7 @@
         @click="$emit('close')"
         class="absolute inset-0 bg-[var(--chakra-colors-whiteAlpha-200)] backdrop-blur-[var(--chakra-blur-sm)]"
       />
-      <div class="dialog-bg relative w-full max-w-2xl scale-100 rounded-xl p-6 shadow-lg">
+      <div class="dialog-bg relative w-full max-w-7xl scale-100 rounded-xl p-6 shadow-lg">
         <AppButton
           @click="$emit('close')"
           class="absolute right-3 top-3"

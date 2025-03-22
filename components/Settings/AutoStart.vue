@@ -17,10 +17,10 @@
         <div @click="$emit('toggle', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
           @click="toggleFeature"
-          :type="localConfig.autoStart.enabled ? 'success' : 'default'"
+          :type="config.autoStart.enabled ? 'success' : 'default'"
           class="aspect-square !size-10 rounded-full p-0"
         >
-          <span v-if="localConfig.autoStart.enabled" class="icon-[pixelarticons--check]" />
+          <span v-if="config.autoStart.enabled" class="icon-[pixelarticons--check]" />
           <span v-else class="icon-[pixelarticons--close]" />
         </AppButton>
       </div>
@@ -34,24 +34,18 @@
 <script setup lang="ts">
 import AppButton from "../AppButton.vue";
 import { type IConfig } from "@/utils/storage";
-import { safeClone } from "@/utils/helpers";
-
-const props = defineProps<{
-  config: IConfig;
-}>();
+import { AutodartsToolsConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
-const localConfig = ref<IConfig>(safeClone(props.config));
-const imageUrl = ref<string>();
-const isUpdatingFromProps = ref(false);
-const isEmittingChanges = ref(false);
+const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("images/auto-start.png");
 
 function toggleFeature() {
-  if (!localConfig.value) return;
+  if (!config.value) return;
 
   // Toggle the feature
-  const wasEnabled = localConfig.value.autoStart.enabled;
-  localConfig.value.autoStart.enabled = !wasEnabled;
+  const wasEnabled = config.value.autoStart.enabled;
+  config.value.autoStart.enabled = !wasEnabled;
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
@@ -59,29 +53,16 @@ function toggleFeature() {
   }
 }
 
-onMounted(() => {
-  imageUrl.value = browser.runtime.getURL("images/auto-start.png");
+onMounted(async () => {
+  config.value = await AutodartsToolsConfig.getValue();
 });
 
 // Watch for prop changes to update local config
-watch(() => props.config, (newConfig) => {
-  if (newConfig && !isEmittingChanges.value) {
-    isUpdatingFromProps.value = true;
-    localConfig.value = safeClone(newConfig);
-    nextTick(() => {
-      isUpdatingFromProps.value = false;
-    });
-  }
-});
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
 
-// Watch for local changes to emit to parent
-watch(localConfig, () => {
-  if (!isUpdatingFromProps.value) {
-    isEmittingChanges.value = true;
-    emit("settingChange", { autoStart: localConfig.value.autoStart });
-    nextTick(() => {
-      isEmittingChanges.value = false;
-    });
-  }
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Auto Start setting changed");
 }, { deep: true });
 </script>

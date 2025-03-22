@@ -133,15 +133,15 @@
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
             <!-- First row of feature cards -->
-            <DiscordWebhooks @toggle="openSettingsModal('discord-webhooks')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="1" />
-            <AutoStart @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="2" />
+            <DiscordWebhooks @toggle="openSettingsModal('discord-webhooks')" @setting-change="updateConfig" class="feature-card" data-feature-index="1" />
+            <AutoStart @setting-change="updateConfig" class="feature-card" data-feature-index="2" />
 
             <!-- Second row of feature cards -->
-            <RecentLocalPlayers @toggle="openSettingsModal('recent-local-players')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="3" />
-            <ShufflePlayers @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="4" />
+            <RecentLocalPlayers @toggle="openSettingsModal('recent-local-players')" @setting-change="updateConfig" class="feature-card" data-feature-index="3" />
+            <ShufflePlayers @setting-change="updateConfig" class="feature-card" data-feature-index="4" />
 
             <!-- Third row of feature cards -->
-            <TeamLobby @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="5" />
+            <TeamLobby @setting-change="updateConfig" class="feature-card" data-feature-index="5" />
             <div class="feature-card" data-feature-index="6">
             <!-- Placeholder for future feature -->
             </div>
@@ -150,31 +150,32 @@
           <!-- Feature cards grid for Matches tab -->
           <div
             v-if="activeTab === 1 && !showDangerZone"
+            :key="reloadKey"
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
             <!-- First row of feature cards -->
-            <DisableTakeoutRecognition @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="7" />
-            <Colors @toggle="openSettingsModal('colors')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="8" />
+            <DisableTakeoutRecognition @setting-change="updateConfig" class="feature-card" data-feature-index="7" />
+            <Colors @toggle="openSettingsModal('colors')" @setting-change="updateConfig" class="feature-card" data-feature-index="8" />
 
             <!-- Second row of feature cards -->
-            <TakeoutNotification @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="9" />
-            <NextPlayerOnTakeoutStuck @toggle="openSettingsModal('next-player-on-takeout-stuck')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="10" />
+            <TakeoutNotification @setting-change="updateConfig" class="feature-card" data-feature-index="9" />
+            <NextPlayerOnTakeoutStuck @toggle="openSettingsModal('next-player-on-takeout-stuck')" @setting-change="updateConfig" class="feature-card" data-feature-index="10" />
 
             <!-- Third row of feature cards -->
-            <AutomaticNextLeg @toggle="openSettingsModal('automatic-next-leg')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="11" />
+            <AutomaticNextLeg @toggle="openSettingsModal('automatic-next-leg')" @setting-change="updateConfig" class="feature-card" data-feature-index="11" />
             <SmallerScores @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="12" />
 
             <!-- Fourth row of feature cards -->
-            <HideMenuInMatch @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="13" />
-            <StreamingMode @toggle="openSettingsModal('streaming-mode')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="14" />
+            <HideMenuInMatch @setting-change="updateConfig" class="feature-card" data-feature-index="13" />
+            <StreamingMode @toggle="openSettingsModal('streaming-mode')" @setting-change="updateConfig" class="feature-card" data-feature-index="14" />
 
             <!-- Fifth row of feature cards -->
-            <LargerLegsSets @toggle="openSettingsModal('larger-legs-sets')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="15" />
-            <LargerPlayerNames @toggle="openSettingsModal('larger-player-names')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="16" />
+            <LargerLegsSets @toggle="openSettingsModal('larger-legs-sets')" @setting-change="updateConfig" class="feature-card" data-feature-index="15" />
+            <LargerPlayerNames @toggle="openSettingsModal('larger-player-names')" @setting-change="updateConfig" class="feature-card" data-feature-index="16" />
 
             <!-- Sixth row of feature cards -->
-            <LargerPlayerMatchData @toggle="openSettingsModal('larger-player-match-data')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="17" />
-            <WinnerAnimation @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="18" />
+            <LargerPlayerMatchData @toggle="openSettingsModal('larger-player-match-data')" @setting-change="updateConfig" class="feature-card" data-feature-index="17" />
+            <WinnerAnimation @setting-change="updateConfig" class="feature-card" data-feature-index="18" />
 
             <!-- Seventh row of feature cards -->
             <Ring @toggle="openSettingsModal('ring')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="19" />
@@ -183,10 +184,11 @@
           <!-- Feature cards grid for Boards tab -->
           <div
             v-if="activeTab === 2 && !showDangerZone"
+            :key="reloadKey"
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
             <!-- First row of feature cards -->
-            <ExternalBoards @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="21" />
+            <ExternalBoards @setting-change="updateConfig" class="feature-card" data-feature-index="21" />
             <div class="feature-card" data-feature-index="22">
             <!-- Placeholder for future feature -->
             </div>
@@ -195,14 +197,15 @@
           <!-- Feature cards grid for Sounds & Animations tab -->
           <div
             v-if="activeTab === 3 && !showDangerZone"
+            :key="reloadKey"
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
             <!-- First row of feature cards -->
             <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="23" />
-            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="24" />
+            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="24" />
 
             <!-- Second row of feature cards -->
-            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="25" />
+            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="25" />
             <div class="feature-card" data-feature-index="26">
             <!-- Placeholder for future feature -->
             </div>
@@ -239,7 +242,7 @@ import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
 import type { IConfig, ISound } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
-import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCallerSoundsFromIndexedDB, getAllSoundFxFromIndexedDB, isIndexedDBAvailable, safeClone, saveSoundFxToIndexedDB, saveSoundToIndexedDB } from "@/utils/helpers";
+import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCallerSoundsFromIndexedDB, getAllSoundFxFromIndexedDB, isIndexedDBAvailable, saveSoundFxToIndexedDB, saveSoundToIndexedDB } from "@/utils/helpers";
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppNotification from "@/components/AppNotification.vue";
@@ -390,7 +393,7 @@ const showSettingsModal = ref(false);
 const reloadKey = ref(0);
 
 // Initialize config with default values to avoid null issues
-const config = ref<IConfig>(safeClone(defaultConfig));
+const config = ref<IConfig>(defaultConfig);
 const importFileInput = ref<HTMLInputElement>();
 
 const mounted = useMounted();
@@ -411,10 +414,9 @@ onMounted(async () => {
   }
 });
 
-watch(config, async (newConfig) => {
+watch(config, async () => {
   // Save the config to storage
-  console.log("PageConfig: Config changed, saving to storage");
-  await AutodartsToolsConfig.setValue(newConfig);
+  await AutodartsToolsConfig.setValue(toRaw(config.value));
   reloadKey.value++;
 }, { deep: true });
 
@@ -430,8 +432,8 @@ function getSettingTitle(settingId) {
 }
 
 // Function to handle setting changes
-function handleSettingChange(value) {
-  updateConfig(value);
+function handleSettingChange() {
+  updateConfig();
 }
 
 // Function to get the component for a setting
@@ -691,11 +693,11 @@ function resetAllSettings() {
         }
       }
 
-      const newConfig = JSON.parse(JSON.stringify(defaultConfig));
-      config.value = newConfig;
+      config.value = { ...defaultConfig };
 
       // Explicitly save to storage
-      await AutodartsToolsConfig.setValue(newConfig);
+      await AutodartsToolsConfig.setValue(defaultConfig);
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       showNotification("All settings have been reset to default. Page will reload to apply changes...");
 
@@ -911,37 +913,9 @@ function pasteFromClipboard() {
     });
 }
 
-function updateConfig(sectionData) {
-  if (!config.value || !sectionData) return;
-
-  // Update the config with the data received from the setting component
-  // The sectionData should contain the section name and updated values
-  const sectionName = Object.keys(sectionData)[0];
-  if (sectionName && config.value[sectionName]) {
-    // Use safeClone to prevent reference issues
-    config.value[sectionName] = safeClone(sectionData[sectionName]);
-  }
-}
-
-// Helper function to get component data
-function getSettingsComponents() {
-  // Return components based on activeTab
-  switch (activeTab.value) {
-    case 0: // Lobbies
-      return [ DiscordWebhooks, AutoStart, RecentLocalPlayers, ShufflePlayers, TeamLobby ];
-    case 1: // Matches
-      return [
-        DisableTakeoutRecognition, Colors, TakeoutNotification, NextPlayerOnTakeoutStuck,
-        AutomaticNextLeg, SmallerScores, HideMenuInMatch, StreamingMode,
-        LargerLegsSets, LargerPlayerNames, LargerPlayerMatchData, WinnerAnimation, Ring,
-      ];
-    case 2: // Boards
-      return [ ExternalBoards ];
-    case 3: // Sounds & Animations
-      return [ Animations, Caller, SoundFx ];
-    default:
-      return [];
-  }
+async function updateConfig() {
+  config.value = await AutodartsToolsConfig.getValue();
+  reloadKey.value++;
 }
 </script>
 

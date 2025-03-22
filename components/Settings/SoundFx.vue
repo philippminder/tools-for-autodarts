@@ -360,13 +360,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import Sortable from "sortablejs";
-import { AutodartsToolsConfig, updateConfigIfChanged } from "@/utils/storage";
-import type { IConfig, ISound } from "@/utils/storage";
-import AppButton from "@/components/AppButton.vue";
-import AppInput from "@/components/AppInput.vue";
-import AppTextarea from "@/components/AppTextarea.vue";
-import AppNotification from "@/components/AppNotification.vue";
-import AppModal from "@/components/AppModal.vue";
+import { useStorage } from "@vueuse/core";
+import AppButton from "../AppButton.vue";
+import AppModal from "../AppModal.vue";
+import AppTextarea from "../AppTextarea.vue";
+import AppInput from "../AppInput.vue";
+import AppNotification from "../AppNotification.vue";
+import { AutodartsToolsConfig, type IConfig, type ISound } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
 import {
   base64toBlob,
@@ -374,54 +374,54 @@ import {
   getSoundFxFromIndexedDB,
   isIndexedDBAvailable,
   isSafari,
-  migrateSoundFxToIndexedDB,
   saveSoundFxToIndexedDB,
 } from "@/utils/helpers";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
-const config = ref<IConfig>();
-
-const imageUrl = browser.runtime.getURL("/images/sound-fx.png");
-
-// Modals and forms
-const showSoundModal = ref(false);
-const isEditMode = ref(false);
-const showUploadModal = ref(false);
-const showDeleteAllModal = ref(false);
-
-const newSound = ref({
-  name: "",
-  text: "",
-  base64: "",
-  url: "",
-});
-const editingIndex = ref<number | null>(null);
+useStorage("adt:active-settings", "sound-fx");
 
 const textareaPlaceholder = `180
 s60
 s50
 s25
-...`;
+...
+`;
 
-// File upload related refs
-const fileInput = ref<HTMLInputElement | null>(null);
-const selectedFiles = ref<File[]>([]);
-const isDragging = ref(false);
-const generateTriggersFromFilenames = ref(true);
-const isProcessing = ref(false);
+const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("/images/sound-fx.png");
+const showSoundModal = ref(false);
+const isEditMode = ref(false);
+const newSound = ref({
+  url: "",
+  text: "",
+  name: "",
+  base64: "",
+});
+const editingIndex = ref<number | null>(null);
+const urlError = ref("");
 
 // Sortable related refs
 const soundsContainer = ref<HTMLElement | null>(null);
 const containerKey = ref(0);
 let sortableInstance: Sortable | null = null;
 
-// Audio player reference for stopping previous sounds
-const currentAudio = ref<HTMLAudioElement | null>(null);
+// File upload related refs
+const showUploadModal = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
+const selectedFiles = ref<File[]>([]);
+const isDragging = ref(false);
+const generateTriggersFromFilenames = ref(true);
+const isProcessing = ref(false);
 
-// Notification handling through composable
+// Delete all modal
+const showDeleteAllModal = ref(false);
+
+// Audio player reference for stopping previous sounds
+let currentPlayer: HTMLAudioElement | null = null;
+
 const { notification, showNotification, hideNotification } = useNotification();
 
-// Computed property for lowercase text handling
+// Computed property for trigger text handling
 const lowercaseText = computed({
   get: () => newSound.value.text,
   set: (val: string) => {
@@ -429,49 +429,19 @@ const lowercaseText = computed({
   },
 });
 
-const urlError = ref("");
-
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-
-  // Initialize soundFx object if it doesn't exist
-  if (!config.value?.soundFx) {
-    config.value!.soundFx = {
-      enabled: false,
-      sounds: [],
-    };
-    await AutodartsToolsConfig.setValue(config.value!);
-  }
-
-  // Migrate existing base64 sounds to IndexedDB if available
-  if (isIndexedDBAvailable() && config.value?.soundFx?.sounds?.length) {
-    try {
-      const migrationResult = await migrateSoundFxToIndexedDB(
-        config.value,
-        async (updatedConfig) => {
-          config.value = updatedConfig;
-          await AutodartsToolsConfig.setValue(updatedConfig);
-        },
-      );
-
-      if (migrationResult) {
-        console.log("Autodarts Tools: Successfully migrated soundFx sounds to IndexedDB");
-      }
-    } catch (error) {
-      console.error("Autodarts Tools: Error migrating soundFx sounds to IndexedDB:", error);
-    }
-  }
-
-  // Initialize sortable after the DOM is updated
   nextTick(() => {
     initSortable();
   });
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "soundFx");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Sound FX setting changed");
 }, { deep: true });
 
 // Initialize Sortable.js
@@ -672,15 +642,15 @@ function toggleSound(index: number) {
 
 async function playSound(sound: ISound) {
   // Stop current audio if it exists
-  if (currentAudio.value) {
-    currentAudio.value.pause();
-    currentAudio.value.currentTime = 0;
+  if (currentPlayer) {
+    currentPlayer.pause();
+    currentPlayer.currentTime = 0;
   }
 
   // Create an audio element with preload enabled
   const audio = new Audio();
   audio.preload = "auto";
-  currentAudio.value = audio;
+  currentPlayer = audio;
 
   // Try to get base64 from IndexedDB first if sound has a soundId
   let source = "";
@@ -907,7 +877,7 @@ async function processFiles() {
 
     // Update config
     const currentConfig = await AutodartsToolsConfig.getValue();
-    await updateConfigIfChanged(currentConfig, config.value, "soundFx");
+    await AutodartsToolsConfig.setValue(toRaw(currentConfig));
 
     // Show notification
     showNotification(`Successfully added ${selectedFiles.value.length} sounds`);
@@ -972,7 +942,7 @@ async function deleteAllSounds() {
 
   // Update config
   const currentConfig = await AutodartsToolsConfig.getValue();
-  await updateConfigIfChanged(currentConfig, config.value, "soundFx");
+  await AutodartsToolsConfig.setValue(toRaw(currentConfig));
 
   // Close modal and show notification
   closeDeleteAllModal();

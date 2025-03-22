@@ -565,5 +565,29 @@ export function detectAudioMimeType(base64Data: string): string {
  * @returns A deep clone of the object
  */
 export function safeClone<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
+  // Check if the object is null or not an object type
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+
+  // Handle special types like Date, etc.
+  if (obj instanceof Date) {
+    return new Date(obj) as unknown as T;
+  }
+
+  // Create a new instance with the appropriate prototype
+  const result = Array.isArray(obj) ? [] : {};
+
+  // Copy properties
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const value = obj[key];
+      // Recursively clone nested objects
+      (result as any)[key] = typeof value === "object" && value !== null
+        ? safeClone(value)
+        : value;
+    }
+  }
+
+  return result as T;
 }

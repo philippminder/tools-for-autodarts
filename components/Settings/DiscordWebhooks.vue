@@ -13,7 +13,7 @@
           <div class="space-y-3 text-white/70">
             <p>Toggles between sending the invitation link automatically or manually.</p>
             <AppRadioGroup
-              v-model="localConfig.discord.manually"
+              v-model="config.discord.manually"
               class="grid max-w-sm grid-cols-2"
               :options="[
                 { label: 'Automatic', value: false },
@@ -26,7 +26,7 @@
                 <span class="icon-[pixelarticons--link]" />
               </span>
               <AppInput
-                v-model="localConfig.discord.url"
+                v-model="config.discord.url"
                 placeholder="Enter Discord webhook URL"
                 label="Webhook URL"
                 class="pl-9"
@@ -60,10 +60,10 @@
           <div @click="$emit('toggle', 'discord-webhooks')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
-            :type="localConfig.discord.enabled ? 'success' : 'default'"
+            :type="config.discord.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="localConfig.discord.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.discord.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -76,50 +76,35 @@
 </template>
 
 <script setup lang="ts">
+import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppRadioGroup from "../AppRadioGroup.vue";
 import AppInput from "../AppInput.vue";
-import { type IConfig } from "@/utils/storage";
-import { safeClone } from "@/utils/helpers";
-
-const props = defineProps<{
-  config: IConfig;
-}>();
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
-const localConfig = ref<IConfig>(safeClone(props.config));
+useStorage("adt:active-settings", "discord-webhooks");
+const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/discord-webhooks.png");
-const isUpdatingFromProps = ref(false);
-const isEmittingChanges = ref(false);
 
-// Watch for prop changes to update local config
-watch(() => props.config, (newConfig) => {
-  if (newConfig && !isEmittingChanges.value) {
-    isUpdatingFromProps.value = true;
-    localConfig.value = safeClone(newConfig);
-    nextTick(() => {
-      isUpdatingFromProps.value = false;
-    });
-  }
+onMounted(async () => {
+  config.value = await AutodartsToolsConfig.getValue();
 });
 
-// Watch for local changes to emit to parent
-watch(localConfig, () => {
-  if (!isUpdatingFromProps.value) {
-    isEmittingChanges.value = true;
-    emit("settingChange", { discord: localConfig.value.discord });
-    nextTick(() => {
-      isEmittingChanges.value = false;
-    });
-  }
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Discord Webhooks setting changed");
 }, { deep: true });
 
 function toggleFeature() {
-  if (!localConfig.value) return;
+  if (!config.value) return;
 
   // Toggle the feature
-  const wasEnabled = localConfig.value.discord.enabled;
-  localConfig.value.discord.enabled = !wasEnabled;
+  const wasEnabled = config.value.discord.enabled;
+  config.value.discord.enabled = !wasEnabled;
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {

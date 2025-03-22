@@ -367,8 +367,8 @@
           <p class="mt-2 text-xs text-white/60">
             Enter a base URL where sounds are stored. The system will attempt to fetch sounds for values 0-180 with .mp3 and .wav extensions.
           </p>
-          <div v-if="baseURLError" class="mt-1 text-sm text-red-500">
-            {{ baseURLError }}
+          <div v-if="urlError" class="mt-1 text-sm text-red-500">
+            {{ urlError }}
           </div>
         </div>
 
@@ -491,6 +491,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import Sortable from "sortablejs";
+import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
@@ -506,11 +507,11 @@ import {
   detectAudioMimeType,
   getSoundFromIndexedDB,
   isIndexedDBAvailable,
-  migrateCallerSoundsToIndexedDB,
   saveSoundToIndexedDB,
 } from "@/utils/helpers";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "caller");
 
 const textareaPlaceholder = `180
 s60
@@ -548,17 +549,17 @@ const isProcessing = ref(false);
 const showDeleteAllModal = ref(false);
 
 // Audio player reference for stopping previous sounds
-const currentAudio = ref<HTMLAudioElement | null>(null);
+let currentPlayer: HTMLAudioElement | null = null;
 
-// Import URL Modal related refs
+// Import URL related refs
 const showImportURLModal = ref(false);
 const baseURL = ref("");
-const baseURLError = ref("");
-const generateTriggersFromURLFilenames = ref(true);
-const isImporting = ref(false);
+const selectedPresetURL = ref("");
 const importProgress = ref(0);
 const importedCount = ref(0);
-const selectedPresetURL = ref("");
+const isImporting = ref(false);
+const generateTriggersFromURLFilenames = ref(true);
+const { notification, showNotification, hideNotification } = useNotification();
 
 // Predefined caller sets for the select input
 const callerSets = [
@@ -573,14 +574,7 @@ const callerSets = [
   { value: "https://autodarts.x10.mx/1_male_eng", label: "Male English" },
 ];
 
-// Watch for changes to selectedPresetURL and update baseURL
-watch(selectedPresetURL, (newValue) => {
-  if (newValue) {
-    baseURL.value = newValue;
-  }
-});
-
-// Computed property for lowercase text handling
+// Computed property for trigger text handling
 const lowercaseText = computed({
   get: () => newSound.value.text,
   set: (val: string) => {
@@ -588,58 +582,26 @@ const lowercaseText = computed({
   },
 });
 
-const { notification, showNotification, hideNotification } = useNotification();
-
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-
-  // Initialize caller object if it doesn't exist or if its parts are missing
-  if (!config.value?.caller) {
-    config.value!.caller = {
-      enabled: false,
-      callEveryDart: false,
-      callCheckout: false,
-      sounds: [],
-    };
-  } else {
-    // Ensure components of the caller object are initialized
-    config.value.caller = {
-      enabled: config.value.caller.enabled ?? false,
-      callEveryDart: config.value.caller.callEveryDart ?? false,
-      callCheckout: config.value.caller.callCheckout ?? false,
-      sounds: Array.isArray(config.value.caller.sounds) ? config.value.caller.sounds : [],
-    };
-  }
-
-  // Migrate existing base64 sounds to IndexedDB if available
-  if (isIndexedDBAvailable() && config.value?.caller?.sounds?.length) {
-    try {
-      const migrated = await migrateCallerSoundsToIndexedDB(
-        config.value,
-        async (updatedConfig) => {
-          config.value = updatedConfig;
-          await AutodartsToolsConfig.setValue(updatedConfig);
-        },
-      );
-
-      if (migrated) {
-        console.log("Autodarts Tools: Successfully migrated caller sounds to IndexedDB");
-      }
-    } catch (error) {
-      console.error("Autodarts Tools: Error migrating sounds to IndexedDB", error);
-    }
-  }
-
-  // Initialize sortable after the DOM is updated
   nextTick(() => {
     initSortable();
   });
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "caller");
+// Watch for changes to selectedPresetURL and update baseURL
+watch(selectedPresetURL, (newValue) => {
+  if (newValue) {
+    baseURL.value = newValue;
+  }
+});
+
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Caller setting changed");
 }, { deep: true });
 
 // Initialize Sortable.js
@@ -1065,15 +1027,15 @@ async function deleteAllSounds() {
 
 async function playSound(sound: ISound) {
   // Stop current audio if it exists
-  if (currentAudio.value) {
-    currentAudio.value.pause();
-    currentAudio.value.currentTime = 0;
+  if (currentPlayer) {
+    currentPlayer.pause();
+    currentPlayer.currentTime = 0;
   }
 
   // Create an audio element
   const audio = new Audio();
   audio.preload = "auto"; // Ensure preloading is enabled
-  currentAudio.value = audio;
+  currentPlayer = audio;
 
   try {
     // Try to get base64 from IndexedDB first if sound has a soundId
@@ -1159,7 +1121,7 @@ function toggleFeature() {
 function openImportURLModal() {
   showImportURLModal.value = true;
   baseURL.value = "";
-  baseURLError.value = "";
+  urlError.value = "";
   importProgress.value = 0;
   importedCount.value = 0;
   selectedPresetURL.value = "";
@@ -1186,15 +1148,15 @@ async function fetchSoundsFromURL() {
   try {
     // Ensure URL starts with https://
     if (!baseURL.value.startsWith("https://")) {
-      baseURLError.value = "URL must start with https:// for security reasons";
+      urlError.value = "URL must start with https:// for security reasons";
       return;
     }
 
     // Test if URL is valid
     const urlObj = new URL(baseURL.value);
-    baseURLError.value = "";
+    urlError.value = "";
   } catch (error) {
-    baseURLError.value = "Invalid URL format";
+    urlError.value = "Invalid URL format";
     return;
   }
 

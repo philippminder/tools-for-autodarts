@@ -619,8 +619,29 @@ export async function updateConfigIfChanged<K extends keyof IConfig>(
   const latestConfig = await AutodartsToolsConfig.getValue();
 
   // Only update the specific section that changed
-  await AutodartsToolsConfig.setValue({
+  // Deep clone but preserve array types
+  const preserveArrays = (obj: any): any => {
+    if (obj === null || obj === undefined) return obj;
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => preserveArrays(item));
+    }
+
+    if (typeof obj === "object") {
+      const result: any = {};
+      for (const key in obj) {
+        result[key] = preserveArrays(obj[key]);
+      }
+      return result;
+    }
+
+    return obj;
+  };
+
+  const test = {
     ...latestConfig,
-    [configKey]: JSON.parse(JSON.stringify(newConfig[configKey])),
-  });
+    [configKey]: preserveArrays(newConfig[configKey]),
+  };
+
+  await AutodartsToolsConfig.setValue(toRaw(test));
 }
