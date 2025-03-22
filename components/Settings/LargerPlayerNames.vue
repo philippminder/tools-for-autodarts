@@ -42,8 +42,9 @@
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 font-bold uppercase">
+          <h3 class="mb-1 flex items-center font-bold uppercase">
             Larger Player Names
+            <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
           <p class="w-2/3 text-white/70">
             Increases the font-size of player names on the match page for better visibility.
@@ -96,7 +97,7 @@ watch(config, async (_, oldValue) => {
 
   await AutodartsToolsConfig.setValue(toRaw(config.value!));
   emit("settingChange");
-  console.log("External Boards setting changed");
+  console.log("Larger Player Names setting changed");
 }, { deep: true });
 
 function toggleFeature() {

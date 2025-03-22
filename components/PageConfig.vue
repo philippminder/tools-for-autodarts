@@ -217,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
+import { useDebounceFn, useStorage } from "@vueuse/core";
 import DiscordWebhooks from "./Settings/DiscordWebhooks.vue";
 import AutoStart from "./Settings/AutoStart.vue";
 import RecentLocalPlayers from "./Settings/RecentLocalPlayers.vue";
@@ -392,6 +392,27 @@ const activeTab = useStorage("adt:active-tab", 0);
 const showSettingsModal = ref(false);
 const reloadKey = ref(0);
 
+// Create a debounced function for updating reloadKey
+const debouncedReload = useDebounceFn(() => {
+  // Get the current scroll position before updating reloadKey
+  const scrollContainers = [ document.querySelector("#root > div > div:nth-of-type(2)"), document.querySelector("html") ];
+  const scrollPositions = scrollContainers.map(container => container?.scrollTop || 0);
+
+  // Update reloadKey
+  reloadKey.value++;
+
+  // Restore scroll position after DOM update
+  nextTick(() => {
+    setTimeout(() => {
+      scrollContainers.forEach((container, index) => {
+        if (container) {
+          container.scrollTop = scrollPositions[index];
+        }
+      });
+    }, 250);
+  });
+}, 250); // 300ms debounce time
+
 // Initialize config with default values to avoid null issues
 const config = ref<IConfig>(defaultConfig);
 const importFileInput = ref<HTMLInputElement>();
@@ -417,7 +438,7 @@ onMounted(async () => {
 watch(config, async () => {
   // Save the config to storage
   await AutodartsToolsConfig.setValue(toRaw(config.value));
-  reloadKey.value++;
+  debouncedReload();
 }, { deep: true });
 
 // Function to get the title for a setting
@@ -915,7 +936,7 @@ function pasteFromClipboard() {
 
 async function updateConfig() {
   config.value = await AutodartsToolsConfig.getValue();
-  reloadKey.value++;
+  debouncedReload();
 }
 </script>
 

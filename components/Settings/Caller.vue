@@ -7,22 +7,22 @@
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 flex flex-col items-start gap-2 font-bold uppercase sm:flex-row sm:items-center sm:justify-between">
+          <h3 class="mb-1 flex flex-col items-start gap-2 font-bold uppercase md:flex-row md:items-center md:justify-between">
             <span>Settings - Caller</span>
-            <div class="flex w-full flex-wrap gap-2 sm:w-auto">
-              <AppButton @click="sortSoundsByTriggers" size="sm" class="!py-1 text-xs sm:text-sm" auto title="Sort sounds by their triggers">
+            <div class="flex w-full flex-wrap gap-2 md:w-auto">
+              <AppButton @click="sortSoundsByTriggers" size="sm" class="!py-1 text-xs md:text-sm" auto title="Sort sounds by their triggers">
                 <span class="icon-[pixelarticons--sort-alphabetic] mr-1" />
-                <span class="whitespace-nowrap">Sort by Triggers</span>
+                <span class="whitespace-nowrap">Sort</span>
               </AppButton>
-              <AppButton @click="openDeleteAllModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="danger" title="Delete all sounds">
+              <AppButton @click="openDeleteAllModal" size="sm" class="!py-1 text-xs md:text-sm" auto type="danger" title="Delete all sounds">
                 <span class="icon-[pixelarticons--trash] mr-1" />
                 <span class="whitespace-nowrap">Delete All</span>
               </AppButton>
-              <AppButton @click="openImportURLModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
+              <AppButton @click="openImportURLModal" size="sm" class="!py-1 text-xs md:text-sm" auto type="success">
                 <span class="icon-[pixelarticons--download] mr-1" />
                 <span class="whitespace-nowrap">Import from URL</span>
               </AppButton>
-              <AppButton @click="openUploadModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
+              <AppButton @click="openUploadModal" size="sm" class="!py-1 text-xs md:text-sm" auto type="success">
                 <span class="icon-[pixelarticons--upload] mr-1" />
                 <span class="whitespace-nowrap">Upload Files</span>
               </AppButton>
@@ -462,8 +462,9 @@
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 font-bold uppercase">
+          <h3 class="mb-1 flex items-center font-bold uppercase">
             Caller
+            <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
           <p class="w-2/3 text-white/70">
             Call out scores, checkouts and special events during your matches with customizable sound effects.

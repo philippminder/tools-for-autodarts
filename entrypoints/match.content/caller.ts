@@ -43,6 +43,7 @@ export async function caller() {
 
     if (!gameDataWatcherUnwatch) {
       gameDataWatcherUnwatch = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
+        if (!config?.caller?.enabled) return;
         console.log("Autodarts Tools: caller game data updated");
 
         // Debounce the processGameData call

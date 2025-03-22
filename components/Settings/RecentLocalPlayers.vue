@@ -75,9 +75,11 @@
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 font-bold uppercase">
+          <h3 class="mb-1 flex items-center font-bold uppercase">
             Recent Local Players
+            <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
+
           <p class="w-2/3 text-white/70">
             Default recent local players capped at 5, this will extend it to infinite.
           </p>

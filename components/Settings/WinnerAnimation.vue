@@ -77,7 +77,7 @@ watch(config, async (_, oldValue) => {
 
   await AutodartsToolsConfig.setValue(toRaw(config.value!));
   emit("settingChange");
-  console.log("External Boards setting changed");
+  console.log("Winner Animation setting changed");
 }, { deep: true });
 
 function toggleFeature() {

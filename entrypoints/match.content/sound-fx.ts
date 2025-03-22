@@ -43,6 +43,7 @@ export async function soundFx() {
 
     if (!gameDataWatcherUnwatch) {
       gameDataWatcherUnwatch = AutodartsToolsGameData.watch((gameData: IGameData, oldGameData: IGameData) => {
+        if (!config?.soundFx?.enabled) return;
         console.log("Autodarts Tools: soundFx game data updated");
 
         // Debounce the processGameData call

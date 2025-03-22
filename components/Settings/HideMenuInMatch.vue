@@ -32,8 +32,9 @@
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
           <h3 class="mb-1 font-bold uppercase">
-            Hide Menu in Match
+            Hide Menu In Match
           </h3>
+
           <p class="w-2/3 text-white/70">
             Hides the menu during matches to provide a cleaner interface and prevent accidental clicks.
           </p>
@@ -88,6 +89,6 @@ watch(config, async (_, oldValue) => {
 
   await AutodartsToolsConfig.setValue(toRaw(config.value!));
   emit("settingChange");
-  console.log("External Boards setting changed");
+  console.log("Hide Menu in Match setting changed");
 }, { deep: true });
 </script>
