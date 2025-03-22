@@ -27,6 +27,7 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
+import { isEqual } from "lodash";
 import { waitForElementWithTextContent } from "@/utils";
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 
@@ -46,6 +47,8 @@ onUnmounted(() => {
 });
 
 async function checkStatus(gameData: IGameData, oldGameData: IGameData) {
+  if (isEqual(gameData.board, oldGameData.board)) return;
+
   const boardstatus: string | undefined = gameData.board?.status;
   show.value = boardstatus === "Takeout in progress";
 
