@@ -60,7 +60,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'ring')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'ring')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.ring.enabled ? 'success' : 'default'"
@@ -82,23 +82,23 @@
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppToggle from "../AppToggle.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-
-const imageUrl = browser.runtime.getURL("/images/ring.png");
-
-const activeSettings = useStorage("adt:active-settings", "ring");
+const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "ring");
 const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("/images/ring.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "ring");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Ring setting changed");
 }, { deep: true });
 
 function toggleFeature() {
@@ -110,7 +110,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "ring");
+    emit("toggle", "ring");
   }
 }
 </script>

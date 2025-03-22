@@ -14,7 +14,7 @@
         </p>
       </div>
       <div class="flex">
-        <div @click="$emit('toggleSettings', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+        <div @click="$emit('toggle', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
           @click="toggleFeature"
           :type="config.autoStart.enabled ? 'success' : 'default'"
@@ -32,14 +32,13 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { type IConfig } from "@/utils/storage";
+import { AutodartsToolsConfig } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "auto-start");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
-const imageUrl = ref<string>();
+const imageUrl = browser.runtime.getURL("images/auto-start.png");
 
 function toggleFeature() {
   if (!config.value) return;
@@ -50,18 +49,20 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "auto-start");
+    emit("toggle", "auto-start");
   }
 }
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-  imageUrl.value = browser.runtime.getURL("images/auto-start.png");
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "autoStart");
+// Watch for prop changes to update local config
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Auto Start setting changed");
 }, { deep: true });
 </script>

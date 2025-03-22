@@ -39,13 +39,13 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'smaller-scores')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'smaller-scores')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
-            :type="config.smallerScores.enabled ? 'success' : 'default'"
+            :type="localConfig.smallerScores.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.smallerScores.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="localConfig.smallerScores.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -58,35 +58,52 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { type IConfig } from "@/utils/storage";
+import { safeClone } from "@/utils/helpers";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "smaller-scores");
-const config = ref<IConfig>();
+const props = defineProps<{
+  config: IConfig;
+}>();
+
+const emit = defineEmits([ "toggle", "settingChange" ]);
+const localConfig = ref<IConfig>(safeClone(props.config));
 const imageUrl = browser.runtime.getURL("/images/smaller-scores.png");
+const isUpdatingFromProps = ref(false);
+const isEmittingChanges = ref(false);
+
+// Watch for prop changes to update local config
+watch(() => props.config, (newConfig) => {
+  if (newConfig && !isEmittingChanges.value) {
+    isUpdatingFromProps.value = true;
+    localConfig.value = safeClone(newConfig);
+    nextTick(() => {
+      isUpdatingFromProps.value = false;
+    });
+  }
+});
+
+// Watch for local changes to emit to parent
+watch(localConfig, () => {
+  if (!isUpdatingFromProps.value) {
+    isEmittingChanges.value = true;
+    emit("settingChange", { smallerScores: localConfig.value.smallerScores });
+    nextTick(() => {
+      isEmittingChanges.value = false;
+    });
+  }
+}, { deep: true });
 
 function toggleFeature() {
-  if (!config.value) return;
+  if (!localConfig.value) return;
 
   // Toggle the feature
-  const wasEnabled = config.value.smallerScores.enabled;
-  config.value.smallerScores.enabled = !wasEnabled;
+  const wasEnabled = localConfig.value.smallerScores.enabled;
+  localConfig.value.smallerScores.enabled = !wasEnabled;
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "smaller-scores");
+    emit("toggle", "smaller-scores");
   }
 }
-
-onMounted(async () => {
-  config.value = await AutodartsToolsConfig.getValue();
-});
-
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "smallerScores");
-}, { deep: true });
 </script>

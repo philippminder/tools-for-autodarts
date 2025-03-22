@@ -50,7 +50,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'larger-player-match-data')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'larger-player-match-data')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.largerPlayerMatchData.enabled ? 'success' : 'default'"
@@ -72,10 +72,10 @@
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "larger-player-match-data");
+const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "larger-player-match-data");
 const config = ref<IConfig>();
 const sizeValue = ref("");
 const imageUrl = browser.runtime.getURL("/images/larger-player-match-data.png");
@@ -97,10 +97,12 @@ watch(sizeValue, (newValue) => {
   }
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "largerPlayerMatchData");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("External Boards setting changed");
 }, { deep: true });
 
 function toggleFeature() {
@@ -112,7 +114,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "larger-player-match-data");
+    emit("toggle", "larger-player-match-data");
   }
 }
 </script>

@@ -35,7 +35,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'shuffle-players')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'shuffle-players')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.shufflePlayers.enabled ? 'success' : 'default'"
@@ -54,12 +54,10 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "shuffle-players");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/shuffle-players.png");
 
@@ -72,7 +70,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "shuffle-players");
+    emit("toggle", "shuffle-players");
   }
 }
 
@@ -80,9 +78,11 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "shufflePlayers");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Shuffle Players setting changed");
 }, { deep: true });
 </script>

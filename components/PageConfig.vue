@@ -19,6 +19,16 @@
       :type="notification.type"
     />
 
+    <!-- Settings Modal -->
+    <SettingsModal
+      @close="closeSettingsModal"
+      v-if="activeSettings && getComponentForSetting(activeSettings)"
+      :show="showSettingsModal"
+      :title="getSettingTitle(activeSettings)"
+    >
+      <component @setting-change="handleSettingChange" :is="getComponentForSetting(activeSettings)" :config="config" />
+    </SettingsModal>
+
     <div class="mx-auto mb-16 max-w-[1366px] space-y-8">
       <div class="space-y-4">
         <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -115,200 +125,92 @@
           </div>
         </div>
 
-        <!-- Feature cards and settings grid for Lobbies tab -->
-        <div
-          v-if="activeTab === 0 && !showDangerZone"
-          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
-        >
-          <!-- First row of feature cards -->
-          <DiscordWebhooks @toggle-settings="toggleSettings" class="feature-card" data-feature-index="1" />
-          <!-- Settings panel for DiscordWebhooks (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[0]) && getComponentForSetting(activeSettings) && activeSettings === 'discord-webhooks'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <AutoStart class="feature-card" data-feature-index="2" />
+        <!-- Feature cards grid for Lobbies tab -->
+        <template v-if="mounted">
+          <div
+            v-if="activeTab === 0 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <DiscordWebhooks @toggle="openSettingsModal('discord-webhooks')" @setting-change="updateConfig" class="feature-card" data-feature-index="1" />
+            <AutoStart @setting-change="updateConfig" class="feature-card" data-feature-index="2" />
 
-          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[0]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Second row of feature cards -->
+            <RecentLocalPlayers @toggle="openSettingsModal('recent-local-players')" @setting-change="updateConfig" class="feature-card" data-feature-index="3" />
+            <ShufflePlayers @setting-change="updateConfig" class="feature-card" data-feature-index="4" />
 
-          <!-- Second row of feature cards -->
-          <RecentLocalPlayers @toggle-settings="toggleSettings" class="feature-card" data-feature-index="3" />
-          <!-- Settings panel for RecentLocalPlayers (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[1]) && getComponentForSetting(activeSettings) && activeSettings === 'recent-local-players'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <ShufflePlayers class="feature-card" data-feature-index="4" />
-
-          <!-- Settings panel for second row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[1]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Third row of feature cards -->
-          <TeamLobby class="feature-card" data-feature-index="5" />
-          <div class="feature-card" data-feature-index="6">
+            <!-- Third row of feature cards -->
+            <TeamLobby @setting-change="updateConfig" class="feature-card" data-feature-index="5" />
+            <div class="feature-card" data-feature-index="6">
             <!-- Placeholder for future feature -->
+            </div>
           </div>
 
-          <!-- Settings panel for third row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[2]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-        </div>
+          <!-- Feature cards grid for Matches tab -->
+          <div
+            v-if="activeTab === 1 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <DisableTakeoutRecognition @setting-change="updateConfig" class="feature-card" data-feature-index="7" />
+            <Colors @toggle="openSettingsModal('colors')" @setting-change="updateConfig" class="feature-card" data-feature-index="8" />
 
-        <!-- Feature cards and settings grid for Matches tab -->
-        <div
-          v-if="activeTab === 1 && !showDangerZone"
-          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
-        >
-          <!-- First row of feature cards -->
-          <DisableTakeoutRecognition class="feature-card" data-feature-index="7" />
-          <Colors @toggle-settings="toggleSettings" class="feature-card" data-feature-index="8" />
-          <!-- Settings panel for Colors (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[3]) && getComponentForSetting(activeSettings) && activeSettings === 'colors'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Second row of feature cards -->
+            <TakeoutNotification @setting-change="updateConfig" class="feature-card" data-feature-index="9" />
+            <NextPlayerOnTakeoutStuck @toggle="openSettingsModal('next-player-on-takeout-stuck')" @setting-change="updateConfig" class="feature-card" data-feature-index="10" />
 
-          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[3]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Third row of feature cards -->
+            <AutomaticNextLeg @toggle="openSettingsModal('automatic-next-leg')" @setting-change="updateConfig" class="feature-card" data-feature-index="11" />
+            <SmallerScores @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="12" />
 
-          <!-- Second row of feature cards -->
-          <TakeoutNotification class="feature-card" data-feature-index="9" />
-          <NextPlayerOnTakeoutStuck @toggle-settings="toggleSettings" class="feature-card" data-feature-index="10" />
-          <!-- Settings panel for NextPlayerOnTakeoutStuck (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[4]) && getComponentForSetting(activeSettings) && activeSettings === 'next-player-on-takeout-stuck'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Fourth row of feature cards -->
+            <HideMenuInMatch @setting-change="updateConfig" class="feature-card" data-feature-index="13" />
+            <StreamingMode @toggle="openSettingsModal('streaming-mode')" @setting-change="updateConfig" class="feature-card" data-feature-index="14" />
 
-          <!-- Settings panel for second row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[4]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
+            <!-- Fifth row of feature cards -->
+            <LargerLegsSets @toggle="openSettingsModal('larger-legs-sets')" @setting-change="updateConfig" class="feature-card" data-feature-index="15" />
+            <LargerPlayerNames @toggle="openSettingsModal('larger-player-names')" @setting-change="updateConfig" class="feature-card" data-feature-index="16" />
+
+            <!-- Sixth row of feature cards -->
+            <LargerPlayerMatchData @toggle="openSettingsModal('larger-player-match-data')" @setting-change="updateConfig" class="feature-card" data-feature-index="17" />
+            <WinnerAnimation @setting-change="updateConfig" class="feature-card" data-feature-index="18" />
+
+            <!-- Seventh row of feature cards -->
+            <Ring @toggle="openSettingsModal('ring')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="19" />
           </div>
 
-          <!-- Third row of feature cards -->
-          <AutomaticNextLeg @toggle-settings="toggleSettings" class="feature-card" data-feature-index="11" />
-          <!-- Settings panel for AutomaticNextLeg (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[5]) && getComponentForSetting(activeSettings) && activeSettings === 'automatic-next-leg'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <SmallerScores class="feature-card" data-feature-index="12" />
-
-          <!-- Settings panel for third row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[5]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Fourth row of feature cards -->
-          <HideMenuInMatch class="feature-card" data-feature-index="13" />
-          <StreamingMode @toggle-settings="toggleSettings" class="feature-card" data-feature-index="14" />
-          <!-- Settings panel for StreamingMode (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[6]) && getComponentForSetting(activeSettings) && activeSettings === 'streaming-mode'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Settings panel for fourth row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[6]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Fifth row of feature cards -->
-          <LargerLegsSets @toggle-settings="toggleSettings" class="feature-card" data-feature-index="15" />
-          <!-- Settings panel for LargerLegsSets (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-legs-sets'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <LargerPlayerNames @toggle-settings="toggleSettings" class="feature-card" data-feature-index="16" />
-          <!-- Settings panel for LargerPlayerNames (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-names'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Settings panel for fifth row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Sixth row of feature cards -->
-          <LargerPlayerMatchData @toggle-settings="toggleSettings" class="feature-card" data-feature-index="17" />
-          <!-- Settings panel for LargerPlayerMatchData (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-match-data'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <WinnerAnimation class="feature-card" data-feature-index="18" />
-
-          <!-- Settings panel for sixth row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Seventh row of feature cards -->
-          <Ring @toggle-settings="toggleSettings" class="feature-card" data-feature-index="19" />
-
-          <!-- Settings panel for seventh row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-        </div>
-
-        <!-- Feature cards and settings grid for Boards tab -->
-        <div
-          v-if="activeTab === 2 && !showDangerZone"
-          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
-        >
-          <!-- First row of feature cards -->
-          <ExternalBoards class="feature-card" data-feature-index="21" />
-          <div class="feature-card" data-feature-index="22">
+          <!-- Feature cards grid for Boards tab -->
+          <div
+            v-if="activeTab === 2 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <ExternalBoards @setting-change="updateConfig" class="feature-card" data-feature-index="21" />
+            <div class="feature-card" data-feature-index="22">
             <!-- Placeholder for future feature -->
+            </div>
           </div>
 
-          <!-- Settings panel for first row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[10]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-        </div>
+          <!-- Feature cards grid for Sounds & Animations tab -->
+          <div
+            v-if="activeTab === 3 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="23" />
+            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="24" />
 
-        <!-- Feature cards and settings grid for Sounds & Animations tab -->
-        <div
-          v-if="activeTab === 3 && !showDangerZone"
-          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
-        >
-          <!-- First row of feature cards -->
-          <Animations @toggle-settings="toggleSettings" class="feature-card" data-feature-index="23" />
-          <!-- Settings panel for Animations (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings) && activeSettings === 'animations'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <Caller @toggle-settings="toggleSettings" class="feature-card" data-feature-index="24" />
-          <!-- Settings panel for Caller (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings) && activeSettings === 'caller'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[11]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Second row of feature cards -->
-          <SoundFx @toggle-settings="toggleSettings" class="feature-card" data-feature-index="25" />
-          <!-- Settings panel for SoundFx (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[12]) && getComponentForSetting(activeSettings) && activeSettings === 'sound-fx'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <div class="feature-card" data-feature-index="26">
+            <!-- Second row of feature cards -->
+            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="25" />
+            <div class="feature-card" data-feature-index="26">
             <!-- Placeholder for future feature -->
+            </div>
           </div>
-
-          <!-- Settings panel for second row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[12]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-        </div>
+        </template>
       </div>
     </div>
   </div>
@@ -344,19 +246,20 @@ import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCaller
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppNotification from "@/components/AppNotification.vue";
+import SettingsModal from "@/components/SettingsModal.vue";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { useNotification } from "@/composables/useNotification";
 import AppTabs from "@/components/AppTabs.vue";
 
-// Define feature groups
+// Define feature groups with titles for modals
 const featureGroups = [
   {
     // First row - Lobbies tab
     id: "row1",
     tab: 0,
     features: [
-      { id: "discord-webhooks", component: DiscordWebhooks, hasSettings: true },
-      { id: "auto-start", component: AutoStart, hasSettings: false },
+      { id: "discord-webhooks", title: "Discord Webhooks Settings", component: DiscordWebhooks, hasSettings: true },
+      { id: "auto-start", title: "Auto Start Settings", component: AutoStart, hasSettings: false },
     ],
     settingIds: [ "discord-webhooks" ],
   },
@@ -365,8 +268,8 @@ const featureGroups = [
     id: "row2",
     tab: 0,
     features: [
-      { id: "recent-local-players", component: RecentLocalPlayers, hasSettings: true },
-      { id: "shuffle-players", component: ShufflePlayers, hasSettings: false },
+      { id: "recent-local-players", title: "Recent Local Players Settings", component: RecentLocalPlayers, hasSettings: true },
+      { id: "shuffle-players", title: "Shuffle Players Settings", component: ShufflePlayers, hasSettings: false },
     ],
     settingIds: [ "recent-local-players" ],
   },
@@ -375,8 +278,8 @@ const featureGroups = [
     id: "row3",
     tab: 0,
     features: [
-      { id: "team-lobby", component: TeamLobby, hasSettings: false },
-      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "team-lobby", title: "Team Lobby Settings", component: TeamLobby, hasSettings: false },
+      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [],
   },
@@ -385,8 +288,8 @@ const featureGroups = [
     id: "matches-row1",
     tab: 1,
     features: [
-      { id: "disable-takeout-recognition", component: DisableTakeoutRecognition, hasSettings: false },
-      { id: "colors", component: Colors, hasSettings: true },
+      { id: "disable-takeout-recognition", title: "Disable Takeout Recognition Settings", component: DisableTakeoutRecognition, hasSettings: false },
+      { id: "colors", title: "Colors Settings", component: Colors, hasSettings: true },
     ],
     settingIds: [ "colors" ],
   },
@@ -395,8 +298,8 @@ const featureGroups = [
     id: "matches-row2",
     tab: 1,
     features: [
-      { id: "takeout-notification", component: TakeoutNotification, hasSettings: false },
-      { id: "next-player-on-takeout-stuck", component: NextPlayerOnTakeoutStuck, hasSettings: true },
+      { id: "takeout-notification", title: "Takeout Notification Settings", component: TakeoutNotification, hasSettings: false },
+      { id: "next-player-on-takeout-stuck", title: "Next Player On Takeout Stuck Settings", component: NextPlayerOnTakeoutStuck, hasSettings: true },
     ],
     settingIds: [ "next-player-on-takeout-stuck" ],
   },
@@ -405,8 +308,8 @@ const featureGroups = [
     id: "matches-row3",
     tab: 1,
     features: [
-      { id: "automatic-next-leg", component: AutomaticNextLeg, hasSettings: true },
-      { id: "smaller-scores", component: SmallerScores, hasSettings: false },
+      { id: "automatic-next-leg", title: "Automatic Next Leg Settings", component: AutomaticNextLeg, hasSettings: true },
+      { id: "smaller-scores", title: "Smaller Scores Settings", component: SmallerScores, hasSettings: false },
     ],
     settingIds: [ "automatic-next-leg" ],
   },
@@ -415,8 +318,8 @@ const featureGroups = [
     id: "matches-row4",
     tab: 1,
     features: [
-      { id: "hide-menu-in-match", component: HideMenuInMatch, hasSettings: false },
-      { id: "streaming-mode", component: StreamingMode, hasSettings: true },
+      { id: "hide-menu-in-match", title: "Hide Menu In Match Settings", component: HideMenuInMatch, hasSettings: false },
+      { id: "streaming-mode", title: "Streaming Mode Settings", component: StreamingMode, hasSettings: true },
     ],
     settingIds: [ "streaming-mode" ],
   },
@@ -425,8 +328,8 @@ const featureGroups = [
     id: "matches-row5",
     tab: 1,
     features: [
-      { id: "larger-legs-sets", component: LargerLegsSets, hasSettings: true },
-      { id: "larger-player-names", component: LargerPlayerNames, hasSettings: true },
+      { id: "larger-legs-sets", title: "Larger Legs Sets Settings", component: LargerLegsSets, hasSettings: true },
+      { id: "larger-player-names", title: "Larger Player Names Settings", component: LargerPlayerNames, hasSettings: true },
     ],
     settingIds: [ "larger-legs-sets", "larger-player-names" ],
   },
@@ -435,8 +338,8 @@ const featureGroups = [
     id: "matches-row6",
     tab: 1,
     features: [
-      { id: "larger-player-match-data", component: LargerPlayerMatchData, hasSettings: true },
-      { id: "winner-animation", component: WinnerAnimation, hasSettings: false },
+      { id: "larger-player-match-data", title: "Larger Player Match Data Settings", component: LargerPlayerMatchData, hasSettings: true },
+      { id: "winner-animation", title: "Winner Animation Settings", component: WinnerAnimation, hasSettings: false },
     ],
     settingIds: [ "larger-player-match-data" ],
   },
@@ -445,8 +348,8 @@ const featureGroups = [
     id: "matches-row7",
     tab: 1,
     features: [
-      { id: "ring", component: Ring, hasSettings: true },
-      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "ring", title: "Ring Settings", component: Ring, hasSettings: true },
+      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [ "ring" ],
   },
@@ -455,8 +358,8 @@ const featureGroups = [
     id: "boards-row1",
     tab: 2,
     features: [
-      { id: "external-boards", component: ExternalBoards, hasSettings: false },
-      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "external-boards", title: "External Boards Settings", component: ExternalBoards, hasSettings: false },
+      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [],
   },
@@ -465,8 +368,8 @@ const featureGroups = [
     id: "sounds-animations-row1",
     tab: 3,
     features: [
-      { id: "animations", component: Animations, hasSettings: true },
-      { id: "caller", component: Caller, hasSettings: true },
+      { id: "animations", title: "Animations Settings", component: Animations, hasSettings: true },
+      { id: "caller", title: "Caller Settings", component: Caller, hasSettings: true },
     ],
     settingIds: [ "animations", "caller" ],
   },
@@ -475,8 +378,8 @@ const featureGroups = [
     id: "sounds-animations-row2",
     tab: 3,
     features: [
-      { id: "sound-fx", component: SoundFx, hasSettings: true },
-      { id: "placeholder-2", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "sound-fx", title: "Sound FX Settings", component: SoundFx, hasSettings: true },
+      { id: "placeholder-2", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [ "sound-fx" ],
   },
@@ -484,11 +387,16 @@ const featureGroups = [
 
 // Tabs component data
 const tabs = ref([ "Lobbies", "Matches", "Boards", "Sounds & Animations" ]);
-const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const activeSettings = useStorage("adt:active-settings", null);
 const activeTab = useStorage("adt:active-tab", 0);
+const showSettingsModal = ref(false);
+const reloadKey = ref(0);
 
-const config = ref<IConfig>();
+// Initialize config with default values to avoid null issues
+const config = ref<IConfig>(defaultConfig);
 const importFileInput = ref<HTMLInputElement>();
+
+const mounted = useMounted();
 
 // Use the composables
 const { confirmDialog, showConfirmDialog, confirmDialogConfirm, confirmDialogCancel } = useConfirmDialog();
@@ -500,20 +408,58 @@ function goBack() {
 }
 
 onMounted(async () => {
-  config.value = await AutodartsToolsConfig.getValue();
+  const loadedConfig = await AutodartsToolsConfig.getValue();
+  if (loadedConfig) {
+    config.value = loadedConfig;
+  }
 });
 
 watch(config, async () => {
-  // Get the latest config to ensure we have the most up-to-date values
-  const latestConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-
-  // Create a merged config that preserves all settings
-  await AutodartsToolsConfig.setValue({
-    ...latestConfig,
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  // Save the config to storage
+  await AutodartsToolsConfig.setValue(toRaw(config.value));
+  reloadKey.value++;
 }, { deep: true });
+
+// Function to get the title for a setting
+function getSettingTitle(settingId) {
+  for (const group of featureGroups) {
+    const feature = group.features.find(f => f.id === settingId);
+    if (feature) {
+      return feature.title;
+    }
+  }
+  return "Settings";
+}
+
+// Function to handle setting changes
+function handleSettingChange() {
+  updateConfig();
+}
+
+// Function to get the component for a setting
+function getComponentForSetting(settingId) {
+  for (const group of featureGroups) {
+    const feature = group.features.find(f => f.id === settingId && f.hasSettings);
+    if (feature) {
+      return feature.component;
+    }
+  }
+  return null;
+}
+
+// Function to open settings modal
+function openSettingsModal(settingId) {
+  activeSettings.value = settingId;
+  showSettingsModal.value = true;
+}
+
+// Function to close settings modal
+function closeSettingsModal() {
+  showSettingsModal.value = false;
+  setTimeout(() => {
+    activeSettings.value = null;
+  }, 300); // Wait for animation to complete
+}
 
 async function exportSettings() {
   config.value = await AutodartsToolsConfig.getValue();
@@ -747,11 +693,11 @@ function resetAllSettings() {
         }
       }
 
-      const newConfig = JSON.parse(JSON.stringify(defaultConfig));
-      config.value = newConfig;
+      config.value = { ...defaultConfig };
 
       // Explicitly save to storage
-      await AutodartsToolsConfig.setValue(newConfig);
+      await AutodartsToolsConfig.setValue(defaultConfig);
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       showNotification("All settings have been reset to default. Page will reload to apply changes...");
 
@@ -761,9 +707,8 @@ function resetAllSettings() {
       // Reload the page after a short delay to allow the notification to be seen
       setTimeout(() => {
         window.location.reload();
-        // After reload, navigate to first tab with first settings panel open
+        // After reload, navigate to first tab
         activeTab.value = 0;
-        activeSettings.value = "discord-webhooks";
       }, 1500);
     },
   );
@@ -968,33 +913,9 @@ function pasteFromClipboard() {
     });
 }
 
-// Function to check if a setting belongs to a group
-function isSettingInGroup(settingId, group) {
-  return group.settingIds.includes(settingId) && group.tab === activeTab.value;
-}
-
-// Function to get the component for a setting
-function getComponentForSetting(settingId) {
-  for (const group of featureGroups) {
-    if (group.tab === activeTab.value) {
-      const feature = group.features.find(f => f.id === settingId && f.hasSettings);
-      if (feature) {
-        return feature.component;
-      }
-    }
-  }
-  return null;
-}
-
-// Function to toggle settings panel
-function toggleSettings(settingId) {
-  if (activeSettings.value === settingId) {
-    // If the clicked setting is already active, close it
-    activeSettings.value = null;
-  } else {
-    // Otherwise, open the clicked setting
-    activeSettings.value = settingId;
-  }
+async function updateConfig() {
+  config.value = await AutodartsToolsConfig.getValue();
+  reloadKey.value++;
 }
 </script>
 

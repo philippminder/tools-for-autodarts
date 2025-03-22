@@ -50,7 +50,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'larger-legs-sets')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'larger-legs-sets')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.largerLegsSets.enabled ? 'success' : 'default'"
@@ -69,13 +69,11 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "larger-legs-sets");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const sizeValue = ref("");
 const imageUrl = browser.runtime.getURL("/images/larger-legs-sets.png");
@@ -97,10 +95,12 @@ watch(sizeValue, (newValue) => {
   }
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "largerLegsSets");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("External Boards setting changed");
 }, { deep: true });
 
 function toggleFeature() {
@@ -112,7 +112,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "larger-legs-sets");
+    emit("toggle", "larger-legs-sets");
   }
 }
 </script>

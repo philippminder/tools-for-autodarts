@@ -83,7 +83,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'recent-local-players')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'recent-local-players')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.recentLocalPlayers.enabled ? 'success' : 'default'"
@@ -102,13 +102,11 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "recent-local-players");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/recent-local-players.png");
 
@@ -116,10 +114,12 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "recentLocalPlayers");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Recent Local Players setting changed");
 }, { deep: true });
 
 // Function to remove a player from the list
@@ -145,7 +145,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "recent-local-players");
+    emit("toggle", "recent-local-players");
   }
 }
 </script>

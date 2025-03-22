@@ -111,7 +111,7 @@
                 <!-- Toggle button -->
                 <div class="absolute left-2 top-2 z-20">
                   <button
-                    @click.stop="toggleAnimation(index)"
+                    @click.stop="toggleAnimationEnabled(index)"
                     class="flex size-8 items-center justify-center rounded-full border border-solid p-0"
                     :class="animation.enabled
                       ? 'border-[var(--chakra-colors-borderGreen)] bg-[var(--chakra-colors-glassGreen)] text-[var(--chakra-colors-white)] hover:bg-[rgba(58,255,0,0.3)]'
@@ -135,7 +135,7 @@
                 <!-- Info section -->
                 <div class="absolute inset-x-0 bottom-0 bg-black/70 p-2 text-xs">
                   <div class="truncate font-mono uppercase">
-                    {{ animation.triggers.join(', ') }}
+                    {{ Array.isArray(animation.triggers) ? animation.triggers.join(', ') : '' }}
                   </div>
                   <div class="mt-1 flex justify-end">
                     <button
@@ -227,7 +227,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'animations')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'animations')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config.animations.enabled ? 'success' : 'default'"
@@ -246,18 +246,18 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import Sortable from "sortablejs";
 import { computed } from "vue";
+import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
 import AppSelect from "../AppSelect.vue";
-import { AutodartsToolsConfig, type IAnimation, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IAnimation, type IConfig } from "@/utils/storage";
 
-const emit = defineEmits([ "toggleSettings" ]);
-const activeSettings = useStorage("adt:active-settings", "animations");
+const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "animations");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/animations.png");
 const showAnimationModal = ref(false);
@@ -283,41 +283,32 @@ const lowercaseText = computed({
 
 const textareaPlaceholder = `0
 180
-s60
-s50
-s25
-...`;
+triple 20
+double bull
+bull
+bust
+checkout
+high score
+ton
+ton 40
+ton 80
+hat-trick
+whitewash
+nine dart
+`;
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-
-  // Initialize animations array if it doesn't exist
-  if (!config.value?.animations.data) {
-    config.value!.animations.data = [];
-  }
-
-  // Initialize delay and duration if they don't exist
-  if (config.value!.animations.delayStart === undefined) {
-    config.value!.animations.delayStart = 1;
-  }
-
-  if (config.value!.animations.duration === undefined) {
-    config.value!.animations.duration = 5;
-  }
-
-  // Migrate existing animations to include enabled property
-  migrateAnimations();
-
-  // Initialize sortable after the DOM is updated
-  nextTick(() => {
-    initSortable();
-  });
+  await nextTick();
+  initSortable();
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "animations");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Animations setting changed");
 }, { deep: true });
 
 function initSortable() {
@@ -349,35 +340,33 @@ function initSortable() {
         const oldIndex = evt.oldIndex;
         const newIndex = evt.newIndex;
 
-        // Update the data array to match the DOM
-        if (oldIndex !== undefined && newIndex !== undefined) {
-          const movedItem = config.value.animations.data.splice(oldIndex - 1, 1)[0];
-          config.value.animations.data.splice(newIndex - 1, 0, movedItem);
+        if (oldIndex === undefined || newIndex === undefined) return;
 
-          // Update the container key to force re-render
-          containerKey.value++;
+        const item = config.value.animations.data[oldIndex];
 
-          // Re-initialize sortable after a short delay to ensure DOM is updated
-          setTimeout(() => {
-            initSortable();
-          }, 50);
-        }
+        // Remove from old position and insert at new position
+        config.value.animations.data.splice(oldIndex, 1);
+        config.value.animations.data.splice(newIndex, 0, item);
       }
     },
   });
 }
 
-function openAddAnimationModal() {
-  newAnimation.value = { url: "", text: "" };
-  isEditMode.value = false;
-  editingIndex.value = null;
-  showAnimationModal.value = true;
+function toggleAnimationEnabled(index: number) {
+  if (!config.value || !config.value.animations.data[index]) return;
+
+  // Toggle the enabled state
+  config.value.animations.data[index].enabled = !config.value.animations.data[index].enabled;
 }
 
 function editAnimation(index: number) {
+  if (!config.value || !config.value.animations.data[index]) return;
+
   newAnimation.value = {
-    url: config.value!.animations.data[index].url,
-    text: config.value!.animations.data[index].triggers.join("\n"),
+    url: config.value.animations.data[index].url || "",
+    text: Array.isArray(config.value.animations.data[index].triggers)
+      ? config.value.animations.data[index].triggers.join("\n")
+      : "",
   };
   isEditMode.value = true;
   editingIndex.value = index;
@@ -398,7 +387,7 @@ function saveAnimation() {
   // Create animation object
   const animation: IAnimation = {
     url: newAnimation.value.url.trim(),
-    triggers,
+    triggers: Array.isArray(triggers) ? triggers : [], // Ensure triggers is an array
     enabled: true, // New animations are enabled by default
   };
 
@@ -427,24 +416,15 @@ function closeAnimationModal() {
 function removeAnimation(index: number) {
   if (config.value && config.value.animations.data) {
     config.value.animations.data.splice(index, 1);
+    containerKey.value++; // Force re-render of the list
   }
 }
 
-function toggleAnimation(index: number) {
-  if (config.value && config.value.animations.data) {
-    config.value.animations.data[index].enabled = !config.value.animations.data[index].enabled;
-  }
-}
-
-function migrateAnimations() {
-  if (!config.value?.animations.data) return;
-
-  // Add enabled property to any animations that don't have it
-  config.value.animations.data.forEach((animation) => {
-    if (animation.enabled === undefined) {
-      animation.enabled = true; // Default to enabled
-    }
-  });
+function openAddAnimationModal() {
+  newAnimation.value = { url: "", text: "" };
+  isEditMode.value = false;
+  editingIndex.value = null;
+  showAnimationModal.value = true;
 }
 
 function toggleFeature() {
@@ -456,7 +436,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "animations");
+    emit("toggle", "animations");
   }
 }
 </script>

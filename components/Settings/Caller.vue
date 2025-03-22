@@ -135,7 +135,7 @@
                     {{ sound.url || "Uploaded" }}
                   </div>
                   <div class="mt-1 truncate font-mono uppercase">
-                    {{ sound.triggers?.join(', ') || 'No triggers' }}
+                    {{ Array.isArray(sound.triggers) ? sound.triggers.join(', ') : 'No triggers' }}
                   </div>
                   <div class="mt-1 flex justify-between">
                     <button
@@ -367,8 +367,8 @@
           <p class="mt-2 text-xs text-white/60">
             Enter a base URL where sounds are stored. The system will attempt to fetch sounds for values 0-180 with .mp3 and .wav extensions.
           </p>
-          <div v-if="baseURLError" class="mt-1 text-sm text-red-500">
-            {{ baseURLError }}
+          <div v-if="urlError" class="mt-1 text-sm text-red-500">
+            {{ urlError }}
           </div>
         </div>
 
@@ -470,7 +470,7 @@
           </p>
         </div>
         <div class="flex">
-          <div @click="$emit('toggleSettings', 'caller')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
+          <div @click="$emit('toggle', 'caller')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
             @click="toggleFeature"
             :type="config?.caller?.enabled ? 'success' : 'default'"
@@ -489,9 +489,9 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import { computed, onMounted, ref, watch } from "vue";
 import Sortable from "sortablejs";
+import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
@@ -507,11 +507,11 @@ import {
   detectAudioMimeType,
   getSoundFromIndexedDB,
   isIndexedDBAvailable,
-  migrateCallerSoundsToIndexedDB,
   saveSoundToIndexedDB,
 } from "@/utils/helpers";
 
-const emit = defineEmits([ "toggleSettings" ]);
+const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "caller");
 
 const textareaPlaceholder = `180
 s60
@@ -519,7 +519,6 @@ s50
 s25
 ...`;
 
-const activeSettings = useStorage("adt:active-settings", "caller");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/caller.png");
 const showSoundModal = ref(false);
@@ -550,17 +549,17 @@ const isProcessing = ref(false);
 const showDeleteAllModal = ref(false);
 
 // Audio player reference for stopping previous sounds
-const currentAudio = ref<HTMLAudioElement | null>(null);
+let currentPlayer: HTMLAudioElement | null = null;
 
-// Import URL Modal related refs
+// Import URL related refs
 const showImportURLModal = ref(false);
 const baseURL = ref("");
-const baseURLError = ref("");
-const generateTriggersFromURLFilenames = ref(true);
-const isImporting = ref(false);
+const selectedPresetURL = ref("");
 const importProgress = ref(0);
 const importedCount = ref(0);
-const selectedPresetURL = ref("");
+const isImporting = ref(false);
+const generateTriggersFromURLFilenames = ref(true);
+const { notification, showNotification, hideNotification } = useNotification();
 
 // Predefined caller sets for the select input
 const callerSets = [
@@ -575,14 +574,7 @@ const callerSets = [
   { value: "https://autodarts.x10.mx/1_male_eng", label: "Male English" },
 ];
 
-// Watch for changes to selectedPresetURL and update baseURL
-watch(selectedPresetURL, (newValue) => {
-  if (newValue) {
-    baseURL.value = newValue;
-  }
-});
-
-// Computed property for lowercase text handling
+// Computed property for trigger text handling
 const lowercaseText = computed({
   get: () => newSound.value.text,
   set: (val: string) => {
@@ -590,50 +582,26 @@ const lowercaseText = computed({
   },
 });
 
-const { notification, showNotification, hideNotification } = useNotification();
-
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-
-  // Initialize caller object if it doesn't exist
-  if (!config.value?.caller || !config.value.caller.sounds) {
-    config.value!.caller = {
-      enabled: false,
-      callEveryDart: false,
-      callCheckout: false,
-      sounds: [],
-    };
-  }
-
-  // Migrate existing base64 sounds to IndexedDB if available
-  if (isIndexedDBAvailable() && config.value?.caller?.sounds?.length) {
-    try {
-      const migrated = await migrateCallerSoundsToIndexedDB(
-        config.value,
-        async (updatedConfig) => {
-          config.value = updatedConfig;
-          await AutodartsToolsConfig.setValue(updatedConfig);
-        },
-      );
-
-      if (migrated) {
-        console.log("Autodarts Tools: Successfully migrated caller sounds to IndexedDB");
-      }
-    } catch (error) {
-      console.error("Autodarts Tools: Error migrating sounds to IndexedDB", error);
-    }
-  }
-
-  // Initialize sortable after the DOM is updated
   nextTick(() => {
     initSortable();
   });
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "caller");
+// Watch for changes to selectedPresetURL and update baseURL
+watch(selectedPresetURL, (newValue) => {
+  if (newValue) {
+    baseURL.value = newValue;
+  }
+});
+
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Caller setting changed");
 }, { deep: true });
 
 // Initialize Sortable.js
@@ -695,7 +663,7 @@ function editSound(index: number) {
   // Set up base form values
   newSound.value = {
     url: sound.url || "",
-    text: sound.triggers?.join("\n") || "",
+    text: Array.isArray(sound.triggers) ? sound.triggers.join("\n") : "",
     name: sound.name || "",
     base64: "", // We'll load this below if needed
   };
@@ -759,10 +727,15 @@ async function saveSound() {
   urlError.value = "";
 
   // Convert text to array of triggers (split by newline and filter empty lines)
-  const triggers = newSound.value.text
+  let triggers = newSound.value.text
     .split("\n")
     .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
+
+  // Ensure triggers is an array
+  if (!Array.isArray(triggers)) {
+    triggers = [];
+  }
 
   // Store base64 data in IndexedDB if available
   let soundId: string | null = null;
@@ -932,6 +905,14 @@ async function processFiles() {
   isProcessing.value = true;
 
   try {
+    // Ensure config.value.caller.sounds is an array
+    if (!config.value.caller || !Array.isArray(config.value.caller.sounds)) {
+      config.value.caller = {
+        ...config.value.caller,
+        sounds: [],
+      };
+    }
+
     for (const file of selectedFiles.value) {
       try {
         // Convert file to base64
@@ -995,8 +976,8 @@ function sortSoundsByTriggers() {
   // Sort sounds by their first trigger alphabetically
   config.value.caller.sounds.sort((a, b) => {
     // Get first trigger from each sound, or empty string if no triggers
-    const triggerA = a.triggers && a.triggers.length > 0 ? a.triggers[0] : "";
-    const triggerB = b.triggers && b.triggers.length > 0 ? b.triggers[0] : "";
+    const triggerA = Array.isArray(a.triggers) && a.triggers.length > 0 ? a.triggers[0] : "";
+    const triggerB = Array.isArray(b.triggers) && b.triggers.length > 0 ? b.triggers[0] : "";
 
     // Sort numerically if both are numbers
     if (!Number.isNaN(Number(triggerA)) && !Number.isNaN(Number(triggerB))) {
@@ -1046,15 +1027,15 @@ async function deleteAllSounds() {
 
 async function playSound(sound: ISound) {
   // Stop current audio if it exists
-  if (currentAudio.value) {
-    currentAudio.value.pause();
-    currentAudio.value.currentTime = 0;
+  if (currentPlayer) {
+    currentPlayer.pause();
+    currentPlayer.currentTime = 0;
   }
 
   // Create an audio element
   const audio = new Audio();
   audio.preload = "auto"; // Ensure preloading is enabled
-  currentAudio.value = audio;
+  currentPlayer = audio;
 
   try {
     // Try to get base64 from IndexedDB first if sound has a soundId
@@ -1132,7 +1113,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
-    emit("toggleSettings", "caller");
+    emit("toggle", "caller");
   }
 }
 
@@ -1140,7 +1121,7 @@ function toggleFeature() {
 function openImportURLModal() {
   showImportURLModal.value = true;
   baseURL.value = "";
-  baseURLError.value = "";
+  urlError.value = "";
   importProgress.value = 0;
   importedCount.value = 0;
   selectedPresetURL.value = "";
@@ -1167,16 +1148,24 @@ async function fetchSoundsFromURL() {
   try {
     // Ensure URL starts with https://
     if (!baseURL.value.startsWith("https://")) {
-      baseURLError.value = "URL must start with https:// for security reasons";
+      urlError.value = "URL must start with https:// for security reasons";
       return;
     }
 
     // Test if URL is valid
     const urlObj = new URL(baseURL.value);
-    baseURLError.value = "";
+    urlError.value = "";
   } catch (error) {
-    baseURLError.value = "Invalid URL format";
+    urlError.value = "Invalid URL format";
     return;
+  }
+
+  // Ensure config.value.caller.sounds is an array
+  if (!config.value.caller || !Array.isArray(config.value.caller.sounds)) {
+    config.value.caller = {
+      ...config.value.caller,
+      sounds: [],
+    };
   }
 
   // Start import process
