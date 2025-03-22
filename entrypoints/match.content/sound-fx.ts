@@ -361,15 +361,15 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
           stateIndex = 25;
         }
 
-        // Check if this segment is already closed for the current player (value 3)
-        const segmentValuePlayer1 = oldGameData?.match?.state?.segments?.[stateIndex]?.[0];
-        const segmentValuePlayer2 = oldGameData?.match?.state?.segments?.[stateIndex]?.[1];
+        // Check if this segment is already closed for all players (value 3)
+        const segmentValues = oldGameData?.match?.state?.segments?.[stateIndex] || [];
+        const allPlayersClosed = segmentValues.length > 0 && segmentValues.every(value => value >= 3);
 
-        if (segmentValuePlayer1 >= 3 && segmentValuePlayer2 >= 3) {
-          // Segment is already closed, play miss sound
+        if (allPlayersClosed) {
+          // Segment is already closed by all players, play miss sound
           playSound("cricket_miss");
         } else {
-          // Segment is not closed, play hit sound
+          // Segment is not closed by all players, play hit sound
           playSound("cricket_hit");
         }
       } else {
