@@ -339,7 +339,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       const segmentName = latestThrow.segment.name.toLowerCase();
       let segmentNumber = 0;
 
-      if (segmentName === "bull") {
+      if (segmentName === "bull" || segmentName === "25") {
         segmentNumber = 25;
       } else if (segmentName.includes("miss") || segmentName.includes("outside")) {
         segmentNumber = 0;
@@ -353,8 +353,25 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
       // Cricket targets are 15-20 and Bull (25)
       if (segmentNumber >= 15) {
-        // Target Hit - Anything 15-Bull
-        playSound("cricket_hit");
+        // Get the segment number from the latest throw
+        let stateIndex = latestThrow.segment.number;
+
+        // Special case: if it's a double bull (50), use 25 as the index
+        if (stateIndex === 50) {
+          stateIndex = 25;
+        }
+
+        // Check if this segment is already closed for the current player (value 3)
+        const segmentValuePlayer1 = oldGameData?.match?.state?.segments?.[stateIndex]?.[0];
+        const segmentValuePlayer2 = oldGameData?.match?.state?.segments?.[stateIndex]?.[1];
+
+        if (segmentValuePlayer1 >= 3 && segmentValuePlayer2 >= 3) {
+          // Segment is already closed, play miss sound
+          playSound("cricket_miss");
+        } else {
+          // Segment is not closed, play hit sound
+          playSound("cricket_hit");
+        }
       } else {
         // Target Miss - Anything Miss-14
         playSound("cricket_miss");
