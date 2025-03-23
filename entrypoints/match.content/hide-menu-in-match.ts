@@ -44,7 +44,14 @@ export async function hideMenuInMatch() {
 
 export async function hideMenuInMatchOnRemove() {
   // restore the menu
-  // const menu = await waitForElement("#adt-menu-hide");
-  // if (!menu) return console.error("Autodarts Tools: No menu found");
-  // menu.remove();
+  console.log("Autodarts Tools: Restoring menu in match");
+
+  const menuToggleBtn = document.querySelector("#adt-menu-hide");
+  menuToggleBtn?.remove();
+
+  // Make the original menu visible again
+  const menu = document.querySelector("#root > div > div") as HTMLElement;
+  if (menu) {
+    menu.style.display = "";
+  }
 }

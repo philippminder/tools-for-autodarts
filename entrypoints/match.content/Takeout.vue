@@ -7,7 +7,7 @@
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
-    <div @click="handleBackdropClick" v-if="show" class="fixed inset-0 z-[100] flex items-center justify-center font-system">
+    <div @click="handleBackdropClick" v-if="show" class="fixed inset-0 z-[200] flex items-center justify-center font-system">
       <div class="absolute inset-0 bg-black/50" />
       <div
         v-if="show"
