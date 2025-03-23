@@ -61,7 +61,7 @@ const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/shuffle-players.png");
 
-function toggleFeature() {
+async function toggleFeature() {
   if (!config.value) return;
 
   // Toggle the feature
@@ -70,6 +70,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
+    await nextTick();
     emit("toggle", "shuffle-players");
   }
 }

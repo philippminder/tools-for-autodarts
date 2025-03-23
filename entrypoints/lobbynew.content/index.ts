@@ -6,13 +6,14 @@ import {
 import type { GameMode, IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
+import { isSafari, isiOS } from "@/utils/helpers";
 
 export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
   cssInjectionMode: "ui",
   async main() {
     AutodartsToolsUrlStatus.watch(async (url: string) => {
-      if (!url) url = window.location.href;
+      if (!url && (isiOS() || isSafari())) url = window.location.href;
 
       const config: IConfig = await AutodartsToolsConfig.getValue();
       if (/\/lobbies\/*new\//.test(url)) {

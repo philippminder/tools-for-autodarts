@@ -12,7 +12,7 @@ import { discordWebhooks } from "@/entrypoints/lobby.content/discord-webhooks";
 import { autoStart, onRemove as onAutoStartRemove } from "@/entrypoints/lobby.content/auto-start";
 import { onRemove as onShufflePlayersRemove, shufflePlayers } from "@/entrypoints/lobby.content/shuffle-players";
 import RecentLocalPlayers from "@/entrypoints/lobby.content/RecentLocalPlayers.vue";
-import { fetchWithAuth } from "@/utils/helpers";
+import { fetchWithAuth, isSafari, isiOS } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 
 let recentLocalPlayersUI: any;
@@ -25,7 +25,9 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx: any) {
     lobbyReadyUnwatch = AutodartsToolsUrlStatus.watch(async (url: string) => {
-      if (!url) url = window.location.href;
+      console.log("URL:", url);
+
+      if (!url && (isiOS() || isSafari())) url = window.location.href;
 
       const config: IConfig = await AutodartsToolsConfig.getValue();
       if (/\/lobbies\/(?!.*new\/)/.test(url)) {

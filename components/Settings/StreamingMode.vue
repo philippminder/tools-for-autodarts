@@ -210,7 +210,7 @@ watch(config, async (_, oldValue) => {
   console.log("Streaming Mode setting changed");
 }, { deep: true });
 
-function toggleFeature() {
+async function toggleFeature() {
   if (!config.value) return;
 
   // Toggle the feature
@@ -219,6 +219,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
+    await nextTick();
     emit("toggle", "streaming-mode");
   }
 }

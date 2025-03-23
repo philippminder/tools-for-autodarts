@@ -21,7 +21,7 @@ import {
 } from "@/utils/storage";
 
 import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
-import { fetchWithAuth } from "@/utils/helpers";
+import { fetchWithAuth, isSafari, isiOS } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import Animations from "@/entrypoints/match.content/Animations.vue";
@@ -41,7 +41,7 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx: any) {
     AutodartsToolsUrlStatus.watch(async (url: string) => {
-      if (!url) url = window.location.href;
+      if (!url && (isiOS() || isSafari())) url = window.location.href;
 
       if (/\/(matches|boards)\/([0-9a-f-]+)/.test(url)) {
         await waitForElement("#root > div > div:nth-of-type(2)");

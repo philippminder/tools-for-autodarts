@@ -28,7 +28,7 @@
             Disable Takeout Recognition
           </h3>
           <p class="w-2/3 text-white/70">
-            Disables the automatic takeout recognition. You'll have to manually click 'Next' after a takeout.
+            Disables the automatic takeout recognition and will stop the board after three darts. You'll have to manually click 'Next' after a takeout.
           </p>
         </div>
         <div class="flex">
@@ -49,12 +49,12 @@
 
 <script setup lang="ts">
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 
-function toggleFeature() {
+async function toggleFeature() {
   if (!config.value) return;
 
   // Toggle the feature
@@ -63,6 +63,7 @@ function toggleFeature() {
 
   // If we're enabling the feature, open settings
   if (!wasEnabled) {
+    await nextTick();
     emit("toggle", "disable-takeout-recognition");
   }
 }
@@ -71,9 +72,11 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  const currentConfig = await AutodartsToolsConfig.getValue();
-  await nextTick();
-  await updateConfigIfChanged(currentConfig, config.value, "disableTakeout");
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Streaming Mode setting changed");
 }, { deep: true });
 </script>
