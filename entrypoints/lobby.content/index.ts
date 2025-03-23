@@ -1,11 +1,11 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
+import { teamLobby } from "./team-lobby";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import type { IConfig } from "@/utils/storage";
 import {
   AutodartsToolsConfig,
   AutodartsToolsGlobalStatus,
-  AutodartsToolsLobbyStatus,
   AutodartsToolsUrlStatus,
 } from "@/utils/storage";
 import { discordWebhooks } from "@/entrypoints/lobby.content/discord-webhooks";
@@ -76,22 +76,8 @@ export default defineContentScript({
         }
 
         if (config.teamLobby.enabled) {
-          const lobbyStatus = await AutodartsToolsLobbyStatus.getValue();
-          if (lobbyStatus.isPrivate) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            await waitForElement(".ad-ext-player-name");
-            const username = (await AutodartsToolsGlobalStatus.getValue())?.user?.name;
-            const userElements = [ ...document.querySelectorAll(".ad-ext-player-name") ];
-            const userEl = userElements?.filter(el => el.textContent?.trim() === username);
-
-            if (userEl.length) {
-              const removeBtn = userEl[1].closest("tr")?.querySelector("button:last-of-type") as HTMLButtonElement;
-              removeBtn?.click();
-              startPlayerToBoardObserver();
-            } else {
-              console.log("Autodarts Tools: no user found in lobby");
-            }
-          }
+          await waitForElementWithTextContent("h2", "Lobby");
+          await initScript(teamLobby, url).catch(console.error);
         }
 
         const globalStatus = await AutodartsToolsGlobalStatus.getValue();
@@ -131,19 +117,4 @@ async function initRecentLocalPlayers(ctx: any) {
     },
   });
   recentLocalPlayersUI.mount();
-}
-
-function startPlayerToBoardObserver() {
-  const targetNode = document.querySelectorAll("table")[1];
-  if (!targetNode) {
-    console.error("Target node not found");
-    return;
-  }
-  playerToBoardObserver = new MutationObserver((m) => {
-    if (m.length <= 1) return;
-    const playerRow = (m[0].target as HTMLElement)?.closest("tr");
-    if (!playerRow) return;
-    [ ...playerRow.querySelectorAll("button") ].filter(el => el.textContent === "Use my board")[0]?.click();
-  });
-  playerToBoardObserver.observe(targetNode, { childList: true, subtree: true, attributes: false });
 }

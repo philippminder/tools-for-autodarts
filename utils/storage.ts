@@ -169,6 +169,49 @@ export interface IMatchStatus {
 
 export interface ILobbyStatus {
   isPrivate: boolean;
+  id?: string;
+  createdAt?: string;
+  variant?: string;
+  settings?: {
+    baseScore: number;
+    bullMode: string;
+    inMode: string;
+    maxRounds: number;
+    outMode: string;
+  };
+  bullOffMode?: string;
+  host?: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    userSettings: {
+      showCheckoutGuide: boolean;
+      countEachThrow: boolean;
+      showChalkboard: boolean;
+      showAnimations: boolean;
+      caller: string;
+      callerEmotion: string;
+      callerLanguage: string;
+      callerVolume: number;
+      callScores: boolean;
+      callCheckouts: boolean;
+      showSeasonalEffects: boolean;
+    };
+    country: string;
+    legsPlayed: number;
+    total180s: number;
+    average: number;
+    averageUntil170: number;
+    first9Average: number;
+    checkoutRate: number;
+    tournamentsPlayed: number;
+    tournamentWins: number;
+    tournamentAverage: number;
+    tournamentAverageUntil170: number;
+    tournament180s: number;
+  };
+  players?: any | null;
+  maxPlayers?: number;
 }
 
 export type TBoardStatus = BoardStatus | undefined;
@@ -515,21 +558,10 @@ export const defaultMatchStatus: IMatchStatus = {
   playerInfo: [],
 };
 
-export const defaultLobbyStatus: ILobbyStatus = {
-  isPrivate: false,
-};
-
 export const AutodartsToolsMatchStatus: WxtStorageItem<IMatchStatus, any> = storage.defineItem(
   "local:matchstatus",
   {
     defaultValue: defaultMatchStatus,
-  },
-);
-
-export const AutodartsToolsLobbyStatus: WxtStorageItem<ILobbyStatus, any> = storage.defineItem(
-  "local:lobbystatus",
-  {
-    defaultValue: defaultLobbyStatus,
   },
 );
 
