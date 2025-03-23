@@ -4,7 +4,6 @@ import type { ILobbyStatus } from "@/utils/storage";
 import type { ILobbies } from "@/utils/websocket-helpers";
 
 let lobbyDataWatcherUnwatch: any;
-let hostRemoved: boolean = false;
 
 export async function teamLobby() {
   console.log("Autodarts Tools: Team Lobby - Starting");
@@ -48,13 +47,24 @@ async function processTeamLobby(lobbyStatus: ILobbyStatus) {
   await new Promise(resolve => setTimeout(resolve, 200));
   await waitForElement(".ad-ext-player-name");
   const username = lobbyStatus.host?.name;
-  const userElements = [ ...document.querySelectorAll(".ad-ext-player-name > p") ];
-  const userEl = userElements?.filter(el => el.textContent?.trim()?.toLowerCase() === username?.toLowerCase());
 
-  if (userEl.length && !hostRemoved) {
-    const removeBtn = userEl[1]?.closest("tr")?.querySelector("button:last-of-type") as HTMLButtonElement;
-    removeBtn?.click();
-    hostRemoved = true;
+  // Find all tr elements that might contain player information
+  const rows = [ ...document.querySelectorAll("tr") ];
+
+  // Process each row
+  for (const row of rows) {
+    // Skip rows containing "via" text
+    if (row.textContent?.includes("via")) {
+      continue;
+    }
+
+    // Check if this row contains the host username
+    const playerNameElement = row.querySelector(".ad-ext-player-name > p");
+    if (playerNameElement?.textContent?.trim()?.toLowerCase() === username?.toLowerCase()) {
+      // Find and click the remove button
+      const removeBtn = row.querySelector("button:last-of-type") as HTMLButtonElement;
+      removeBtn?.click();
+    }
   }
 
   await new Promise(resolve => setTimeout(resolve, 200));
