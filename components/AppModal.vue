@@ -9,7 +9,8 @@
   >
     <div v-if="show" class="fixed inset-0 z-[var(--chakra-zIndices-modal)] flex items-center justify-center">
       <div
-        @click="$emit('close')"
+        @click="!disableBackdropClick && $emit('close')"
+        v-if="!hideBackdrop"
         class="absolute inset-0 bg-[var(--chakra-colors-whiteAlpha-200)] backdrop-blur-[var(--chakra-blur-sm)]"
       />
       <div
@@ -26,6 +27,7 @@
       >
         <AppButton
           @click="$emit('close')"
+          v-if="!hideCloseButton"
           class="absolute right-3 top-3"
           size="xs"
           auto
@@ -69,6 +71,18 @@ defineProps({
     type: String,
     default: "md",
     validator: (value: string) => [ "xs", "sm", "md", "lg", "xl" ].includes(value),
+  },
+  hideBackdrop: {
+    type: Boolean,
+    default: false,
+  },
+  disableBackdropClick: {
+    type: Boolean,
+    default: false,
+  },
+  hideCloseButton: {
+    type: Boolean,
+    default: false,
   },
 });
 

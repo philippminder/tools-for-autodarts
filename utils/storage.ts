@@ -157,16 +157,6 @@ export interface IPlayerInfo {
   matchHasSets?: boolean;
 }
 
-export interface IMatchStatus {
-  playerCount: number;
-  throws: string[];
-  turnPoints?: string ;
-  isInEditMode: boolean;
-  isInUndoMode: boolean;
-  hasWinner: boolean;
-  playerInfo: IPlayerInfo[];
-}
-
 export interface ILobbyStatus {
   isPrivate: boolean;
   id?: string;
@@ -525,7 +515,7 @@ export const defaultConfig: IConfig = {
 };
 
 export const AutodartsToolsConfig: WxtStorageItem<IConfig, any> = storage.defineItem(
-  "local:config",
+  "local:config-2-0-0",
   {
     defaultValue: defaultConfig,
   },
@@ -548,23 +538,6 @@ export const AutodartsToolsGlobalStatus: WxtStorageItem<IGlobalStatus, any> = st
   },
 );
 
-export const defaultMatchStatus: IMatchStatus = {
-  playerCount: 0,
-  throws: [],
-  turnPoints: undefined,
-  isInEditMode: false,
-  isInUndoMode: false,
-  hasWinner: false,
-  playerInfo: [],
-};
-
-export const AutodartsToolsMatchStatus: WxtStorageItem<IMatchStatus, any> = storage.defineItem(
-  "local:matchstatus",
-  {
-    defaultValue: defaultMatchStatus,
-  },
-);
-
 export const AutodartsToolsBoardStatus: WxtStorageItem<TBoardStatus, any> = storage.defineItem(
   "local:boardstatus",
   {
@@ -572,24 +545,10 @@ export const AutodartsToolsBoardStatus: WxtStorageItem<TBoardStatus, any> = stor
   },
 );
 
-export const AutodartsToolsSoundAutoplayStatus: WxtStorageItem<boolean, any> = storage.defineItem(
-  "local:soundstartstatus",
-  {
-    defaultValue: false,
-  },
-);
-
 export const AutodartsToolsUrlStatus: WxtStorageItem<string, any> = storage.defineItem(
   "local:urlstatus",
   {
     defaultValue: typeof window !== "undefined" ? window.location.href.split("#")[0] || "undefined" : "undefined",
-  },
-);
-
-export const AutodartsToolsCricketClosedPoints: WxtStorageItem<number[], any> = storage.defineItem(
-  "local:cricketpointsstatus",
-  {
-    defaultValue: [],
   },
 );
 

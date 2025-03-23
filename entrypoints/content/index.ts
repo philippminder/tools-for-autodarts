@@ -2,9 +2,11 @@ import "~/assets/tailwind.css";
 import { createApp } from "vue";
 import App from "./App.vue";
 import { waitForElement } from "@/utils";
-import { AutodartsToolsGlobalStatus, AutodartsToolsSoundAutoplayStatus, AutodartsToolsUrlStatus } from "@/utils/storage";
+import { AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus } from "@/utils/storage";
 import { isiOS } from "@/utils/helpers";
-import { getMenu } from "@/utils/getElements";
+import Migration from "@/components/Migration.vue";
+
+let migrationModalUI: any;
 
 export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
@@ -38,6 +40,15 @@ export default defineContentScript({
       console.error("Failed to inject auth cookie script:", error);
     }
 
+    try {
+      const storage = await browser.storage.local.get("config");
+      if (storage.config) {
+        await initMigrationModal(ctx);
+      }
+    } catch (error) {
+      console.error("Failed to check for migration data:", error);
+    }
+
     if (window.location.href.includes("/tools")) {
       document.querySelector("#root")?.remove();
       window.location.href = "/settings";
@@ -47,23 +58,6 @@ export default defineContentScript({
       }
       await waitForElement("#root > div:nth-of-type(1)", 15000);
 
-      // wait until avatar image is loaded
-      setTimeout(async () => {
-        const userNameWithAvatar = getMenu()?.lastElementChild?.querySelector("button img")?.getAttribute("alt")?.trim();
-        const userNameWithoutAvatar = getMenu()?.lastElementChild?.querySelector("button div[role='img']")?.getAttribute("aria-label")?.trim();
-
-        const username = userNameWithAvatar || userNameWithoutAvatar;
-
-        if (username?.length) {
-          const globalStatus = await AutodartsToolsGlobalStatus.getValue();
-          await AutodartsToolsGlobalStatus.setValue({
-            ...globalStatus,
-            user: { name: username },
-          });
-        }
-      }, 2000);
-
-      await AutodartsToolsSoundAutoplayStatus.setValue(false);
       await waitForElement("#root > div > div:nth-of-type(2)", 15000);
       const ui = await createShadowRootUi(ctx, {
         name: "autodarts-tools-wxt",
@@ -85,3 +79,24 @@ export default defineContentScript({
     }
   },
 });
+
+async function initMigrationModal(ctx) {
+  migrationModalUI = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-migration-modal",
+    position: "inline",
+    anchor: "#root > div > div:nth-of-type(2)",
+    onMount: (container) => {
+      console.log("Autodarts Tools: Takeout initialized");
+      const takeout = createApp(Migration);
+      takeout.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return takeout;
+    },
+    onRemove: (takeout) => {
+      takeout?.unmount();
+    },
+  });
+  migrationModalUI.mount();
+}

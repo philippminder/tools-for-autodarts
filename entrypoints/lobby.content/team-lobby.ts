@@ -17,25 +17,6 @@ export async function teamLobby() {
         processTeamLobby(data).catch(console.error);
       });
     }
-
-    // const lobbyStatus = await AutodartsToolsLobbyStatus.getValue();
-    //       console.log(lobbyStatus);
-
-    //       if (lobbyStatus.isPrivate) {
-    //         await new Promise(resolve => setTimeout(resolve, 200));
-    //         await waitForElement(".ad-ext-player-name");
-    //         const username = (await AutodartsToolsGlobalStatus.getValue())?.user?.name;
-    //         const userElements = [ ...document.querySelectorAll(".ad-ext-player-name") ];
-    //         const userEl = userElements?.filter(el => el.textContent?.trim() === username);
-
-    //         if (userEl.length) {
-    //           const removeBtn = userEl[1].closest("tr")?.querySelector("button:last-of-type") as HTMLButtonElement;
-    //           removeBtn?.click();
-    //           startPlayerToBoardObserver();
-    //         } else {
-    //           console.log("Autodarts Tools: no user found in lobby");
-    //         }
-    //       }
   } catch (e) {
     console.error("Autodarts Tools: Team Lobby - Error: ", e);
   }

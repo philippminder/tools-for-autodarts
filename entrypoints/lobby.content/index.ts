@@ -5,7 +5,6 @@ import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import type { IConfig } from "@/utils/storage";
 import {
   AutodartsToolsConfig,
-  AutodartsToolsGlobalStatus,
   AutodartsToolsUrlStatus,
 } from "@/utils/storage";
 import { discordWebhooks } from "@/entrypoints/lobby.content/discord-webhooks";
@@ -17,9 +16,6 @@ import { processWebSocketMessage } from "@/utils/websocket-helpers";
 
 let recentLocalPlayersUI: any;
 let lobbyReadyUnwatch: any;
-
-let playerToBoardObserver: MutationObserver;
-
 export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
   cssInjectionMode: "ui",
@@ -79,13 +75,9 @@ export default defineContentScript({
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(teamLobby, url).catch(console.error);
         }
-
-        const globalStatus = await AutodartsToolsGlobalStatus.getValue();
-        await AutodartsToolsGlobalStatus.setValue({ ...globalStatus, isFirstStart: true });
       } else {
         await onAutoStartRemove();
         await onShufflePlayersRemove();
-        playerToBoardObserver?.disconnect();
       }
     });
   },
