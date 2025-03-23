@@ -326,7 +326,14 @@ function removeInteractionNotification(): void {
  * Process game data to trigger sounds based on game events
  */
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
-  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns?.length) return;
+  if (!gameData.match || !gameData.match.turns?.length) return;
+
+  const editMode: boolean = gameData.match.activated !== undefined && gameData.match.activated >= 0;
+  if (editMode) {
+    // If in edit mode, stop all sounds that are currently playing
+    stopAllSounds();
+    return;
+  }
 
   // For Cricket, trigger appropriate sound based on what was hit
   if (gameData.match.variant === "Cricket"
@@ -381,13 +388,6 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
-
-  const editMode: boolean = gameData.match.activated !== undefined && gameData.match.activated >= 0;
-  if (editMode) {
-    // If in edit mode, stop all sounds that are currently playing
-    stopAllSounds();
-    return;
-  }
 
   const currentPlayerIndex = gameData.match.player;
   const isLastThrow: boolean = gameData.match.turns[0].throws.length >= 3;

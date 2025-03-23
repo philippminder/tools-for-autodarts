@@ -326,7 +326,14 @@ function removeInteractionNotification(): void {
  * Process game data to trigger sounds based on game events
  */
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
-  if (!gameData.match || gameData.match.activated !== undefined || !gameData.match.turns?.length) return;
+  if (!gameData.match || !gameData.match.turns?.length) return;
+
+  const editMode: boolean = gameData.match.activated !== undefined && gameData.match.activated >= 0;
+  if (editMode) {
+    // If in edit mode, stop all sounds that are currently playing
+    stopAllSounds();
+    return;
+  }
 
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.variant !== "Bull-off" && gameData.match.player === 0) {
@@ -366,13 +373,6 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
-
-  const editMode: boolean = gameData.match.activated !== undefined && gameData.match.activated >= 0;
-  if (editMode) {
-    // If in edit mode, stop all sounds that are currently playing
-    stopAllSounds();
-    return;
-  }
 
   const currentPlayerIndex = gameData.match.player;
   const isLastThrow: boolean = gameData.match.turns[0].throws.length >= 3;
