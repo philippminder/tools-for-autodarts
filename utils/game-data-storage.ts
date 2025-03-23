@@ -1,6 +1,6 @@
 import type { WxtStorageItem } from "wxt/storage";
 import { storage } from "wxt/storage";
-import type { ILobbies, IMatch } from "./websocket-helpers";
+import type { IMatch } from "./websocket-helpers";
 
 export enum GameMode {
   X01 = "X01",
@@ -19,14 +19,12 @@ export enum GameMode {
 export interface IGameData {
   private: boolean;
   gameMode: GameMode;
-  lobby: ILobbies | undefined;
   match: IMatch | undefined;
 }
 
 export const defaultGameData: IGameData = {
   private: false,
   gameMode: GameMode.X01,
-  lobby: undefined,
   match: undefined,
 };
 

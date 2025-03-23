@@ -1,5 +1,6 @@
 import { AutodartsToolsBoardData, type IBoard } from "./board-data-storage";
 import { AutodartsToolsGameData } from "./game-data-storage";
+import { AutodartsToolsLobbyData } from "./lobby-data-storage";
 
 interface IUserSettings {
   callCheckouts: boolean;
@@ -204,11 +205,7 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
       const id = window.location.href.match(/lobbies\/([0-9a-f-]+)/)?.[1];
       if (id !== data.id) return;
 
-      const gameData = await AutodartsToolsGameData.getValue();
-      AutodartsToolsGameData.setValue({
-        ...gameData,
-        lobby: data as ILobbies,
-      });
+      AutodartsToolsLobbyData.setValue(data as ILobbies);
 
       break;
     }
