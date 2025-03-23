@@ -78,7 +78,7 @@ You can assign sounds to be played based on these triggers:
 - **Special Voice Lines**:
   - `gameon`: At the start of a new game
   - `gameshot`: When a player wins the game
-  - `you_require`: For checkout callouts
+  - `you_require`: Plays before announcing checkout combinations (numbers are called separately)
   - `busted`: When a player busts
   - `double`, `triple`: Generic announcements for dart types
   - `outside`: When a dart lands outside the scoring area
@@ -86,6 +86,19 @@ You can assign sounds to be played based on these triggers:
 - **Cricket-Specific**:
   - `cricket_hit`: When a player hits a Cricket target (15-20 and Bull)
   - `cricket_miss`: When a player hits a non-Cricket target (Miss-14)
+
+#### Cricket Mode Behavior
+In Cricket games, the caller has specific behavior:
+- `cricket_hit` is triggered when a player hits a target that's still open (15-20 and Bull)
+- `cricket_miss` is triggered when a player hits any other number (Miss-14) or hits a target that's already closed by all players
+- Regular throw sounds (like `t20`, `d16`) are still announced when enabled
+
+#### Audio Interaction Requirements
+Due to browser security policies, especially on Safari and mobile browsers, audio can only be played after user interaction (click, tap, or keypress). The extension will:
+- Automatically detect when audio can't be played
+- Show a notification prompting the user to interact with the page
+- Automatically unlock audio playback once interaction occurs
+- Queue up sounds to ensure nothing is missed during this process
 
 #### Predefined Caller Sets
 The extension comes with ready-to-use caller sets that you can easily import:
@@ -122,28 +135,35 @@ The Sound FX feature adds ambient sound effects to your gameplay experience:
 
 #### Game Event Sounds
 Add sound effects for various game events:
-- **Points**: Sounds can be triggered for any score from `0` to `180`
+- **Point Triggers**: Sounds can be triggered for any score from `0` to `180`
 - **Individual Throws**: Sounds for specific throws like `s20`, `d16`, `t19`, etc.
 - **Combined Throws**: Trigger sounds based on a sequence of throws using format `s20_t19_d12`
 - **Special Events**: Dedicated sounds for `gameshot`, `busted`, and more
-- **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the format `gameshot_player_name` or `ambient_gameshot_player_name`
+- **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the following formats:
+  - `gameshot_player_name` (spaces preserved)
+  - `gameshot_player_name` (with underscores replacing spaces)
+  - With ambient prefix: `ambient_gameshot_player_name`
 - **Cricket Mode**: Special triggers for Cricket games:
-  - `cricket_hit`: Triggered when hitting Cricket targets (15-20 and Bull)
-  - `cricket_miss`: Triggered when hitting non-Cricket targets (Miss-14)
+  - `cricket_hit`: Triggered when hitting Cricket targets (15-20 and Bull) that are still open
+  - `cricket_miss`: Triggered when hitting non-Cricket targets (Miss-14) or hitting targets already closed by all players
 
 #### Ambient Sound Prefix
 - Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_t20`) to create separate sound sets for caller and ambient sounds
 - This allows you to have professional voice announcements via the Caller while also having fun sound effects via Sound FX
 
 #### Smart Fallback System
-The Sound FX feature includes a multi-level fallback system:
+The Sound FX feature includes a sophisticated multi-level fallback system:
 - If an exact match with `ambient_` prefix isn't found, it tries without the prefix
-- For segment triggers like `ambient_t20`, it tries multiple fallbacks:
-  - First checks for direct `t20` (without ambient prefix)
-  - Then tries `ambient_triple` + `ambient_20` or `ambient_triple` + `20`
-  - Falls back to `triple` + `20` if ambient prefixed versions aren't found
+- For segment triggers like `ambient_t20`, it tries multiple fallbacks in this order:
+  1. Exact match: `ambient_t20`
+  2. Without ambient prefix: `t20`
+  3. Split into word+number: `ambient_triple` + `ambient_20`
+  4. Non-ambient word+number: `triple` + `20`
+  5. Just the number: `20`
+- Similar fallback chains exist for double segments (`d16`) and single segments (`s1`)
 - For `miss` or `m` prefixed throws, it falls back to `outside` sounds
-- If no match is found for any of these combinations, it doesn't play any sound
+- In Cricket games, `miss` triggers may fall back to `cricket_miss` sounds
+- If no match is found after all fallback attempts, no sound is played
 
 #### Technical Features
 - **Queue Management**: Sounds are carefully queued to prevent overlapping
