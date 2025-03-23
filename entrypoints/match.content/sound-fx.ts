@@ -335,6 +335,8 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     return;
   }
 
+  if (gameData.match.variant === "Bull-off") return;
+
   // For Cricket, trigger appropriate sound based on what was hit
   if (gameData.match.variant === "Cricket"
       && gameData.match.turns[0].throws.length > 0

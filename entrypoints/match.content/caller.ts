@@ -335,6 +335,8 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     return;
   }
 
+  if (gameData.match.variant === "Bull-off") return;
+
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.variant !== "Bull-off" && gameData.match.player === 0) {
     playSound("gameon");
