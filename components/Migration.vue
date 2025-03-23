@@ -1,5 +1,5 @@
 <template>
-  <AppModal @close="closeModal" :show="showModal" title="Update Available" :disable-backdrop-click="true" :hide-close-button="true">
+  <AppModal @close="closeModal" size="lg" :show="showModal" title="Update Available" :disable-backdrop-click="true" :hide-close-button="true">
     <p class="mb-4 text-[var(--chakra-colors-whiteAlpha-900)]">
       A new version of <b>Tools for Autodarts</b> is available. You can migrate your settings now or continue with default settings.
     </p>
@@ -23,7 +23,7 @@
         Continue without
       </AppButton>
       <AppButton @click="migrateSettings" type="success">
-        Migrate settings now
+        Migrate now
       </AppButton>
     </template>
   </AppModal>
