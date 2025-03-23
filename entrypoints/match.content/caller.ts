@@ -36,6 +36,7 @@ export async function caller() {
 
   try {
     config = await AutodartsToolsConfig.getValue();
+    const gameData = await AutodartsToolsGameData.getValue();
     console.log("Autodarts Tools: Config loaded", config?.caller?.sounds?.length || 0, "sounds available");
 
     // Initialize audio player for Safari compatibility
@@ -56,6 +57,8 @@ export async function caller() {
           debounceTimer = null;
         }, DEBOUNCE_DELAY);
       });
+
+      processGameData(gameData, gameData);
     }
   } catch (error) {
     console.error("Autodarts Tools: caller initialization error", error);
