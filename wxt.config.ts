@@ -24,7 +24,7 @@ export default defineConfig({
     ],
     permissions: [
       "storage",
-      "*://discord.com/api/webhooks/*",
+      // "*://discord.com/api/webhooks/*",
     ],
     name: "Tools for Autodarts",
     description: "Tools for Autodarts enhances the gaming experience on autodarts.io",
