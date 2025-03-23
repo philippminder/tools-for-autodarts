@@ -368,7 +368,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   if (!currentThrow) return;
 
   const editMode: boolean = gameData.match.activated !== undefined && gameData.match.activated >= 0;
-  if (editMode) return;
+  if (editMode) {
+    // If in edit mode, stop all sounds that are currently playing
+    stopAllSounds();
+    return;
+  }
 
   const currentPlayerIndex = gameData.match.player;
   const isLastThrow: boolean = gameData.match.turns[0].throws.length >= 3;
@@ -898,3 +902,28 @@ setInterval(() => {
     blobUrlsToRevoke.push(...urlsToKeep);
   }
 }, 60000); // Check every minute
+
+/**
+ * Stops all currently playing sounds and clears the sound queue
+ */
+function stopAllSounds(): void {
+  console.log("Autodarts Tools: Stopping all sounds due to edit mode");
+
+  // Clear the sound queue
+  soundQueue.length = 0;
+
+  // Stop the main audio player if it exists
+  if (audioPlayer) {
+    audioPlayer.pause();
+    audioPlayer.currentTime = 0;
+  }
+
+  // Stop all audio elements in the pool
+  audioPool.forEach((audio) => {
+    audio.pause();
+    audio.currentTime = 0;
+  });
+
+  // Reset playing flag
+  isPlaying = false;
+}
