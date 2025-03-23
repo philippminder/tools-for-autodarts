@@ -43,7 +43,7 @@ export default defineContentScript({
     AutodartsToolsUrlStatus.watch(async (url: string) => {
       if (!url && (isiOS() || isSafari())) url = window.location.href;
 
-      if (/\/(matches|boards)\/([0-9a-f-]+)/.test(url)) {
+      if (/\/(matches|boards)\/([0-9a-f-]+)/.test(url) && !url.includes("history")) {
         await waitForElement("#root > div > div:nth-of-type(2)");
 
         // Extract lobby ID from URL and fetch lobby data
