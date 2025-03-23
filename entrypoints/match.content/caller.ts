@@ -374,10 +374,10 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   const currentThrow = gameData.match.turns[0].throws[gameData.match.turns[0].throws.length - 1];
   if (!currentThrow) return;
 
-  const currentPlayerIndex = gameData.match.player;
+  // const currentPlayerIndex = gameData.match.player;
   const isLastThrow: boolean = gameData.match.turns[0].throws.length >= 3;
   const throwName: string = currentThrow.segment.name; // S1
-  const winner: boolean = gameData.match.winner >= 0 || (gameData.match.variant === "X01" && gameData.match.gameScores[currentPlayerIndex] === 0);
+  const winner: boolean = gameData.match.gameWinner >= 0; // use this for ambient_gameshot_match later || (gameData.match.variant === "X01" && gameData.match.gameScores[currentPlayerIndex] === 0);
   const busted: boolean = gameData.match.turns[0].busted;
   const points: number = gameData.match.turns[0].points;
   const score: number = gameData.match.turns[0].score;

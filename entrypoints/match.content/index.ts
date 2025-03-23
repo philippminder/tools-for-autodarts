@@ -209,6 +209,9 @@ async function initScript(fn: any, url: string) {
 function startActiveMatchObserver(ctx) {
   const targetNode = document.querySelector("#root > div > div:nth-of-type(2)");
   const observer = new MutationObserver(async () => {
+    const url = window.location.href;
+    if (!(/\/(matches|boards)\/([0-9a-f-]+)/.test(url))) return;
+
     // Check if the "Board has no active match" element no longer exists
     const activeMatch = window.location.href.includes("boards") ? !(await waitForElementWithTextContent("h2", "Board has no active match", 1000).catch(() => undefined)) : true;
 
