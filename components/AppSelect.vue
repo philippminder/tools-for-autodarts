@@ -13,7 +13,7 @@
           $attrs.class?.toString(),
         )"
       >
-        <option v-for="option in options" :key="option.value" :value="option.value">
+        <option v-for="option in options" :key="option.value" :value="option.value" class="bg-white text-gray-800">
           {{ option.label }}
         </option>
       </select>
