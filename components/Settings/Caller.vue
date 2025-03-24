@@ -565,13 +565,13 @@ const { notification, showNotification, hideNotification } = useNotification();
 // Predefined caller sets for the select input
 const callerSets = [
   { value: "", label: "Select a caller set (optional)" },
-  { value: "https://autodarts.x10.mx/russ_bray", label: "Russ Bray" },
-  { value: "https://autodarts.x10.mx/georgeno", label: "Georgeno" },
-  { value: "https://autodarts.x10.mx/shorty", label: "Shorty" },
-  { value: "https://autodarts.x10.mx/haulpinks", label: "Haulpinks" },
-  { value: "https://autodarts.x10.mx/lothar", label: "Lothar" },
-  { value: "https://autodarts.x10.mx/lidarts", label: "Lidarts" },
-  { value: "https://autodarts.x10.mx/bayrisch", label: "Bayrisch" },
+  // { value: "https://autodarts.x10.mx/russ_bray", label: "Russ Bray" },
+  // { value: "https://autodarts.x10.mx/georgeno", label: "Georgeno" },
+  // { value: "https://autodarts.x10.mx/shorty", label: "Shorty" },
+  // { value: "https://autodarts.x10.mx/haulpinks", label: "Haulpinks" },
+  // { value: "https://autodarts.x10.mx/lothar", label: "Lothar" },
+  // { value: "https://autodarts.x10.mx/lidarts", label: "Lidarts" },
+  // { value: "https://autodarts.x10.mx/bayrisch", label: "Bayrisch" },
   { value: "https://autodarts.x10.mx/1_male_eng", label: "Male English" },
 ];
 

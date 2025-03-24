@@ -650,7 +650,43 @@ function playSound(trigger: string): void {
     // But only if the trigger doesn't contain an underscore (to avoid combined throws)
     if (firstChar === "m" && !triggerWithoutAmbient.includes("_")) {
       // Existing miss fallback logic...
-      // ...
+      // Try ambient_miss first (though we're already here because it wasn't found)
+      matchingSounds = config.soundFx.sounds.filter(sound =>
+        sound.enabled && sound.triggers && sound.triggers.includes("ambient_miss"),
+      );
+
+      // If no ambient_miss, try ambient_outside
+      if (!matchingSounds.length) {
+        matchingSounds = config.soundFx.sounds.filter(sound =>
+          sound.enabled && sound.triggers && sound.triggers.includes("ambient_outside"),
+        );
+
+        if (matchingSounds.length) {
+          console.log("Autodarts Tools: Using fallback sound \"ambient_outside\" for miss");
+        }
+      }
+
+      // If no ambient_outside, try miss
+      if (!matchingSounds.length) {
+        matchingSounds = config.soundFx.sounds.filter(sound =>
+          sound.enabled && sound.triggers && sound.triggers.includes("miss"),
+        );
+
+        if (matchingSounds.length) {
+          console.log("Autodarts Tools: Using fallback sound \"miss\"");
+        }
+      }
+
+      // If no miss, try outside as final fallback
+      if (!matchingSounds.length) {
+        matchingSounds = config.soundFx.sounds.filter(sound =>
+          sound.enabled && sound.triggers && sound.triggers.includes("outside"),
+        );
+
+        if (matchingSounds.length) {
+          console.log("Autodarts Tools: Using final fallback sound \"outside\" for miss");
+        }
+      }
     } else if (firstChar === "t") {
       // For triple (t) prefix, try multiple fallbacks
       const number = triggerWithoutAmbient.substring(1);
