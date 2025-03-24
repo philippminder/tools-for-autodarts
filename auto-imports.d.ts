@@ -41,6 +41,7 @@ declare global {
   const defineBackground: typeof import('wxt')['defineBackground']
   const defineComponent: typeof import('vue')['defineComponent']
   const defineContentScript: typeof import('wxt')['defineContentScript']
+  const defineUnlistedScript: typeof import('wxt')['defineUnlistedScript']
   const eagerComputed: typeof import('@vueuse/core')['eagerComputed']
   const effectScope: typeof import('vue')['effectScope']
   const extendRef: typeof import('@vueuse/core')['extendRef']

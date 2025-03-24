@@ -19,7 +19,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'disable-takeout-recognition'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -29,13 +28,13 @@
             Disable Takeout Recognition
           </h3>
           <p class="w-2/3 text-white/70">
-            Disables the automatic takeout recognition. You'll have to manually click 'Next' after a takeout.
+            Disables the automatic takeout recognition and will stop the board after three darts. You'll have to manually click 'Next' after a takeout.
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggle', 'disable-takeout-recognition')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.disableTakeout.enabled = !config.disableTakeout.enabled"
+            @click="toggleFeature"
             :type="config.disableTakeout.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -49,21 +48,35 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "disable-takeout-recognition");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.disableTakeout.enabled;
+  config.value.disableTakeout.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "disable-takeout-recognition");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Streaming Mode setting changed");
 }, { deep: true });
 </script>

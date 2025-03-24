@@ -1,7 +1,7 @@
 {
   "name": "autodarts-tools",
   "description": "Autodarts Tools enhances the gaming experience on autodarts.io",
-  "version": "1.7.2",
+  "version": "2.0.0",
   "type": "module",
   "author": {
     "name": "Tobias Thiele",
@@ -20,25 +20,23 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@floating-ui/dom": "^1.6.7",
-    "@headlessui/vue": "^1.7.22",
     "@iconify-json/pixelarticons": "^1.2.2",
-    "@sentry/browser": "^8.15.0",
     "@vueuse/components": "^10.11.0",
     "@vueuse/core": "^10.11.0",
+    "idb": "^8.0.2",
     "lodash": "^4.17.21",
     "mitt": "^3.0.1",
     "radix-vue": "^1.8.5",
-    "vue": "^3.4.31",
-    "vue-i18n": "^9.13.1"
+    "sortablejs": "^1.15.6",
+    "vue": "^3.4.31"
   },
   "devDependencies": {
     "@creazy231/eslint-config": "^1.0.15",
     "@iconify-json/material-symbols": "^1.2.15",
     "@iconify/tailwind": "^1.2.0",
-    "@intlify/unplugin-vue-i18n": "^4.0.0",
     "@types/eslint": "^8.56.10",
     "@types/lodash": "^4.17.6",
+    "@types/sortablejs": "^1.15.8",
     "@typescript-eslint/eslint-plugin": "^7.15.0",
     "@typescript-eslint/parser": "^7.15.0",
     "@vitejs/plugin-vue": "^4.6.2",
@@ -53,7 +51,6 @@
     "eslint-plugin-tailwindcss": "^3.17.4",
     "eslint-plugin-vue": "^9.26.0",
     "eventsource-parser": "^1.1.2",
-    "json-stringify-pretty-compact": "^4.0.0",
     "postcss": "^8.4.39",
     "tailwind-merge": "^2.3.0",
     "tailwindcss": "^3.4.4",
@@ -64,7 +61,7 @@
     "unplugin-vue-components": "^0.27.0",
     "vue-eslint-parser": "^9.4.3",
     "vue-tsc": "^2.0.24",
-    "wxt": "^0.18.10",
+    "wxt": "^0.19.29",
     "zx": "^7.2.3"
   },
   "packageManager": "yarn@1.22.22+sha256.c17d3797fb9a9115bf375e31bfd30058cac6bc9c3b8807a3d8cb2094794b51ca"

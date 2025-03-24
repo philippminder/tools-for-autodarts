@@ -4,6 +4,7 @@ import { waitForElement } from "@/utils";
 let colorChangeInterval: NodeJS.Timeout | null = null;
 
 export async function colorChange() {
+  console.log("Autodarts Tools: color change");
   handleChangeColor().catch(console.error);
   colorChangeInterval = setInterval(handleChangeColor, 500);
 }

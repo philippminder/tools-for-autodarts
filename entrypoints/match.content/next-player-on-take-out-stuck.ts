@@ -1,7 +1,9 @@
-import type { TBoardStatus } from "@/utils/storage";
-import { AutodartsToolsBoardStatus, AutodartsToolsConfig } from "@/utils/storage";
-import { BoardStatus } from "@/utils/types";
+import { AutodartsToolsConfig } from "@/utils/storage";
 import { waitForElementWithTextContent } from "@/utils";
+import type { IBoard } from "@/utils/board-data-storage";
+import { AutodartsToolsBoardData } from "@/utils/board-data-storage";
+
+let boardDataWatcherUnwatch: any;
 
 // Create a map to store event listeners
 const eventListenersMap = new Map();
@@ -28,6 +30,8 @@ function hasEventListener(eventName, callback) {
 
 export async function nextPlayerOnTakeOutStuck() {
   try {
+    console.warn("Autodarts Tools: Next player on take out stuck - TEST THIS WITH LIVE BOARD");
+
     const configValue = await AutodartsToolsConfig.getValue();
     if (!configValue || !configValue.nextPlayerOnTakeOutStuck || !configValue.nextPlayerOnTakeOutStuck.enabled) return;
 
@@ -52,13 +56,15 @@ export async function nextPlayerOnTakeOutStuck() {
       document.addEventListener("click", remove);
     }
 
-    AutodartsToolsBoardStatus.watch(async (boardStatus: TBoardStatus) => {
+    if (boardDataWatcherUnwatch) return;
+
+    boardDataWatcherUnwatch = AutodartsToolsBoardData.watch(async (boardData: IBoard) => {
       const nextBtnTextEl = document.getElementById("ad-ext_next-leg-text");
       nextBtnTextEl?.remove();
 
       if (takeOutTimout) clearInterval(takeOutTimout);
 
-      if (boardStatus === BoardStatus.TAKEOUT) {
+      if (boardData.status === "Takeout in progress") {
         const nextBtn = await waitForElementWithTextContent("button", "Next", 1000);
         if (!nextBtn) return;
 
@@ -86,9 +92,17 @@ export async function nextPlayerOnTakeOutStuck() {
             element?.remove();
           }
         }, 1000);
+      } else if (boardData.status !== "Takeout in progress") {
+        remove();
       }
     });
   } catch (e) {
     console.error("Autodarts Tools: Next player ion takeout stuck - Error: ", e);
+  }
+}
+
+export function nextPlayerOnTakeOutStuckOnRemove() {
+  if (boardDataWatcherUnwatch) {
+    boardDataWatcherUnwatch();
   }
 }

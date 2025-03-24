@@ -22,7 +22,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'team-lobby'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -36,9 +35,9 @@
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggle', 'team-lobby')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.teamLobby.enabled = !config.teamLobby.enabled"
+            @click="toggleFeature"
             :type="config.teamLobby.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -55,22 +54,36 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "team-lobby");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/team-lobby.png");
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.teamLobby.enabled;
+  config.value.teamLobby.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "team-lobby");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Team Lobby setting changed");
 }, { deep: true });
 </script>

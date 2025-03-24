@@ -36,30 +36,26 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'next-player-on-takeout-stuck'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
-      :class="{ 'opacity-50': config.disableTakeout.enabled }"
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 font-bold uppercase">
+          <h3 class="mb-1 flex items-center font-bold uppercase">
             Auto Next Player on Takeout
+            <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
+
           <p class="w-2/3 text-white/70">
             Automatically reset board and switch to next player if takeout stucks for {{ config?.nextPlayerOnTakeOutStuck?.sec || '5' }} seconds.
           </p>
-          <p v-if="config.disableTakeout.enabled" class="mt-2 text-sm italic text-amber-400">
-            Requires takeout recognition to be enabled
-          </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggle', 'next-player-on-takeout-stuck')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.nextPlayerOnTakeOutStuck.enabled = !config.nextPlayerOnTakeOutStuck.enabled"
+            @click="toggleFeature"
             :type="config.nextPlayerOnTakeOutStuck.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
-            :disabled="config.disableTakeout.enabled"
           >
             <span v-if="config.nextPlayerOnTakeOutStuck.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
@@ -71,12 +67,11 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig, updateConfigIfChanged } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "next-player-on-takeout-stuck");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 
 onMounted(async () => {
@@ -84,9 +79,22 @@ onMounted(async () => {
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await nextTick();
+  await updateConfigIfChanged(currentConfig, config.value, "nextPlayerOnTakeOutStuck");
 }, { deep: true });
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.nextPlayerOnTakeOutStuck.enabled;
+  config.value.nextPlayerOnTakeOutStuck.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "next-player-on-takeout-stuck");
+  }
+}
 </script>

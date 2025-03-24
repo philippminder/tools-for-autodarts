@@ -1,40 +1,20 @@
 <template>
-  <div :class="twMerge('w-full', wrapperClass)">
-    <label v-if="label" :for="id" class="mb-1 block text-sm font-semibold text-white/70">
-      {{ label }}
-    </label>
-    <div class="relative">
-      <div v-if="leftIcon" class="absolute inset-y-0 left-0 flex items-center pl-3">
-        <span :class="leftIcon" />
-      </div>
-      <input
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-        :id="id"
-        :type="type"
-        :value="modelValue"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :class="twMerge(
-          'w-full rounded-md border border-white/10 bg-transparent px-3 py-2 outline-none transition-colors',
-          'placeholder:text-white/40',
-          'focus:border-white/30',
-          disabled && 'cursor-not-allowed opacity-50',
-          size === 'sm' && 'px-2 py-1 text-sm',
-          size === 'lg' && 'px-4 py-3 text-lg',
-          error && 'border-red-500',
-          leftIcon && 'pl-10',
-          rightIcon && 'pr-10',
-          inputClass,
-        )"
-      >
-      <div v-if="rightIcon" class="absolute inset-y-0 right-0 flex items-center pr-3">
-        <span :class="rightIcon" />
-      </div>
-    </div>
-    <p v-if="error" class="mt-1 text-xs text-red-500">
-      {{ error }}
-    </p>
-    <p v-else-if="helperText" class="mt-1 text-xs text-white/50">
+  <div>
+    <label v-if="label" :for="id" class="mb-1 block text-sm font-medium text-white">{{ label }}</label>
+    <input
+      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      :id="id"
+      :value="modelValue"
+      :type="type"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :class="twMerge(
+        'w-full rounded-md border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-white/50 focus:border-white/40 focus:outline-none',
+        disabled && 'cursor-not-allowed opacity-60',
+        $attrs.class?.toString(),
+      )"
+    >
+    <p v-if="helperText" class="mt-1 text-xs text-white/60">
       {{ helperText }}
     </p>
   </div>
@@ -51,22 +31,15 @@ const props = withDefaults(defineProps<{
   modelValue: string;
   label?: string;
   placeholder?: string;
+  helperText?: string;
+  id?: string;
   type?: string;
   disabled?: boolean;
-  error?: string;
-  helperText?: string;
-  leftIcon?: string;
-  rightIcon?: string;
-  id?: string;
-  size?: "sm" | "md" | "lg";
-  inputClass?: string;
-  wrapperClass?: string;
 }>(), {
-  type: "text",
-  size: "md",
+  placeholder: "",
   id: `input-${Math.random().toString(36).substring(2, 9)}`,
-  inputClass: "",
-  wrapperClass: "",
+  type: "text",
+  disabled: false,
 });
 
 defineEmits([ "update:modelValue" ]);

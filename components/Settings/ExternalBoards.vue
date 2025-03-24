@@ -1,6 +1,5 @@
 <template>
   <div
-    @click="activeSettings = 'external-boards'"
     v-if="config"
     class="adt-container h-56 transition-transform hover:-translate-y-0.5"
   >
@@ -14,9 +13,9 @@
         </p>
       </div>
       <div class="flex">
-        <div class="absolute inset-0 cursor-pointer" />
+        <div @click="$emit('toggle', 'external-boards')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
-          @click="config.externalBoards.enabled = !config.externalBoards.enabled"
+          @click="toggleFeature"
           :type="config.externalBoards.enabled ? 'success' : 'default'"
           class="aspect-square !size-10 rounded-full p-0"
         >
@@ -32,12 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
 import { useStorage } from "@vueuse/core";
 import AppButton from "@/components/AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "external-boards");
+const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "external-boards");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/external-boards.png");
 
@@ -45,10 +44,25 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("External Boards setting changed");
 }, { deep: true });
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.externalBoards.enabled;
+  config.value.externalBoards.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "external-boards");
+  }
+}
 </script>

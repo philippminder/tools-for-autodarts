@@ -1,13 +1,16 @@
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { waitForElement } from "@/utils";
 
-export async function playerMatchDataLarger() {
+export async function largerLegsSets() {
   await waitForElement("#ad-ext-turn");
   try {
     const config = await AutodartsToolsConfig.getValue();
-    if (!config.legsSetsLarger.enabled && !config.playerMatchData.enabled) return;
-    const legsSetsLargerSize = config.legsSetsLarger.value || 3;
-    const playerMatchDataSize = config.playerMatchData.value || 1.5;
+
+    if (!config.largerLegsSets.enabled) {
+      return;
+    }
+
+    const legsSetsLargerSize = config.largerLegsSets.value || 3;
     document.querySelectorAll(".ad-ext-player").forEach((playerCardEl) => {
       playerCardEl?.querySelectorAll(".chakra-stack span").forEach((spanEl) => {
         if (spanEl.classList.contains("ad-ext-player-name")
@@ -18,17 +21,10 @@ export async function playerMatchDataLarger() {
         }
 
         const paragraph = spanEl.querySelector("p");
-        if (config.legsSetsLarger.enabled && paragraph) {
+        if (paragraph) {
           paragraph.style.fontSize = `${legsSetsLargerSize}rem`;
         }
       });
-
-      if (config.playerMatchData.enabled) {
-        const matchDataElement = playerCardEl?.querySelector("div:last-of-type > p") as HTMLElement | null;
-        if (matchDataElement) {
-          matchDataElement.style.fontSize = `${playerMatchDataSize}rem`;
-        }
-      }
     });
   } catch (e) {
     console.error("Autodarts Tools: Larger Legs / Sets - Error: ", e);

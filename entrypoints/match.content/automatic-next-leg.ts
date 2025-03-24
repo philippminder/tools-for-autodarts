@@ -4,6 +4,8 @@ import { BoardStatus } from "@/utils/types";
 import { waitForElement } from "@/utils";
 
 export async function automaticNextLeg() {
+  console.warn("Autodarts Tools: Automatic Next Leg - TEST THIS WITH LIVE BOARD");
+
   await waitForElement("#ad-ext-turn");
   try {
     const config: IConfig = await AutodartsToolsConfig.getValue();

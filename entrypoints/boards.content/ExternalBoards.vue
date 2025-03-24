@@ -74,7 +74,7 @@
 <script setup lang="ts">
 import AppButton from "@/components/AppButton.vue";
 import AppInput from "@/components/AppInput.vue";
-import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, updateConfigIfChanged } from "@/utils/storage";
 
 const config = ref();
 
@@ -84,16 +84,13 @@ const newBoard = reactive({
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  const currentConfig = await AutodartsToolsConfig.getValue();
+  await nextTick();
+  await updateConfigIfChanged(currentConfig, config.value, "externalBoards");
 }, { deep: true });
 
 onBeforeMount(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-
-  console.log(config.value.externalBoards);
 });
 
 async function handleAddBoard() {

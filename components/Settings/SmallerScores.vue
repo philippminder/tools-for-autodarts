@@ -26,7 +26,6 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'smaller-scores'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
@@ -40,13 +39,13 @@
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggle', 'smaller-scores')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.inactiveSmall.enabled = !config.inactiveSmall.enabled"
-            :type="config.inactiveSmall.enabled ? 'success' : 'default'"
+            @click="toggleFeature"
+            :type="config.smallerScores.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.inactiveSmall.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.smallerScores.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
@@ -59,11 +58,10 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "smaller-scores");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/smaller-scores.png");
 
@@ -71,10 +69,25 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Shuffle Players setting changed");
 }, { deep: true });
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.smallerScores.enabled;
+  config.value.smallerScores.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "smaller-scores");
+  }
+}
 </script>

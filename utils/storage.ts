@@ -3,6 +3,7 @@ import { storage } from "wxt/storage";
 import type { BoardStatus } from "@/utils/types";
 
 export interface IConfig {
+  version: number;
   discord: {
     enabled: boolean;
     manually: boolean;
@@ -45,13 +46,10 @@ export interface IConfig {
   takeout: {
     enabled: boolean;
   };
-  inactiveSmall: {
+  smallerScores: {
     enabled: boolean;
   };
   shufflePlayers: {
-    enabled: boolean;
-  };
-  caller: {
     enabled: boolean;
   };
   sounds: {
@@ -64,12 +62,18 @@ export interface IConfig {
       name: string;
     }[];
   };
-  menuDisabled: boolean;
-  legsSetsLarger: {
+  hideMenuInMatch: {
+    enabled: boolean;
+  };
+  largerLegsSets: {
     enabled: boolean;
     value: number;
   };
-  playerMatchData: {
+  largerPlayerMatchData: {
+    enabled: boolean;
+    value: number;
+  };
+  largerPlayerNames: {
     enabled: boolean;
     value: number;
   };
@@ -78,18 +82,6 @@ export interface IConfig {
     sec: number;
   };
   winnerAnimation: {
-    enabled: boolean;
-  };
-  thrownDartsOnWin: {
-    enabled: boolean;
-  };
-  liveViewRing: {
-    enabled: boolean;
-    size: number;
-    colorEnabled: boolean;
-    color: string;
-  };
-  nextPlayerAfter3darts: {
     enabled: boolean;
   };
   nextPlayerOnTakeOutStuck: {
@@ -104,24 +96,52 @@ export interface IConfig {
   };
   ring: {
     enabled: boolean;
+    size: number;
+    colorEnabled: boolean;
+    color: string;
   };
   animations: {
     enabled: boolean;
-    startDelay?: number;
-    endDelay?: number;
-    objectFit?: string;
-    winner: { data?: string; info: string }[];
-    bull: { data?: string; info: string }[];
-    oneEighty: { data?: string; info: string }[];
-    miss: { data?: string; info: string }[];
-    bust: { data?: string; info: string }[];
+    duration?: number;
+    delayStart?: number;
+    objectFit?: "cover" | "contain";
+    viewMode?: "full-page" | "board-only";
+    data: IAnimation[];
   };
+  caller: {
+    enabled: boolean;
+    callEveryDart: boolean;
+    callCheckout: boolean;
+    sounds: ISound[];
+  };
+  soundFx: {
+    enabled: boolean;
+    sounds: ISound[];
+  };
+}
+
+export interface ISound {
+  name: string;
+  url: string;
+  base64: string;
+  enabled: boolean;
+  triggers: string[];
+  soundId?: string;
+}
+
+export interface IAnimation {
+  url: string;
+  triggers: string[];
+  enabled: boolean;
 }
 
 export interface IGlobalStatus {
   isFirstStart: boolean;
   user: {
     name: string;
+  };
+  auth?: {
+    token: string;
   };
 }
 
@@ -137,23 +157,57 @@ export interface IPlayerInfo {
   matchHasSets?: boolean;
 }
 
-export interface IMatchStatus {
-  playerCount: number;
-  throws: string[];
-  turnPoints?: string ;
-  isInEditMode: boolean;
-  isInUndoMode: boolean;
-  hasWinner: boolean;
-  playerInfo: IPlayerInfo[];
-}
-
 export interface ILobbyStatus {
   isPrivate: boolean;
+  id?: string;
+  createdAt?: string;
+  variant?: string;
+  settings?: {
+    baseScore: number;
+    bullMode: string;
+    inMode: string;
+    maxRounds: number;
+    outMode: string;
+  };
+  bullOffMode?: string;
+  host?: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    userSettings: {
+      showCheckoutGuide: boolean;
+      countEachThrow: boolean;
+      showChalkboard: boolean;
+      showAnimations: boolean;
+      caller: string;
+      callerEmotion: string;
+      callerLanguage: string;
+      callerVolume: number;
+      callScores: boolean;
+      callCheckouts: boolean;
+      showSeasonalEffects: boolean;
+    };
+    country: string;
+    legsPlayed: number;
+    total180s: number;
+    average: number;
+    averageUntil170: number;
+    first9Average: number;
+    checkoutRate: number;
+    tournamentsPlayed: number;
+    tournamentWins: number;
+    tournamentAverage: number;
+    tournamentAverageUntil170: number;
+    tournament180s: number;
+  };
+  players?: any | null;
+  maxPlayers?: number;
 }
 
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
+  version: 1,
   discord: {
     enabled: false,
     manually: false,
@@ -196,7 +250,7 @@ export const defaultConfig: IConfig = {
   takeout: {
     enabled: false,
   },
-  inactiveSmall: {
+  smallerScores: {
     enabled: false,
   },
   shufflePlayers: {
@@ -204,6 +258,9 @@ export const defaultConfig: IConfig = {
   },
   caller: {
     enabled: false,
+    callEveryDart: false,
+    callCheckout: false,
+    sounds: [],
   },
   sounds: {
     enabled: false,
@@ -212,17 +269,28 @@ export const defaultConfig: IConfig = {
     enabled: false,
     boards: [],
   },
-  menuDisabled: false,
-  legsSetsLarger: { enabled: false, value: 2.5 },
-  playerMatchData: { enabled: false, value: 1.5 },
+  hideMenuInMatch: {
+    enabled: false,
+  },
+  largerLegsSets: {
+    enabled: false,
+    value: 2.5,
+  },
+  largerPlayerMatchData: {
+    enabled: false,
+    value: 1.5,
+  },
+  largerPlayerNames: {
+    enabled: false,
+    value: 2.5,
+  },
   automaticNextLeg: {
     enabled: false,
     sec: 5,
   },
-  winnerAnimation: { enabled: false },
-  thrownDartsOnWin: { enabled: false },
-  liveViewRing: { enabled: false, size: 2, colorEnabled: true, color: "#000000" },
-  nextPlayerAfter3darts: { enabled: false },
+  winnerAnimation: {
+    enabled: false,
+  },
   nextPlayerOnTakeOutStuck: {
     enabled: false,
     sec: 10,
@@ -235,47 +303,219 @@ export const defaultConfig: IConfig = {
   },
   ring: {
     enabled: false,
+    size: 2,
+    colorEnabled: true,
+    color: "#000000",
   },
   animations: {
     enabled: false,
-    startDelay: 1,
-    endDelay: 4,
+    duration: 5,
+    delayStart: 1,
     objectFit: "cover",
-    winner: [
-      { info: "https://media1.tenor.com/m/uhkDiMdcP44AAAAd/rapid-darts-darts.gif" },
-      { info: "https://media1.tenor.com/m/QriSf7Rc78cAAAAd/darts-niner.gif" },
-      { info: "https://media.tenor.com/VGyxDGucFyAAAAAM/dancing-bubbly.gif" },
-      { info: "https://media1.tenor.com/m/2SQcMaUE_D8AAAAd/celebrate-winner.gif" },
+    viewMode: "board-only",
+    data: [
+      {
+        url: "https://media.tenor.com/G4cRydvvtU4AAAAM/ted-hankey-darts.gif",
+        triggers: [ "t20_t20_bull" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/uhkDiMdcP44AAAAd/rapid-darts-darts.gif",
+        triggers: [ "gameshot" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/QriSf7Rc78cAAAAd/darts-niner.gif",
+        triggers: [ "gameshot" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/VGyxDGucFyAAAAAM/dancing-bubbly.gif",
+        triggers: [ "gameshot" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/2SQcMaUE_D8AAAAd/celebrate-winner.gif",
+        triggers: [ "gameshot" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/HhqlzHe8tXsAAAAd/bulls-eye-anderson.gif",
+        triggers: [ "bull", "s50" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/Oqlecl-G3xAAAAAd/simon-whitlock-darts-bull.gif",
+        triggers: [ "bull", "s50" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/pJJbIyu-Bf0AAAAd/tony-o-shea-tony.gif",
+        triggers: [ "bull", "s50" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/bYQ_X5uvRrIAAAAd/gerwyn-price-darts.gif",
+        triggers: [ "180" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/lTiUQMnV_qQAAAAC/gerwynprice-darts.gif",
+        triggers: [ "180" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/xFkVft-1xMQAAAAM/gerwyn-price-darts.gif",
+        triggers: [ "180" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/uL_HJCSQfkIAAAAM/throw-toss.gif",
+        triggers: [ "180" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/psyC1iEr058AAAAd/bulls-eye-animation.gif",
+        triggers: [ "outside" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/x715u156Jz4AAAAd/bbc-america-darts-bbca.gif",
+        triggers: [ "outside" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/sbknQ0awa2sAAAAM/bbc-america-darts-bbca.gif",
+        triggers: [ "outside" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/kD_PH0LHaHEAAAAM/sigh-growl.gif",
+        triggers: [ "outside" ],
+        enabled: true,
+      },
+      {
+        url: "https://media1.tenor.com/m/jaqTZHiIA7EAAAAd/james-wade-darts.gif",
+        triggers: [ "busted" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/LU60882wezcAAAAM/fallon-sherrock-sports.gif",
+        triggers: [ "busted" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/Rpa8qRNWZ3UAAAAM/glen-durrant-miss.gif",
+        triggers: [ "busted" ],
+        enabled: true,
+      },
+      {
+        url: "https://media.tenor.com/tfkMfGGbcLoAAAAM/bbc-america-darts-bbca.gif",
+        triggers: [ "busted" ],
+        enabled: true,
+      },
     ],
-    bull: [
-      { info: "https://media1.tenor.com/m/HhqlzHe8tXsAAAAd/bulls-eye-anderson.gif" },
-      { info: "https://media1.tenor.com/m/Oqlecl-G3xAAAAAd/simon-whitlock-darts-bull.gif" },
-      { info: "https://media1.tenor.com/m/pJJbIyu-Bf0AAAAd/tony-o-shea-tony.gif" },
-      { info: "https://media.tenor.com/G4cRydvvtU4AAAAM/ted-hankey-darts.gif" },
-    ],
-    oneEighty: [
-      { info: "https://media1.tenor.com/m/bYQ_X5uvRrIAAAAd/gerwyn-price-darts.gif" },
-      { info: "https://media1.tenor.com/m/lTiUQMnV_qQAAAAC/gerwynprice-darts.gif" },
-      { info: "https://media.tenor.com/xFkVft-1xMQAAAAM/gerwyn-price-darts.gif" },
-      { info: "https://media.tenor.com/uL_HJCSQfkIAAAAM/throw-toss.gif" },
-    ],
-    miss: [
-      { info: "https://media1.tenor.com/m/psyC1iEr058AAAAd/bulls-eye-animation.gif" },
-      { info: "https://media1.tenor.com/m/x715u156Jz4AAAAd/bbc-america-darts-bbca.gif" },
-      { info: "https://media.tenor.com/sbknQ0awa2sAAAAM/bbc-america-darts-bbca.gif" },
-      { info: "https://media.tenor.com/kD_PH0LHaHEAAAAM/sigh-growl.gif" },
-    ],
-    bust: [
-      { info: "https://media1.tenor.com/m/jaqTZHiIA7EAAAAd/james-wade-darts.gif" },
-      { info: "https://media.tenor.com/LU60882wezcAAAAM/fallon-sherrock-sports.gif" },
-      { info: "https://media.tenor.com/Rpa8qRNWZ3UAAAAM/glen-durrant-miss.gif" },
-      { info: "https://media.tenor.com/tfkMfGGbcLoAAAAM/bbc-america-darts-bbca.gif" },
+  },
+  soundFx: {
+    enabled: false,
+    sounds: [
+      {
+        name: "busted",
+        url: "https://www.myinstants.com/media/sounds/super-mario-dies.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_busted" ],
+      },
+      {
+        name: "triple",
+        url: "https://autodarts.x10.mx/beep_1.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_triple" ],
+      },
+      {
+        name: "t17",
+        url: "https://autodarts.x10.mx/beep_2_17.wav",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_t17" ],
+      },
+      {
+        name: "t18",
+        url: "https://autodarts.x10.mx/beep_2_18.wav",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_t18" ],
+      },
+      {
+        name: "t19",
+        url: "https://autodarts.x10.mx/beep_2_19.wav",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_t19" ],
+      },
+      {
+        name: "t20",
+        url: "https://autodarts.x10.mx/beep_2_20.wav",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_t20" ],
+      },
+      {
+        name: "bull",
+        url: "https://autodarts.x10.mx/beep_2_bullseye.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_bull" ],
+      },
+      {
+        name: "miss",
+        url: "https://autodarts.x10.mx/miss_1.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_miss" ],
+      },
+      {
+        name: "miss",
+        url: "https://autodarts.x10.mx/miss_2.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_miss" ],
+      },
+      {
+        name: "miss",
+        url: "https://autodarts.x10.mx/miss_3.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_miss" ],
+      },
+      {
+        name: "gameshot",
+        url: "https://www.myinstants.com/media/sounds/dart-winner.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "ambient_gameshot" ],
+      },
+      {
+        name: "cricket_miss",
+        url: "https://autodarts.x10.mx/sound_double_windart.wav",
+        base64: "",
+        enabled: true,
+        triggers: [ "cricket_miss" ],
+      },
+      {
+        name: "cricket_hit",
+        url: "https://autodarts.x10.mx/bonus-points.mp3",
+        base64: "",
+        enabled: true,
+        triggers: [ "cricket_hit" ],
+      },
     ],
   },
 };
 
 export const AutodartsToolsConfig: WxtStorageItem<IConfig, any> = storage.defineItem(
-  "local:config",
+  "local:config-2-0-0",
   {
     defaultValue: defaultConfig,
   },
@@ -286,40 +526,15 @@ export const defaultGlobalStatus: IGlobalStatus = {
   user: {
     name: "",
   },
+  auth: {
+    token: "",
+  },
 };
 
 export const AutodartsToolsGlobalStatus: WxtStorageItem<IGlobalStatus, any> = storage.defineItem(
   "local:globalstatus",
   {
     defaultValue: defaultGlobalStatus,
-  },
-);
-
-export const defaultMatchStatus: IMatchStatus = {
-  playerCount: 0,
-  throws: [],
-  turnPoints: undefined,
-  isInEditMode: false,
-  isInUndoMode: false,
-  hasWinner: false,
-  playerInfo: [],
-};
-
-export const defaultLobbyStatus: ILobbyStatus = {
-  isPrivate: false,
-};
-
-export const AutodartsToolsMatchStatus: WxtStorageItem<IMatchStatus, any> = storage.defineItem(
-  "local:matchstatus",
-  {
-    defaultValue: defaultMatchStatus,
-  },
-);
-
-export const AutodartsToolsLobbyStatus: WxtStorageItem<ILobbyStatus, any> = storage.defineItem(
-  "local:lobbystatus",
-  {
-    defaultValue: defaultLobbyStatus,
   },
 );
 
@@ -330,24 +545,10 @@ export const AutodartsToolsBoardStatus: WxtStorageItem<TBoardStatus, any> = stor
   },
 );
 
-export const AutodartsToolsSoundAutoplayStatus: WxtStorageItem<boolean, any> = storage.defineItem(
-  "local:soundstartstatus",
-  {
-    defaultValue: false,
-  },
-);
-
 export const AutodartsToolsUrlStatus: WxtStorageItem<string, any> = storage.defineItem(
   "local:urlstatus",
   {
-    defaultValue: window.location.href.split("#")[0],
-  },
-);
-
-export const AutodartsToolsCricketClosedPoints: WxtStorageItem<number[], any> = storage.defineItem(
-  "local:cricketpointsstatus",
-  {
-    defaultValue: [],
+    defaultValue: typeof window !== "undefined" ? window.location.href.split("#")[0] || "undefined" : "undefined",
   },
 );
 
@@ -357,3 +558,81 @@ export const AutodartsToolsStreamingModeStatus: WxtStorageItem<boolean, any> = s
     defaultValue: false,
   },
 );
+
+/**
+ * Map to track locks for each config key to prevent concurrent updates
+ */
+const configLocks = new Map<keyof IConfig, number>();
+
+/**
+ * Utility function to check if a config section has changed
+ * @param currentConfigSection The current config section from storage
+ * @param newConfigSection The new config section from the component
+ * @returns boolean indicating if the config sections are different
+ */
+export function hasConfigChanged<T>(currentConfigSection: T, newConfigSection: T): boolean {
+  return JSON.stringify(currentConfigSection) !== JSON.stringify(newConfigSection);
+}
+
+/**
+ * Updates the config only if the specified section has changed
+ * @param currentConfig The current config from storage
+ * @param newConfig The new config from the component
+ * @param configKey The key of the config section to check
+ * @returns Promise<void>
+ */
+export async function updateConfigIfChanged<K extends keyof IConfig>(
+  currentConfig: IConfig,
+  newConfig: IConfig | undefined,
+  configKey: K,
+): Promise<void> {
+  if (!newConfig) return;
+
+  /**
+   * This is needed because sometimes the config is updated multiple times in a row
+   * because of updated hooks from input fields getting triggered.
+   */
+  // Check if this config key is currently locked
+  const lockTime = configLocks.get(configKey);
+  if (lockTime && Date.now() - lockTime < 100) {
+    // Config is locked, skip update
+    return;
+  }
+
+  // Set lock for this config key
+  configLocks.set(configKey, Date.now());
+
+  if (!hasConfigChanged(currentConfig[configKey], newConfig[configKey])) return;
+
+  console.log("Autodarts Tools: Updating config", configKey, newConfig[configKey]);
+
+  // Get the latest config to ensure we have the most up-to-date values
+  const latestConfig = await AutodartsToolsConfig.getValue();
+
+  // Only update the specific section that changed
+  // Deep clone but preserve array types
+  const preserveArrays = (obj: any): any => {
+    if (obj === null || obj === undefined) return obj;
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => preserveArrays(item));
+    }
+
+    if (typeof obj === "object") {
+      const result: any = {};
+      for (const key in obj) {
+        result[key] = preserveArrays(obj[key]);
+      }
+      return result;
+    }
+
+    return obj;
+  };
+
+  const test = {
+    ...latestConfig,
+    [configKey]: preserveArrays(newConfig[configKey]),
+  };
+
+  await AutodartsToolsConfig.setValue(toRaw(test));
+}

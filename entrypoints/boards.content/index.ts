@@ -4,6 +4,7 @@ import { waitForElementWithTextContent } from "@/utils";
 import type { IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig, AutodartsToolsUrlStatus } from "@/utils/storage";
 import ExternalBoards from "@/entrypoints/boards.content/ExternalBoards.vue";
+import { isSafari, isiOS } from "@/utils/helpers";
 
 let externalBoardsUI: any;
 let boardsReadyUnwatch: any;
@@ -13,6 +14,8 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx: any) {
     boardsReadyUnwatch = AutodartsToolsUrlStatus.watch(async (url: string) => {
+      if (!url && (isiOS() || isSafari())) url = window.location.href;
+
       const config: IConfig = await AutodartsToolsConfig.getValue();
       if (url.endsWith("/boards")) {
         console.log("Autodarts Tools: Boards Ready");

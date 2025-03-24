@@ -21,14 +21,19 @@
               ]"
               button-size="sm"
             />
-            <AppInput
-              v-model="config.discord.url"
-              placeholder="Enter Discord webhook URL"
-              label="Webhook URL"
-              left-icon="icon-[pixelarticons--link]"
-              helper-text="The Discord webhook URL to send lobby invitations to"
-              size="sm"
-            />
+            <div class="relative">
+              <span class="absolute inset-y-0 left-3 flex items-center text-white/60">
+                <span class="icon-[pixelarticons--link]" />
+              </span>
+              <AppInput
+                v-model="config.discord.url"
+                placeholder="Enter Discord webhook URL"
+                label="Webhook URL"
+                class="pl-9"
+                helper-text="The Discord webhook URL to send lobby invitations to"
+                size="sm"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -38,14 +43,14 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'discord-webhooks'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 font-bold uppercase">
+          <h3 class="mb-1 flex items-center font-bold uppercase">
             Discord Webhooks
+            <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
           <p class="w-2/3 text-white/70">
             Whenever a <b>private</b> lobby opens, it sends the invitation link to your discord server using a
@@ -53,9 +58,9 @@
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggle', 'discord-webhooks')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.discord.enabled = !config.discord.enabled"
+            @click="toggleFeature"
             :type="config.discord.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
@@ -76,9 +81,10 @@ import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppRadioGroup from "../AppRadioGroup.vue";
 import AppInput from "../AppInput.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/discord-webhooks.png");
 
@@ -86,10 +92,25 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Discord Webhooks setting changed");
 }, { deep: true });
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.discord.enabled;
+  config.value.discord.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "discord-webhooks");
+  }
+}
 </script>

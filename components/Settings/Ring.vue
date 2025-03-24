@@ -17,10 +17,10 @@
               <!-- Ring Color Settings -->
               <div class="grid grid-cols-[5rem_5rem_5rem_auto] items-center gap-4">
                 <p>Ring color</p>
-                <AppToggle v-model="config.liveViewRing.colorEnabled" />
+                <AppToggle v-model="config.ring.colorEnabled" />
                 <input
-                  v-if="config.liveViewRing.colorEnabled"
-                  v-model="config.liveViewRing.color"
+                  v-if="config.ring.colorEnabled"
+                  v-model="config.ring.color"
                   type="color"
                   class="size-full overflow-hidden rounded border-none border-transparent p-0 outline-none"
                 >
@@ -30,7 +30,7 @@
               <div class="grid grid-cols-[5rem_5rem_auto] items-center gap-4">
                 <p>Ring size</p>
                 <input
-                  v-model="config.liveViewRing.size"
+                  v-model="config.ring.size"
                   type="number"
                   min="1"
                   max="9"
@@ -47,30 +47,34 @@
   <template v-else>
     <!-- Feature Card -->
     <div
-      @click="activeSettings = 'ring'"
       v-if="config"
       class="adt-container h-56 transition-transform hover:-translate-y-0.5"
     >
       <div class="relative z-10 flex h-full flex-col justify-between">
         <div>
-          <h3 class="mb-1 font-bold uppercase">
+          <h3 class="mb-1 flex items-center font-bold uppercase">
             Ring
+            <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
+
           <p class="w-2/3 text-white/70">
-            Displays a ring around the active player, making it easier to identify whose turn it is during gameplay.
+            Displays a ring with dart board numbers around the board view, enhancing visibility of the board segments during gameplay.
           </p>
         </div>
         <div class="flex">
-          <div class="absolute inset-0 cursor-pointer " />
+          <div @click="$emit('toggle', 'ring')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
           <AppButton
-            @click="config.liveViewRing.enabled = !config.liveViewRing.enabled"
-            :type="config.liveViewRing.enabled ? 'success' : 'default'"
+            @click="toggleFeature"
+            :type="config.ring.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.liveViewRing.enabled" class="icon-[pixelarticons--check]" />
+            <span v-if="config.ring.enabled" class="icon-[pixelarticons--check]" />
             <span v-else class="icon-[pixelarticons--close]" />
           </AppButton>
         </div>
+      </div>
+      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+        <img :src="imageUrl" alt="Ring" class="size-full object-cover opacity-70">
       </div>
     </div>
   </template>
@@ -80,19 +84,36 @@
 import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
 import AppToggle from "../AppToggle.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "ring");
+const emit = defineEmits([ "toggle", "settingChange" ]);
+useStorage("adt:active-settings", "ring");
 const config = ref<IConfig>();
+const imageUrl = browser.runtime.getURL("/images/ring.png");
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
 });
 
-watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Ring setting changed");
 }, { deep: true });
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.ring.enabled;
+  config.value.ring.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "ring");
+  }
+}
 </script>

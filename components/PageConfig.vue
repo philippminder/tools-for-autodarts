@@ -19,6 +19,16 @@
       :type="notification.type"
     />
 
+    <!-- Settings Modal -->
+    <SettingsModal
+      @close="closeSettingsModal"
+      v-if="activeSettings && getComponentForSetting(activeSettings)"
+      :show="showSettingsModal"
+      :title="getSettingTitle(activeSettings)"
+    >
+      <component @setting-change="handleSettingChange" :is="getComponentForSetting(activeSettings)" :config="config" />
+    </SettingsModal>
+
     <div class="mx-auto mb-16 max-w-[1366px] space-y-8">
       <div class="space-y-4">
         <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
@@ -69,7 +79,6 @@
             >
               <span class="icon-[material-symbols--settings-suggest-outline]" />
             </AppButton>
-            <input @change="handleImportFile" ref="importFileInput" type="file" accept=".json,.txt" class="hidden">
           </div>
         </div>
 
@@ -116,1100 +125,99 @@
           </div>
         </div>
 
-        <!-- Feature cards and settings grid for Lobbies tab -->
-        <div
-          v-if="activeTab === 0 && !showDangerZone"
-          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
-        >
-          <!-- First row of feature cards -->
-          <DiscordWebhooks class="feature-card" data-feature-index="1" />
-          <!-- Settings panel for DiscordWebhooks (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[0]) && getComponentForSetting(activeSettings) && activeSettings === 'discord-webhooks'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <AutoStart class="feature-card" data-feature-index="2" />
+        <!-- Feature cards grid for Lobbies tab -->
+        <template v-if="mounted">
+          <div
+            v-if="activeTab === 0 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <DiscordWebhooks @toggle="openSettingsModal('discord-webhooks')" @setting-change="updateConfig" class="feature-card" data-feature-index="1" />
+            <AutoStart @setting-change="updateConfig" class="feature-card" data-feature-index="2" />
 
-          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[0]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Second row of feature cards -->
+            <RecentLocalPlayers @toggle="openSettingsModal('recent-local-players')" @setting-change="updateConfig" class="feature-card" data-feature-index="3" />
+            <ShufflePlayers @setting-change="updateConfig" class="feature-card" data-feature-index="4" />
 
-          <!-- Second row of feature cards -->
-          <RecentLocalPlayers class="feature-card" data-feature-index="3" />
-          <!-- Settings panel for RecentLocalPlayers (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[1]) && getComponentForSetting(activeSettings) && activeSettings === 'recent-local-players'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <ShufflePlayers class="feature-card" data-feature-index="4" />
-
-          <!-- Settings panel for second row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[1]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Third row of feature cards -->
-          <TeamLobby class="feature-card" data-feature-index="5" />
-          <div class="feature-card" data-feature-index="6">
+            <!-- Third row of feature cards -->
+            <TeamLobby @setting-change="updateConfig" class="feature-card" data-feature-index="5" />
+            <div class="feature-card" data-feature-index="6">
             <!-- Placeholder for future feature -->
+            </div>
           </div>
 
-          <!-- Settings panel for third row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[2]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-        </div>
+          <!-- Feature cards grid for Matches tab -->
+          <div
+            v-if="activeTab === 1 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <DisableTakeoutRecognition @setting-change="updateConfig" class="feature-card" data-feature-index="7" />
+            <Colors @toggle="openSettingsModal('colors')" @setting-change="updateConfig" class="feature-card" data-feature-index="8" />
 
-        <!-- Feature cards and settings grid for Matches tab -->
-        <div
-          v-if="activeTab === 1 && !showDangerZone"
-          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
-        >
-          <!-- First row of feature cards -->
-          <DisableTakeoutRecognition class="feature-card" data-feature-index="7" />
-          <Colors class="feature-card" data-feature-index="8" />
-          <!-- Settings panel for Colors (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[3]) && getComponentForSetting(activeSettings) && activeSettings === 'colors'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Second row of feature cards -->
+            <TakeoutNotification @setting-change="updateConfig" class="feature-card" data-feature-index="9" />
+            <NextPlayerOnTakeoutStuck @toggle="openSettingsModal('next-player-on-takeout-stuck')" @setting-change="updateConfig" class="feature-card" data-feature-index="10" />
 
-          <!-- Settings panel for first row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[3]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Third row of feature cards -->
+            <AutomaticNextLeg @toggle="openSettingsModal('automatic-next-leg')" @setting-change="updateConfig" class="feature-card" data-feature-index="11" />
+            <SmallerScores @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="12" />
 
-          <!-- Second row of feature cards -->
-          <TakeoutNotification class="feature-card" data-feature-index="9" />
-          <NextPlayerOnTakeoutStuck class="feature-card" data-feature-index="10" />
-          <!-- Settings panel for NextPlayerOnTakeoutStuck (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[4]) && getComponentForSetting(activeSettings) && activeSettings === 'next-player-on-takeout-stuck'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
+            <!-- Fourth row of feature cards -->
+            <HideMenuInMatch @setting-change="updateConfig" class="feature-card" data-feature-index="13" />
+            <StreamingMode @toggle="openSettingsModal('streaming-mode')" @setting-change="updateConfig" class="feature-card" data-feature-index="14" />
 
-          <!-- Settings panel for second row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[4]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
+            <!-- Fifth row of feature cards -->
+            <LargerLegsSets @toggle="openSettingsModal('larger-legs-sets')" @setting-change="updateConfig" class="feature-card" data-feature-index="15" />
+            <LargerPlayerNames @toggle="openSettingsModal('larger-player-names')" @setting-change="updateConfig" class="feature-card" data-feature-index="16" />
+
+            <!-- Sixth row of feature cards -->
+            <LargerPlayerMatchData @toggle="openSettingsModal('larger-player-match-data')" @setting-change="updateConfig" class="feature-card" data-feature-index="17" />
+            <WinnerAnimation @setting-change="updateConfig" class="feature-card" data-feature-index="18" />
+
+            <!-- Seventh row of feature cards -->
+            <Ring @toggle="openSettingsModal('ring')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="19" />
           </div>
 
-          <!-- Third row of feature cards -->
-          <AutomaticNextLeg class="feature-card" data-feature-index="11" />
-          <!-- Settings panel for AutomaticNextLeg (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[5]) && getComponentForSetting(activeSettings) && activeSettings === 'automatic-next-leg'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <SmallerScores class="feature-card" data-feature-index="12" />
-
-          <!-- Settings panel for third row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[5]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Fourth row of feature cards -->
-          <HideMenuInMatch class="feature-card" data-feature-index="13" />
-          <StreamingMode class="feature-card" data-feature-index="14" />
-          <!-- Settings panel for StreamingMode (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[6]) && getComponentForSetting(activeSettings) && activeSettings === 'streaming-mode'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Settings panel for fourth row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[6]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Fifth row of feature cards -->
-          <LargerLegsSets class="feature-card" data-feature-index="15" />
-          <!-- Settings panel for LargerLegsSets (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-legs-sets'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-          <LargerPlayerMatchData class="feature-card" data-feature-index="16" />
-          <!-- Settings panel for LargerPlayerMatchData (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings) && activeSettings === 'larger-player-match-data'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Settings panel for fifth row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[7]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Sixth row of feature cards -->
-          <WinnerAnimation class="feature-card" data-feature-index="17" />
-          <ShowThrownDarts class="feature-card" data-feature-index="18" />
-
-          <!-- Settings panel for sixth row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[8]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Seventh row of feature cards -->
-          <AutomaticNextPlayerAfter3Darts class="feature-card" data-feature-index="19" />
-          <Ring class="feature-card" data-feature-index="20" />
-          <!-- Settings panel for Ring (only on small screens) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings) && activeSettings === 'ring'" class="lg:hidden" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-
-          <!-- Settings panel for seventh row (only if active setting has settings) - only on large screens -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[9]) && getComponentForSetting(activeSettings)" class="hidden lg:col-span-2 lg:block" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-        </div>
-
-        <!-- Feature cards and settings grid for Boards tab -->
-        <div
-          v-if="activeTab === 2 && !showDangerZone"
-          class="grid grid-cols-1 gap-5 lg:grid-cols-2"
-        >
-          <!-- First row of feature cards -->
-          <ExternalBoards class="feature-card" data-feature-index="21" />
-          <div class="feature-card" data-feature-index="22">
+          <!-- Feature cards grid for Boards tab -->
+          <div
+            v-if="activeTab === 2 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <ExternalBoards @setting-change="updateConfig" class="feature-card" data-feature-index="21" />
+            <div class="feature-card" data-feature-index="22">
             <!-- Placeholder for future feature -->
-          </div>
-
-          <!-- Settings panel for first row (only if active setting has settings) -->
-          <div v-if="isSettingInGroup(activeSettings, featureGroups[10]) && getComponentForSetting(activeSettings)" class="col-span-1 lg:col-span-2" :data-settings-id="activeSettings">
-            <component :is="getComponentForSetting(activeSettings)" />
-          </div>
-        </div>
-
-        <div
-          v-if="activeTab === 3 && config && !showDangerZone"
-        >
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Caller
-                </h2>
-                <p class="max-w-2xl text-white/40">
-                  Adds a caller.
-                </p>
-              </div>
-              <div class="grid grid-cols-[5rem_auto_50px] items-center gap-4">
-                <AppToggle v-model="config.caller.enabled" />
-                <div />
-                <button
-                  @click="callerConfig = defaultCallerConfig"
-                  v-if="config.caller.enabled"
-                  class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                >
-                  <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                </button>
-              </div>
-              <div v-if="config.caller.enabled && callerConfig">
-                <div class="grid gap-4">
-                  <div
-                    v-for="(_, index) in callerConfig.caller"
-                    :key="index"
-                    class="grid items-center gap-4 lg:grid-cols-[5rem_50px_2fr_5fr_1fr_1fr_50px_50px] lg:grid-rows-1"
-                  >
-                    <div>Caller {{ index + 1 }}</div>
-                    <button
-                      @click="setActive(index)"
-                      :disabled="!callerConfig.caller[index].url"
-                      :class="twMerge(
-                        'flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10',
-                        !callerConfig.caller[index].url && 'bg-white/2 hover:bg-white/2',
-                        callerConfig.caller[index].isActive && 'border-cyan-600 bg-cyan-600',
-                      )"
-                    >
-                      <span
-                        class="icon-[pixelarticons--check] text-xl"
-                        :class="twMerge(!callerConfig.caller[index].url && 'text-white/30')"
-                      />
-                    </button>
-                    <input
-                      v-model="callerConfig.caller[index].name"
-                      type="text"
-                      placeholder="Name (optional)"
-                      class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-                    >
-                    <input
-                      v-model="callerConfig.caller[index].url"
-                      type="text"
-                      placeholder="URL of folder with caller sound files"
-                      class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-                    >
-                    <div>
-                      <span>[filename]</span>
-                    </div>
-                    <input
-                      v-model="callerConfig.caller[index].fileExt"
-                      type="text"
-                      placeholder=".mp3"
-                      class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-                    >
-                    <button
-                      @click="playCallerSound(index)"
-                      :disabled="!callerConfig.caller[index].url"
-                      :class="twMerge(
-                        'flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10',
-                        !callerConfig.caller[index].url && 'bg-white/2 hover:bg-white/2',
-                      )"
-                    >
-                      <span
-                        class="icon-[pixelarticons--play] text-xl"
-                        :class="twMerge(!callerConfig.caller[index].url && 'text-white/30')"
-                      />
-                    </button>
-                    <button
-                      @click="callerConfig.caller.splice(index, 1)"
-                      class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                    >
-                      <span class="icon-[pixelarticons--trash] text-lg" />
-                    </button>
-                  </div>
-
-                  <div class="grid items-center gap-4 lg:grid-cols-[5rem_2fr_5fr_1fr_1fr_50px_50px] lg:grid-rows-1">
-                    <button
-                      @click="callerConfig.caller.push({ url: '' })"
-                      class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                    >
-                      <span class="icon-[pixelarticons--plus]" />
-                    </button>
-                    <div />
-                    <div />
-                    <div class="col-span-5 text-white/40">
-                      [filename] => 0-180, 'gameshot', 'gameshot and the match'
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Sounds
-                </h2>
-              </div>
-              <div class="grid grid-cols-[5rem_auto_50px] items-center gap-4">
-                <AppToggle v-model="config.sounds.enabled" />
-                <div />
-                <button
-                  @click="soundsConfig = defaultSoundsConfig"
-                  v-if="config.sounds.enabled"
-                  class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                >
-                  <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                </button>
-              </div>
-              <div v-if="config.sounds.enabled && soundsConfig" class="grid gap-4">
-                <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Triple</div>
-                  <input
-                    v-model="soundsConfig.T.info"
-                    type="text"
-                    :disabled="!!soundsConfig.T.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.T.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('T')"
-                    title="Play sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('T')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('T')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('T')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div
-                  v-for="tripleCount in tripleCountArr"
-                  :key="tripleCount"
-                  class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1"
-                >
-                  <div>T{{ tripleCount }}</div>
-                  <input
-                    v-model="soundsConfig[`T${tripleCount}`].info"
-                    type="text"
-                    :disabled="!!soundsConfig[`T${tripleCount}`].data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig[`T${tripleCount}`].data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound(`T${tripleCount}`)"
-                    title="Play sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload(`T${tripleCount}`)"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset(`T${tripleCount}`)"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove(`T${tripleCount}`)"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Bull</div>
-                  <input
-                    v-model="soundsConfig.bull.info"
-                    type="text"
-                    :disabled="!!soundsConfig.bull.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.bull.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('bull')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('bull')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('bull')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('bull')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Bust</div>
-                  <input
-                    v-model="soundsConfig.bust.info"
-                    type="text"
-                    :disabled="!!soundsConfig.bust.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.bust.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('bust')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('bust')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('bust')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('bust')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-
-                <div class="grid items-center gap-4 lg:grid-cols-[7rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Game on!</div>
-                  <input
-                    v-model="soundsConfig.gameOn.info"
-                    placeholder="sound to play when the game starts"
-                    type="text"
-                    :disabled="!!soundsConfig.gameOn.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.gameOn.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('gameOn')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('gameOn')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('gameOn')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('gameOn')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-
-                <div class="grid items-center gap-4 lg:grid-cols-[7rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Ready. Throw!</div>
-                  <input
-                    v-model="soundsConfig.playerStart.info"
-                    placeholder="sound to play when it's time to throw"
-                    type="text"
-                    :disabled="!!soundsConfig.playerStart.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.playerStart.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('playerStart')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('playerStart')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('playerStart')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('playerStart')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-
-                <div class="mt-1.5">
-                  <span class="font-semibold">
-                    Miss sounds
-                  </span>
-                  <span class="text-white/40">
-                    &nbsp;(random)
-                  </span>
-                </div>
-                <div
-                  v-for="(_, index) in soundsConfig.miss"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1"
-                >
-                  <div>Miss {{ index + 1 }}</div>
-                  <input
-                    v-model="soundsConfig.miss[index].info"
-                    type="text"
-                    :disabled="!!soundsConfig.miss[index].data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.miss[index].data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('miss', 1, index)"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('miss', index)"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('miss', index)"
-                    v-if="index <= 2"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <div v-else />
-                  <button
-                    @click="soundsConfig.miss.splice(index, 1)"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="soundsConfig.miss.push({ info: '' })"
-                    class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                </div>
-                <div class="mt-1.5">
-                  <span class="font-semibold">Bot throw sound</span>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Hit</div>
-                  <input
-                    v-model="soundsConfig.bot.info"
-                    type="text"
-                    :disabled="!!soundsConfig.bot.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.bot.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('bot')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('bot')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('bot')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('bot')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Miss</div>
-                  <input
-                    v-model="soundsConfig.botOutside.info"
-                    type="text"
-                    :disabled="!!soundsConfig.botOutside.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.botOutside.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('botOutside')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('botOutside')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('botOutside')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('botOutside')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="mt-1.5">
-                  <span class="font-semibold">Cricket sounds</span>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Hit</div>
-                  <input
-                    v-model="soundsConfig.cricketHit.info"
-                    type="text"
-                    :disabled="!!soundsConfig.cricketHit.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.cricketHit.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('cricketHit')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('cricketHit')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('cricketHit')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('cricketHit')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[5rem_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Miss</div>
-                  <input
-                    v-model="soundsConfig.cricketMiss.info"
-                    type="text"
-                    :disabled="!!soundsConfig.cricketMiss.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.cricketMiss.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('cricketMiss')"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('cricketMiss')"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('cricketMiss')"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('cricketMiss')"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="mt-1.5">
-                  <span class="font-semibold">Winner sounds</span>
-                </div>
-                <div
-                  v-for="(_, index) in soundsConfig.winner.slice(1)"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px_50px_50px_50px] lg:grid-rows-1"
-                >
-                  <input
-                    v-model="soundsConfig.winner[index + 1].name"
-                    placeholder="Player name"
-                    type="text"
-                    class="w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none"
-                  >
-                  <input
-                    v-model="soundsConfig.winner[index + 1].info"
-                    placeholder="URL of sound file"
-                    type="text"
-                    :disabled="!!soundsConfig.winner[index + 1].data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.winner[index + 1].data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('winner', 1, index + 1)"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('winner', index + 1)"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <div />
-                  <button
-                    @click="soundsConfig.winner.splice(index + 1, 1)"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px_50px_50px_50px] lg:grid-rows-1">
-                  <div>Fallback</div>
-                  <input
-                    v-model="soundsConfig.winner[0].info"
-                    type="text"
-                    :disabled="!!soundsConfig.winner[0].data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!soundsConfig.winner[0].data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="playSound('winner', 1, 0)"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--play] text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundUpload('winner', 0)"
-                    title="Upload sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--upload] text-lg" />
-                  </button>
-                  <button
-                    @click="handleSoundReset('winner', 0)"
-                    title="Reset sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                  >
-                    <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                  </button>
-                  <button
-                    @click="handleSoundRemove('winner', 0)"
-                    title="Remove sound"
-                    class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="soundsConfig.winner.push({ name: '', info: '' })"
-                    class="flex flex-nowrap items-center  justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                  <div>Play winner sound after every leg</div>
-                  <AppToggle v-model="winnerSoundOnLegWin" />
-                </div>
-              </div>
-            </div>
-            <div class="col-span-1 space-y-4 rounded border border-white/10 p-4 md:col-span-2">
-              <div>
-                <h2 class="text-lg font-semibold">
-                  Animations
-                </h2>
-              </div>
-              <div class="grid grid-cols-[5rem_auto_50px] items-center gap-4">
-                <AppToggle v-model="config.animations.enabled" />
-                <div />
-                <button
-                  @click="config.animations = defaultConfig.animations"
-                  v-if="config.animations.enabled"
-                  class="flex h-full flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none hover:bg-white/10"
-                >
-                  <span class="icon-[pixelarticons--reload] -scale-x-100 text-xl" />
-                </button>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div>Start delay</div>
-                <input
-                  v-model="config.animations.startDelay"
-                  placeholder="Time in seconds"
-                  type="number"
-                  :class="twMerge(
-                    'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                    !!config.animations.startDelay && 'text-white/40',
-                  )"
-                >
-                <div>End delay</div>
-                <input
-                  v-model="config.animations.endDelay"
-                  placeholder="Time in seconds"
-                  type="number"
-                  :class="twMerge(
-                    'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                    !!config.animations.startDelay && 'text-white/40',
-                  )"
-                >
-                <div>Image fit</div>
-                <select
-                  v-model="config.animations.objectFit"
-                  :class="twMerge(
-                    'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                  )"
-                >
-                  <option value="cover">
-                    Cover (fill screen, may crop)
-                  </option>
-                  <option value="contain">
-                    Contain (show full image)
-                  </option>
-                </select>
-                <div class="mt-1.5">
-                  <span class="font-semibold">Winner animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.winner"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.winner.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.winner.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">Bull animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.bull"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.bull.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.bull.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">180 animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.oneEighty"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.oneEighty.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.oneEighty.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">Miss animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.miss"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.miss.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.miss.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
-              <div v-if="config.animations.enabled" class="grid gap-4">
-                <div class="mt-1.5">
-                  <span class="font-semibold">Bust animations</span>
-                </div>
-                <div
-                  v-for="(animation, index) in config.animations.bust"
-                  :key="index"
-                  class="grid items-center gap-4 lg:grid-cols-[200px_auto_50px] lg:grid-rows-1"
-                >
-                  <img :src="animation.info">
-                  <input
-                    v-model="animation.info"
-                    placeholder="URL of gif file"
-                    type="text"
-                    :disabled="!!animation.data"
-                    :class="twMerge(
-                      'w-full rounded-md border border-white/10 bg-transparent px-2 py-1 outline-none',
-                      !!animation.data && 'text-white/40',
-                    )"
-                  >
-                  <button
-                    @click="config.animations.bust.splice(index, 1)"
-                    class="flex h-10 flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--trash] text-lg" />
-                  </button>
-                </div>
-                <div class="grid items-center gap-4 lg:grid-cols-[50px_138px_300px_50px_auto] lg:grid-rows-1">
-                  <button
-                    @click="config.animations.bust.push({ info: '' })"
-                    class="flex flex-nowrap items-center justify-center rounded-md border border-white/10 bg-white/5 p-2 outline-none"
-                  >
-                    <span class="icon-[pixelarticons--plus]" />
-                  </button>
-                  <div />
-                </div>
-              </div>
             </div>
           </div>
-        </div>
+
+          <!-- Feature cards grid for Sounds & Animations tab -->
+          <div
+            v-if="activeTab === 3 && !showDangerZone"
+            :key="reloadKey"
+            class="grid grid-cols-1 gap-5 lg:grid-cols-2"
+          >
+            <!-- First row of feature cards -->
+            <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="23" />
+            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="24" />
+
+            <!-- Second row of feature cards -->
+            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="25" />
+            <div class="feature-card" data-feature-index="26">
+            <!-- Placeholder for future feature -->
+            </div>
+          </div>
+        </template>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { twMerge } from "tailwind-merge";
-import { useStorage } from "@vueuse/core";
+import { useDebounceFn, useStorage } from "@vueuse/core";
 import DiscordWebhooks from "./Settings/DiscordWebhooks.vue";
 import AutoStart from "./Settings/AutoStart.vue";
 import RecentLocalPlayers from "./Settings/RecentLocalPlayers.vue";
@@ -1225,35 +233,33 @@ import StreamingMode from "./Settings/StreamingMode.vue";
 import HideMenuInMatch from "./Settings/HideMenuInMatch.vue";
 import LargerLegsSets from "./Settings/LargerLegsSets.vue";
 import LargerPlayerMatchData from "./Settings/LargerPlayerMatchData.vue";
+import LargerPlayerNames from "./Settings/LargerPlayerNames.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
-import ShowThrownDarts from "./Settings/ShowThrownDarts.vue";
-import AutomaticNextPlayerAfter3Darts from "./Settings/AutomaticNextPlayerAfter3Darts.vue";
 import Ring from "./Settings/Ring.vue";
-import ExternalBoards from "@/components/Settings/ExternalBoards.vue";
-import AppToggle from "@/components/AppToggle.vue";
-import type { IConfig } from "@/utils/storage";
-import type { ICallerConfig } from "@/utils/callerStorage";
+import Animations from "./Settings/Animations.vue";
+import Caller from "./Settings/Caller.vue";
+import ExternalBoards from "./Settings/ExternalBoards.vue";
+import SoundFx from "./Settings/SoundFx.vue";
+import type { IConfig, ISound } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
+import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCallerSoundsFromIndexedDB, getAllSoundFxFromIndexedDB, isIndexedDBAvailable, saveSoundFxToIndexedDB, saveSoundToIndexedDB } from "@/utils/helpers";
 import AppButton from "@/components/AppButton.vue";
-import { AutodartsToolsCallerConfig, defaultCallerConfig } from "@/utils/callerStorage";
-import type { ISoundsConfig, TSoundData } from "@/utils/soundsStorage";
-import { AutodartsToolsSoundsConfig, defaultSoundsConfig } from "@/utils/soundsStorage";
-import { playPointsSound, playSound } from "@/utils/playSound";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppNotification from "@/components/AppNotification.vue";
+import SettingsModal from "@/components/SettingsModal.vue";
 import { useConfirmDialog } from "@/composables/useConfirmDialog";
 import { useNotification } from "@/composables/useNotification";
 import AppTabs from "@/components/AppTabs.vue";
 
-// Define feature groups
+// Define feature groups with titles for modals
 const featureGroups = [
   {
     // First row - Lobbies tab
     id: "row1",
     tab: 0,
     features: [
-      { id: "discord-webhooks", component: DiscordWebhooks, hasSettings: true },
-      { id: "auto-start", component: AutoStart, hasSettings: false },
+      { id: "discord-webhooks", title: "Discord Webhooks Settings", component: DiscordWebhooks, hasSettings: true },
+      { id: "auto-start", title: "Auto Start Settings", component: AutoStart, hasSettings: false },
     ],
     settingIds: [ "discord-webhooks" ],
   },
@@ -1262,8 +268,8 @@ const featureGroups = [
     id: "row2",
     tab: 0,
     features: [
-      { id: "recent-local-players", component: RecentLocalPlayers, hasSettings: true },
-      { id: "shuffle-players", component: ShufflePlayers, hasSettings: false },
+      { id: "recent-local-players", title: "Recent Local Players Settings", component: RecentLocalPlayers, hasSettings: true },
+      { id: "shuffle-players", title: "Shuffle Players Settings", component: ShufflePlayers, hasSettings: false },
     ],
     settingIds: [ "recent-local-players" ],
   },
@@ -1272,8 +278,8 @@ const featureGroups = [
     id: "row3",
     tab: 0,
     features: [
-      { id: "team-lobby", component: TeamLobby, hasSettings: false },
-      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "team-lobby", title: "Team Lobby Settings", component: TeamLobby, hasSettings: false },
+      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [],
   },
@@ -1282,8 +288,8 @@ const featureGroups = [
     id: "matches-row1",
     tab: 1,
     features: [
-      { id: "disable-takeout-recognition", component: DisableTakeoutRecognition, hasSettings: false },
-      { id: "colors", component: Colors, hasSettings: true },
+      { id: "disable-takeout-recognition", title: "Disable Takeout Recognition Settings", component: DisableTakeoutRecognition, hasSettings: false },
+      { id: "colors", title: "Colors Settings", component: Colors, hasSettings: true },
     ],
     settingIds: [ "colors" ],
   },
@@ -1292,8 +298,8 @@ const featureGroups = [
     id: "matches-row2",
     tab: 1,
     features: [
-      { id: "takeout-notification", component: TakeoutNotification, hasSettings: false },
-      { id: "next-player-on-takeout-stuck", component: NextPlayerOnTakeoutStuck, hasSettings: true },
+      { id: "takeout-notification", title: "Takeout Notification Settings", component: TakeoutNotification, hasSettings: false },
+      { id: "next-player-on-takeout-stuck", title: "Next Player On Takeout Stuck Settings", component: NextPlayerOnTakeoutStuck, hasSettings: true },
     ],
     settingIds: [ "next-player-on-takeout-stuck" ],
   },
@@ -1302,8 +308,8 @@ const featureGroups = [
     id: "matches-row3",
     tab: 1,
     features: [
-      { id: "automatic-next-leg", component: AutomaticNextLeg, hasSettings: true },
-      { id: "smaller-scores", component: SmallerScores, hasSettings: false },
+      { id: "automatic-next-leg", title: "Automatic Next Leg Settings", component: AutomaticNextLeg, hasSettings: true },
+      { id: "smaller-scores", title: "Smaller Scores Settings", component: SmallerScores, hasSettings: false },
     ],
     settingIds: [ "automatic-next-leg" ],
   },
@@ -1312,8 +318,8 @@ const featureGroups = [
     id: "matches-row4",
     tab: 1,
     features: [
-      { id: "hide-menu-in-match", component: HideMenuInMatch, hasSettings: false },
-      { id: "streaming-mode", component: StreamingMode, hasSettings: true },
+      { id: "hide-menu-in-match", title: "Hide Menu In Match Settings", component: HideMenuInMatch, hasSettings: false },
+      { id: "streaming-mode", title: "Streaming Mode Settings", component: StreamingMode, hasSettings: true },
     ],
     settingIds: [ "streaming-mode" ],
   },
@@ -1322,28 +328,28 @@ const featureGroups = [
     id: "matches-row5",
     tab: 1,
     features: [
-      { id: "larger-legs-sets", component: LargerLegsSets, hasSettings: true },
-      { id: "larger-player-match-data", component: LargerPlayerMatchData, hasSettings: true },
+      { id: "larger-legs-sets", title: "Larger Legs Sets Settings", component: LargerLegsSets, hasSettings: true },
+      { id: "larger-player-names", title: "Larger Player Names Settings", component: LargerPlayerNames, hasSettings: true },
     ],
-    settingIds: [ "larger-legs-sets", "larger-player-match-data" ],
+    settingIds: [ "larger-legs-sets", "larger-player-names" ],
   },
   {
     // Sixth row - Matches tab
     id: "matches-row6",
     tab: 1,
     features: [
-      { id: "winner-animation", component: WinnerAnimation, hasSettings: false },
-      { id: "show-thrown-darts", component: ShowThrownDarts, hasSettings: false },
+      { id: "larger-player-match-data", title: "Larger Player Match Data Settings", component: LargerPlayerMatchData, hasSettings: true },
+      { id: "winner-animation", title: "Winner Animation Settings", component: WinnerAnimation, hasSettings: false },
     ],
-    settingIds: [],
+    settingIds: [ "larger-player-match-data" ],
   },
   {
     // Seventh row - Matches tab
     id: "matches-row7",
     tab: 1,
     features: [
-      { id: "automatic-next-player-after-3-darts", component: AutomaticNextPlayerAfter3Darts, hasSettings: false },
-      { id: "ring", component: Ring, hasSettings: true },
+      { id: "ring", title: "Ring Settings", component: Ring, hasSettings: true },
+      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [ "ring" ],
   },
@@ -1352,63 +358,70 @@ const featureGroups = [
     id: "boards-row1",
     tab: 2,
     features: [
-      { id: "external-boards", component: ExternalBoards, hasSettings: false },
-      { id: "placeholder", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "external-boards", title: "External Boards Settings", component: ExternalBoards, hasSettings: false },
+      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [],
+  },
+  {
+    // First row - Sounds & Animations tab
+    id: "sounds-animations-row1",
+    tab: 3,
+    features: [
+      { id: "animations", title: "Animations Settings", component: Animations, hasSettings: true },
+      { id: "caller", title: "Caller Settings", component: Caller, hasSettings: true },
+    ],
+    settingIds: [ "animations", "caller" ],
+  },
+  {
+    // Second row - Sounds & Animations tab
+    id: "sounds-animations-row2",
+    tab: 3,
+    features: [
+      { id: "sound-fx", title: "Sound FX Settings", component: SoundFx, hasSettings: true },
+      { id: "placeholder-2", title: "", component: null, hasSettings: false }, // Placeholder for future feature
+    ],
+    settingIds: [ "sound-fx" ],
   },
 ];
 
 // Tabs component data
 const tabs = ref([ "Lobbies", "Matches", "Boards", "Sounds & Animations" ]);
-const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const activeSettings = useStorage("adt:active-settings", null);
 const activeTab = useStorage("adt:active-tab", 0);
+const showSettingsModal = ref(false);
+const reloadKey = ref(0);
 
-// Add refs for settings sections
-const settingsSections = ref({});
+// Create a debounced function for updating reloadKey
+const debouncedReload = useDebounceFn(() => {
+  // Get the current scroll position before updating reloadKey
+  const scrollContainers = [ document.querySelector("#root > div > div:nth-of-type(2)"), document.querySelector("html") ];
+  const scrollPositions = scrollContainers.map(container => container?.scrollTop || 0);
 
-// Function to check if a setting belongs to a group
-function isSettingInGroup(settingId, group) {
-  return group.settingIds.includes(settingId) && group.tab === activeTab.value;
-}
+  // Update reloadKey
+  reloadKey.value++;
 
-// Function to get the component for a setting
-function getComponentForSetting(settingId) {
-  for (const group of featureGroups) {
-    if (group.tab === activeTab.value) {
-      const feature = group.features.find(f => f.id === settingId && f.hasSettings);
-      if (feature) {
-        return feature.component;
-      }
-    }
-  }
-  return null;
-}
+  // Restore scroll position after DOM update
+  nextTick(() => {
+    setTimeout(() => {
+      scrollContainers.forEach((container, index) => {
+        if (container) {
+          container.scrollTop = scrollPositions[index];
+        }
+      });
+    }, 250);
+  });
+}, 250); // 300ms debounce time
 
-const config = ref<IConfig>();
-const callerConfig = ref<ICallerConfig>();
-const soundsConfig = ref<ISoundsConfig>();
-const importFileInput = ref() as Ref<HTMLInputElement>;
-const tripleCountArr = [ 15, 16, 17, 18, 19, 20 ];
+// Initialize config with default values to avoid null issues
+const config = ref<IConfig>(defaultConfig);
+const importFileInput = ref<HTMLInputElement>();
+
+const mounted = useMounted();
 
 // Use the composables
 const { confirmDialog, showConfirmDialog, confirmDialogConfirm, confirmDialogCancel } = useConfirmDialog();
 const { notification, showNotification, hideNotification } = useNotification();
-
-function setActive(index: number) {
-  callerConfig?.value?.caller.forEach((caller, i) => {
-    caller.isActive = i === index;
-  });
-}
-
-function playCallerSound(index: number) {
-  const caller = callerConfig?.value?.caller[index];
-  let callerServerUrl = caller?.url || "";
-  if (callerServerUrl.at(-1) !== "/") callerServerUrl += "/";
-  const callerFileExt = caller?.fileExt || ".mp3";
-  const random = Math.floor(Math.random() * 180).toString();
-  playPointsSound(callerServerUrl, callerFileExt, random);
-}
 
 function goBack() {
   window.history.back();
@@ -1416,181 +429,380 @@ function goBack() {
 }
 
 onMounted(async () => {
-  config.value = await AutodartsToolsConfig.getValue();
-  callerConfig.value = await AutodartsToolsCallerConfig.getValue();
-  soundsConfig.value = await AutodartsToolsSoundsConfig.getValue();
+  const loadedConfig = await AutodartsToolsConfig.getValue();
+  if (loadedConfig) {
+    config.value = loadedConfig;
+  }
 });
 
 watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+  // Save the config to storage
+  await AutodartsToolsConfig.setValue(toRaw(config.value));
+  debouncedReload();
 }, { deep: true });
 
-watch(callerConfig, async () => {
-  await AutodartsToolsCallerConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultCallerConfig)),
-    ...JSON.parse(JSON.stringify(callerConfig.value)),
-  });
-}, { deep: true });
-
-watch(soundsConfig, async () => {
-  await AutodartsToolsSoundsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultSoundsConfig)),
-    ...JSON.parse(JSON.stringify(soundsConfig.value)),
-  });
-}, { deep: true });
-
-function getSoundConfig(configKey: string, arrIndex?: number): TSoundData | null {
-  let soundConfig = soundsConfig.value![configKey];
-  if (typeof arrIndex === "number") soundConfig = soundConfig[arrIndex];
-  if (!soundConfig) return null;
-  return soundConfig;
+// Function to get the title for a setting
+function getSettingTitle(settingId) {
+  for (const group of featureGroups) {
+    const feature = group.features.find(f => f.id === settingId);
+    if (feature) {
+      return feature.title;
+    }
+  }
+  return "Settings";
 }
 
-function handleSoundUpload(configKey: string, arrIndex?: number) {
-  const soundConfig = getSoundConfig(configKey, arrIndex);
-  if (!soundConfig) return;
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "audio/*";
-  input.onchange = async () => {
-    const file = input.files?.[0];
-    if (!file) return;
-    const fileName = file.name;
-    const reader = new FileReader();
-    reader.onload = () => {
-      soundConfig.data = reader.result as string;
-      soundConfig.info = fileName;
+// Function to handle setting changes
+function handleSettingChange() {
+  updateConfig();
+}
+
+// Function to get the component for a setting
+function getComponentForSetting(settingId) {
+  for (const group of featureGroups) {
+    const feature = group.features.find(f => f.id === settingId && f.hasSettings);
+    if (feature) {
+      return feature.component;
+    }
+  }
+  return null;
+}
+
+// Function to open settings modal
+function openSettingsModal(settingId) {
+  activeSettings.value = settingId;
+  showSettingsModal.value = true;
+}
+
+// Function to close settings modal
+function closeSettingsModal() {
+  showSettingsModal.value = false;
+  setTimeout(() => {
+    activeSettings.value = null;
+  }, 300); // Wait for animation to complete
+}
+
+async function exportSettings() {
+  config.value = await AutodartsToolsConfig.getValue();
+  if (!config.value) return;
+
+  interface ExportData {
+    config: IConfig;
+    exportDate: string;
+    version: string;
+    sounds: {
+      caller: ISound[];
+      soundFx: ISound[];
     };
-    reader.readAsDataURL(file);
-  };
-  input.click();
-}
+  }
 
-function handleSoundRemove(configKey: string, arrIndex?: number) {
-  const soundConfig = getSoundConfig(configKey, arrIndex);
-  if (!soundConfig) return;
-  soundConfig.info = "";
-  soundConfig.data = "";
-}
-
-function handleSoundReset(configKey: string, arrIndex?: number) {
-  const soundConfig = getSoundConfig(configKey, arrIndex);
-  if (!soundConfig) return;
-  soundConfig.info = defaultSoundsConfig[configKey].info;
-  soundConfig.data = "";
-}
-
-function exportSettings() {
-  if (!config.value || !callerConfig.value || !soundsConfig.value) return;
-
-  const exportData = {
+  const exportData: ExportData = {
     config: config.value,
-    callerConfig: callerConfig.value,
-    soundsConfig: soundsConfig.value,
     exportDate: new Date().toISOString(),
     version: "1.0",
+    sounds: {
+      caller: [],
+      soundFx: [],
+    },
   };
+
+  // Add sounds from IndexedDB if available
+  if (isIndexedDBAvailable()) {
+    try {
+      // Get all sounds from IndexedDB
+      const callerSounds = await getAllCallerSoundsFromIndexedDB();
+      const soundFxSounds = await getAllSoundFxFromIndexedDB();
+
+      if (callerSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.caller = callerSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      if (soundFxSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.soundFx = soundFxSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      console.log("Autodarts Tools: Loaded sounds for export", {
+        caller: callerSounds?.length || 0,
+        soundFx: soundFxSounds?.length || 0,
+      });
+    } catch (error) {
+      console.error("Autodarts Tools: Error exporting sounds from IndexedDB", error);
+      showNotification("Error exporting sound files", "error");
+    }
+  }
 
   // Convert to JSON and then to base64
   const jsonString = JSON.stringify(exportData);
-  const base64String = btoa(unescape(encodeURIComponent(jsonString)));
+  const base64String = btoa(encodeURIComponent(jsonString));
 
-  // Create a download link
-  const element = document.createElement("a");
-  element.setAttribute("href", `data:text/plain;charset=utf-8,${encodeURIComponent(base64String)}`);
-  element.setAttribute("download", `autodarts-tools-settings-${new Date().toISOString().slice(0, 10)}.txt`);
-
-  element.style.display = "none";
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
-
-  showNotification("Settings exported successfully");
+  // Create a blob and download it
+  const blob = new Blob([ base64String ], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `autodarts-tools-settings-${new Date().toISOString().split("T")[0]}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function importSettings() {
-  if (importFileInput.value) {
-    importFileInput.value.click();
-  }
-}
+  if (!importFileInput.value) {
+    importFileInput.value = document.createElement("input");
+    importFileInput.value.type = "file";
+    importFileInput.value.accept = ".txt";
+    importFileInput.value.onchange = async (e) => {
+      const file = importFileInput.value?.files?.[0];
+      if (!file) return;
 
-function handleImportFile(event: Event) {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const base64String = e.target?.result as string;
+          const jsonString = decodeURIComponent(atob(base64String));
+          const importedData = JSON.parse(jsonString);
 
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    try {
-      const base64String = e.target?.result as string;
-      const jsonString = decodeURIComponent(escape(atob(base64String)));
-      const importedData = JSON.parse(jsonString);
+          if (!importedData.config) {
+            showNotification("Invalid settings file", "error");
+            return;
+          }
 
-      // Validate the imported data
-      if (!importedData.config || !importedData.callerConfig || !importedData.soundsConfig) {
-        showNotification("Invalid import data format", "error");
-        return;
-      }
-
-      // Show confirmation dialog
-      showConfirmDialog(
-        "Import Settings",
-        "This will overwrite your current settings. Are you sure you want to continue?",
-        () => {
-          // Apply the imported settings
-          config.value = {
+          // Update the config
+          const newConfig = {
             ...JSON.parse(JSON.stringify(defaultConfig)),
             ...JSON.parse(JSON.stringify(importedData.config)),
           };
 
-          callerConfig.value = {
-            ...JSON.parse(JSON.stringify(defaultCallerConfig)),
-            ...JSON.parse(JSON.stringify(importedData.callerConfig)),
-          };
+          // Set the local ref
+          config.value = newConfig;
 
-          soundsConfig.value = {
-            ...JSON.parse(JSON.stringify(defaultSoundsConfig)),
-            ...JSON.parse(JSON.stringify(importedData.soundsConfig)),
-          };
+          // Explicitly save to storage
+          await AutodartsToolsConfig.setValue(newConfig);
 
-          showNotification("Settings imported successfully.<br>Reloading page to apply settings...");
-          // Add a small delay before reloading to allow the notification to be seen
+          // Import sounds to IndexedDB if available
+          if (importedData.sounds && isIndexedDBAvailable()) {
+            try {
+              // Clear existing sounds first if there are new sounds to import
+              if (importedData.sounds.caller?.length > 0) {
+                await clearCallerSoundsFromIndexedDB();
+              }
+
+              if (importedData.sounds.soundFx?.length > 0) {
+                await clearSoundFxFromIndexedDB();
+              }
+
+              // Import caller sounds
+              let callerImportCount = 0;
+              if (importedData.sounds.caller?.length > 0) {
+                for (const sound of importedData.sounds.caller) {
+                  // Use existing soundId if available instead of creating a new one
+                  const soundId = await saveSoundToIndexedDB(
+                    sound.name,
+                    sound.base64,
+                    sound.soundId || sound.id, // Use existing soundId/id from imported data
+                  );
+                  if (soundId) {
+                    callerImportCount++;
+
+                    // Update the sound in config to reference the soundId
+                    const soundInConfig = newConfig.caller.sounds.find(
+                      s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                    );
+
+                    if (soundInConfig) {
+                      soundInConfig.soundId = soundId;
+                      soundInConfig.base64 = ""; // Clear base64 data from config
+                    }
+                  }
+                }
+              }
+
+              // Import soundFx sounds
+              let soundFxImportCount = 0;
+              if (importedData.sounds.soundFx?.length > 0) {
+                for (const sound of importedData.sounds.soundFx) {
+                  // Use existing soundId if available instead of creating a new one
+                  const soundId = await saveSoundFxToIndexedDB(
+                    sound.name,
+                    sound.base64,
+                    sound.soundId || sound.id, // Use existing soundId/id from imported data
+                  );
+                  if (soundId) {
+                    soundFxImportCount++;
+
+                    // Update the sound in config to reference the soundId
+                    const soundInConfig = newConfig.soundFx.sounds.find(
+                      s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                    );
+
+                    if (soundInConfig) {
+                      soundInConfig.soundId = soundId;
+                      soundInConfig.base64 = ""; // Clear base64 data from config
+                    }
+                  }
+                }
+              }
+
+              // Update the config with the updated sounds
+              config.value = newConfig;
+              await AutodartsToolsConfig.setValue(newConfig);
+
+              console.log("Autodarts Tools: Imported sounds", {
+                caller: callerImportCount,
+                soundFx: soundFxImportCount,
+              });
+            } catch (error) {
+              console.error("Autodarts Tools: Error importing sounds to IndexedDB", error);
+              showNotification("Settings imported, but error importing sounds", "error");
+            }
+          }
+
+          showNotification("Settings imported successfully. Page will reload to apply changes...");
+
+          // Reload the page after a short delay to allow the notification to be seen
           setTimeout(() => {
             window.location.reload();
           }, 1500);
-        },
-      );
-    } catch (error) {
-      console.error("Import error:", error);
-      showNotification("Failed to import settings. The file might be corrupted or in an invalid format.", "error");
-    }
-
-    // Reset the file input
-    if (importFileInput.value) {
-      importFileInput.value.value = "";
-    }
-  };
-
-  reader.readAsText(file);
+        } catch (error) {
+          console.error("Failed to import settings:", error);
+          showNotification("Failed to import settings", "error");
+        }
+      };
+      reader.readAsText(file);
+    };
+  }
+  importFileInput.value.click();
 }
 
-function copyToClipboard() {
-  if (!config.value || !callerConfig.value || !soundsConfig.value) return;
+// State for danger zone
+const showDangerZone = ref(false);
 
-  const exportData = {
+function toggleDangerZone() {
+  showDangerZone.value = !showDangerZone.value;
+}
+
+function resetAllSettings() {
+  showConfirmDialog(
+    "Reset All Settings",
+    "This will reset all settings to their default values. All your customizations will be lost. Are you sure you want to continue?",
+    async () => {
+      // Clear the IndexedDB sound files
+      if (isIndexedDBAvailable()) {
+        try {
+          await clearCallerSoundsFromIndexedDB();
+          await clearSoundFxFromIndexedDB();
+          console.log("Autodarts Tools: IndexedDB sounds cleared");
+        } catch (error) {
+          console.error("Autodarts Tools: Error clearing IndexedDB sounds", error);
+        }
+      }
+
+      config.value = { ...defaultConfig };
+
+      // Explicitly save to storage
+      await AutodartsToolsConfig.setValue(defaultConfig);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      showNotification("All settings have been reset to default. Page will reload to apply changes...");
+
+      // Close danger zone
+      showDangerZone.value = false;
+
+      // Reload the page after a short delay to allow the notification to be seen
+      setTimeout(() => {
+        window.location.reload();
+        // After reload, navigate to first tab
+        activeTab.value = 0;
+      }, 1500);
+    },
+  );
+}
+
+async function copyToClipboard() {
+  config.value = await AutodartsToolsConfig.getValue();
+  if (!config.value) return;
+
+  interface ExportData {
+    config: IConfig;
+    exportDate: string;
+    version: string;
+    sounds: {
+      caller: ISound[];
+      soundFx: ISound[];
+    };
+  }
+
+  const exportData: ExportData = {
     config: config.value,
-    callerConfig: callerConfig.value,
-    soundsConfig: soundsConfig.value,
     exportDate: new Date().toISOString(),
     version: "1.0",
+    sounds: {
+      caller: [],
+      soundFx: [],
+    },
   };
+
+  // Add sounds from IndexedDB if available
+  if (isIndexedDBAvailable()) {
+    try {
+      // Get all sounds from IndexedDB
+      const callerSounds = await getAllCallerSoundsFromIndexedDB();
+      const soundFxSounds = await getAllSoundFxFromIndexedDB();
+
+      if (callerSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.caller = callerSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      if (soundFxSounds) {
+        // Convert IndexedDB sound format to ISound format
+        exportData.sounds.soundFx = soundFxSounds.map(sound => ({
+          name: sound.name,
+          url: "", // Ensure url field exists
+          base64: sound.base64,
+          enabled: true,
+          triggers: [], // Empty triggers array as default
+          soundId: sound.id,
+        }));
+      }
+
+      console.log("Autodarts Tools: Copied sounds to clipboard", {
+        caller: callerSounds?.length || 0,
+        soundFx: soundFxSounds?.length || 0,
+      });
+    } catch (error) {
+      console.error("Autodarts Tools: Error copying sounds from IndexedDB", error);
+      showNotification("Settings copied, but error including sounds", "error");
+    }
+  }
 
   // Convert to JSON and then to base64
   const jsonString = JSON.stringify(exportData);
-  const base64String = btoa(unescape(encodeURIComponent(jsonString)));
+  const base64String = btoa(encodeURIComponent(jsonString));
 
   // Copy to clipboard
   navigator.clipboard.writeText(base64String)
@@ -1605,53 +817,115 @@ function copyToClipboard() {
 
 function pasteFromClipboard() {
   navigator.clipboard.readText()
-    .then((text) => {
-      if (!text) {
-        showNotification("Clipboard is empty", "error");
-        return;
-      }
-
+    .then(async (text) => {
       try {
-        const jsonString = decodeURIComponent(escape(atob(text)));
+        const jsonString = decodeURIComponent(atob(text));
         const importedData = JSON.parse(jsonString);
 
-        // Validate the imported data
-        if (!importedData.config || !importedData.callerConfig || !importedData.soundsConfig) {
-          showNotification("Invalid import data format", "error");
+        if (!importedData.config) {
+          showNotification("Invalid settings data", "error");
           return;
         }
 
-        // Show confirmation dialog
-        showConfirmDialog(
-          "Import Settings from Clipboard",
-          "This will overwrite your current settings. Are you sure you want to continue?",
-          () => {
-            // Apply the imported settings
-            config.value = {
-              ...JSON.parse(JSON.stringify(defaultConfig)),
-              ...JSON.parse(JSON.stringify(importedData.config)),
-            };
+        // Update the config
+        const newConfig = {
+          ...JSON.parse(JSON.stringify(defaultConfig)),
+          ...JSON.parse(JSON.stringify(importedData.config)),
+        };
 
-            callerConfig.value = {
-              ...JSON.parse(JSON.stringify(defaultCallerConfig)),
-              ...JSON.parse(JSON.stringify(importedData.callerConfig)),
-            };
+        // Set the local ref
+        config.value = newConfig;
 
-            soundsConfig.value = {
-              ...JSON.parse(JSON.stringify(defaultSoundsConfig)),
-              ...JSON.parse(JSON.stringify(importedData.soundsConfig)),
-            };
+        // Explicitly save to storage
+        await AutodartsToolsConfig.setValue(newConfig);
 
-            showNotification("Settings imported successfully.<br>Reloading page to apply settings...");
-            // Add a small delay before reloading to allow the notification to be seen
-            setTimeout(() => {
-              window.location.reload();
-            }, 1500);
-          },
-        );
+        // Import sounds to IndexedDB if available
+        if (importedData.sounds && isIndexedDBAvailable()) {
+          try {
+            // Clear existing sounds first if there are new sounds to import
+            if (importedData.sounds.caller?.length > 0) {
+              await clearCallerSoundsFromIndexedDB();
+            }
+
+            if (importedData.sounds.soundFx?.length > 0) {
+              await clearSoundFxFromIndexedDB();
+            }
+
+            // Import caller sounds
+            let callerImportCount = 0;
+            if (importedData.sounds.caller?.length > 0) {
+              for (const sound of importedData.sounds.caller) {
+                // Use existing soundId if available instead of creating a new one
+                const soundId = await saveSoundToIndexedDB(
+                  sound.name,
+                  sound.base64,
+                  sound.soundId || sound.id, // Use existing soundId/id from imported data
+                );
+                if (soundId) {
+                  callerImportCount++;
+
+                  // Update the sound in config to reference the soundId
+                  const soundInConfig = newConfig.caller.sounds.find(
+                    s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                  );
+
+                  if (soundInConfig) {
+                    soundInConfig.soundId = soundId;
+                    soundInConfig.base64 = ""; // Clear base64 data from config
+                  }
+                }
+              }
+            }
+
+            // Import soundFx sounds
+            let soundFxImportCount = 0;
+            if (importedData.sounds.soundFx?.length > 0) {
+              for (const sound of importedData.sounds.soundFx) {
+                // Use existing soundId if available instead of creating a new one
+                const soundId = await saveSoundFxToIndexedDB(
+                  sound.name,
+                  sound.base64,
+                  sound.soundId || sound.id, // Use existing soundId/id from imported data
+                );
+                if (soundId) {
+                  soundFxImportCount++;
+
+                  // Update the sound in config to reference the soundId
+                  const soundInConfig = newConfig.soundFx.sounds.find(
+                    s => s.name === sound.name && (!s.soundId || s.soundId === sound.soundId || s.soundId === sound.id),
+                  );
+
+                  if (soundInConfig) {
+                    soundInConfig.soundId = soundId;
+                    soundInConfig.base64 = ""; // Clear base64 data from config
+                  }
+                }
+              }
+            }
+
+            // Update the config with the updated sounds
+            config.value = newConfig;
+            await AutodartsToolsConfig.setValue(newConfig);
+
+            console.log("Autodarts Tools: Imported sounds from clipboard", {
+              caller: callerImportCount,
+              soundFx: soundFxImportCount,
+            });
+          } catch (error) {
+            console.error("Autodarts Tools: Error importing sounds from clipboard to IndexedDB", error);
+            showNotification("Settings imported, but error importing sounds", "error");
+          }
+        }
+
+        showNotification("Settings imported successfully. Page will reload to apply changes...");
+
+        // Reload the page after a short delay to allow the notification to be seen
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       } catch (error) {
-        console.error("Paste error:", error);
-        showNotification("Failed to import settings from clipboard. The data might be corrupted or in an invalid format.", "error");
+        console.error("Failed to import settings from clipboard:", error);
+        showNotification("Failed to import settings from clipboard", "error");
       }
     })
     .catch((err) => {
@@ -1660,38 +934,9 @@ function pasteFromClipboard() {
     });
 }
 
-// Computed property for winnerSoundOnLegWin
-const winnerSoundOnLegWin = computed({
-  get: () => soundsConfig.value?.winnerSoundOnLegWin || false,
-  set: (value) => {
-    if (soundsConfig.value) {
-      soundsConfig.value.winnerSoundOnLegWin = value;
-    }
-  },
-});
-
-// State for danger zone
-const showDangerZone = ref(false);
-
-function toggleDangerZone() {
-  showDangerZone.value = !showDangerZone.value;
-}
-
-function resetAllSettings() {
-  showConfirmDialog(
-    "Reset All Settings",
-    "This will reset all settings to their default values. All your customizations will be lost. Are you sure you want to continue?",
-    () => {
-      config.value = JSON.parse(JSON.stringify(defaultConfig));
-      callerConfig.value = JSON.parse(JSON.stringify(defaultCallerConfig));
-      soundsConfig.value = JSON.parse(JSON.stringify(defaultSoundsConfig));
-      showNotification("All settings have been reset to default.<br>Reloading page to apply settings...");
-      // Add a small delay before reloading to allow the notification to be seen
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-    },
-  );
+async function updateConfig() {
+  config.value = await AutodartsToolsConfig.getValue();
+  debouncedReload();
 }
 </script>
 

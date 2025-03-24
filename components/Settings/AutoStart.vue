@@ -1,7 +1,6 @@
 <template>
   <!-- Feature Card -->
   <div
-    @click="activeSettings = 'auto-start'"
     v-if="config"
     class="adt-container h-56 transition-transform hover:-translate-y-0.5"
   >
@@ -15,9 +14,9 @@
         </p>
       </div>
       <div class="flex">
-        <div class="absolute inset-0 cursor-pointer " />
+        <div @click="$emit('toggle', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
         <AppButton
-          @click="config.autoStart.enabled = !config.autoStart.enabled"
+          @click="toggleFeature"
           :type="config.autoStart.enabled ? 'success' : 'default'"
           class="aspect-square !size-10 rounded-full p-0"
         >
@@ -33,23 +32,38 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
 import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/storage";
+import { type IConfig } from "@/utils/storage";
+import { AutodartsToolsConfig } from "@/utils/storage";
 
-const activeSettings = useStorage("adt:active-settings", "discord-webhooks");
+const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
-const imageUrl = ref<string>();
+const imageUrl = browser.runtime.getURL("images/auto-start.png");
+
+async function toggleFeature() {
+  if (!config.value) return;
+
+  // Toggle the feature
+  const wasEnabled = config.value.autoStart.enabled;
+  config.value.autoStart.enabled = !wasEnabled;
+
+  // If we're enabling the feature, open settings
+  if (!wasEnabled) {
+    await nextTick();
+    emit("toggle", "auto-start");
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-  imageUrl.value = browser.runtime.getURL("images/auto-start.png");
 });
 
-watch(config, async () => {
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-  });
+// Watch for prop changes to update local config
+watch(config, async (_, oldValue) => {
+  if (!oldValue) return;
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  emit("settingChange");
+  console.log("Auto Start setting changed");
 }, { deep: true });
 </script>

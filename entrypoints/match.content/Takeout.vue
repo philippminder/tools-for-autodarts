@@ -7,7 +7,7 @@
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
-    <div @click="handleBackdropClick" v-if="show" class="fixed inset-0 z-[100] flex items-center justify-center font-system">
+    <div @click="handleBackdropClick" v-if="show" class="fixed inset-0 z-[200] flex items-center justify-center font-system">
       <div class="absolute inset-0 bg-black/50" />
       <div
         v-if="show"
@@ -27,33 +27,55 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
-import "./styles.css";
-import { AutodartsToolsBoardStatus, AutodartsToolsConfig, type TBoardStatus } from "@/utils/storage";
-import { getResetBtn } from "@/utils/getElements";
-import { BoardStatus } from "@/utils/types";
+import { waitForElementWithTextContent } from "@/utils";
+import { AutodartsToolsBoardData, type IBoard } from "@/utils/board-data-storage";
 
 const show = ref<boolean>(false);
+let boardDataWatcherUnwatch: any;
 
-AutodartsToolsBoardStatus.watch(() => {
-  checkStatus().catch(console.error);
+onMounted(() => {
+  boardDataWatcherUnwatch = AutodartsToolsBoardData.watch((boardData: IBoard) => {
+    checkStatus(boardData).catch(console.error);
+  });
 });
 
-onMounted(async () => {
-  checkStatus().catch(console.error);
-});
-
-async function checkStatus() {
-  const config = await AutodartsToolsConfig.getValue();
-
-  if (config.takeout.enabled) {
-    const boardstatus: TBoardStatus = await AutodartsToolsBoardStatus.getValue();
-    show.value = boardstatus === BoardStatus.TAKEOUT;
+onUnmounted(() => {
+  if (boardDataWatcherUnwatch) {
+    boardDataWatcherUnwatch();
   }
+});
+
+async function checkStatus(boardData: IBoard) {
+  const boardStatus: string | undefined = boardData.status;
+  show.value = boardStatus === "Takeout in progress";
 }
 
 async function handleBackdropClick() {
   show.value = false;
-  const resetButton = getResetBtn();
-  resetButton?.click();
+  (await waitForElementWithTextContent("button", "Reset"))?.click();
 }
 </script>
+
+<style>
+.adt-remove:after {
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: bottom;
+    -webkit-animation: ellipsis steps(4,end) 900ms infinite;
+    animation: ellipsis steps(4,end) 900ms infinite;
+    content: "\2026";
+    width: 0px;
+}
+
+@keyframes ellipsis {
+    to {
+        width: 1.25em;
+    }
+}
+
+@-webkit-keyframes ellipsis {
+    to {
+        width: 1.25em;
+    }
+}
+</style>
