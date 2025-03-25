@@ -73,6 +73,7 @@
             >
               <div
                 @click="openAddSoundModal"
+                v-if="allowAdd"
                 class="flex h-32 cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
               >
                 <div class="flex flex-col items-center">
@@ -553,6 +554,7 @@ const showDeleteAllModal = ref(false);
 let currentPlayer: HTMLAudioElement | null = null;
 
 // Import URL related refs
+const allowAdd = ref(false);
 const showImportURLModal = ref(false);
 const baseURL = ref("");
 const selectedPresetURL = ref("");
@@ -585,9 +587,10 @@ const lowercaseText = computed({
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-  nextTick(() => {
-    initSortable();
-  });
+  await nextTick();
+  initSortable();
+  await nextTick();
+  allowAdd.value = true;
 });
 
 // Watch for changes to selectedPresetURL and update baseURL

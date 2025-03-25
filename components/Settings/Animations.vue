@@ -71,13 +71,14 @@
             </div>
 
             <div
+              v-if="allowAdd"
               ref="animationsContainer"
               :key="containerKey"
               class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             >
               <div
                 @click="openAddAnimationModal"
-                class="flex aspect-video cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
+                class="add-animation-button flex aspect-video cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
               >
                 <div class="flex flex-col items-center">
                   <span class="icon-[pixelarticons--plus] mb-1 text-xl" />
@@ -267,6 +268,7 @@ const newAnimation = ref({
   url: "",
   text: "",
 });
+const allowAdd = ref(false);
 const editingIndex = ref<number | null>(null);
 const animationsContainer = ref<HTMLElement | null>(null);
 const isDragging = ref(false);
@@ -302,6 +304,8 @@ onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   await nextTick();
   initSortable();
+  await nextTick();
+  allowAdd.value = true;
 });
 
 watch(config, async (_, oldValue) => {
@@ -325,7 +329,7 @@ function initSortable() {
   sortableInstance = Sortable.create(animationsContainer.value, {
     animation: 150,
     draggable: "[data-id]",
-    filter: ".flex.aspect-video", // Don't make the "Add Animation" button draggable
+    filter: ".add-animation-button", // Don't make the "Add Animation" button draggable
     ghostClass: "bg-gray-700",
     onStart(evt) {
       isDragging.value = true;

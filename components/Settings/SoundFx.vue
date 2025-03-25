@@ -39,6 +39,7 @@
             >
               <div
                 @click="openAddSoundModal"
+                v-if="allowAdd"
                 class="flex h-32 cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
               >
                 <div class="flex flex-col items-center">
@@ -400,6 +401,7 @@ const newSound = ref({
 });
 const editingIndex = ref<number | null>(null);
 const urlError = ref("");
+const allowAdd = ref(false);
 
 // Sortable related refs
 const soundsContainer = ref<HTMLElement | null>(null);
@@ -432,9 +434,10 @@ const lowercaseText = computed({
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
-  nextTick(() => {
-    initSortable();
-  });
+  await nextTick();
+  initSortable();
+  await nextTick();
+  allowAdd.value = true;
 });
 
 watch(config, async (_, oldValue) => {
