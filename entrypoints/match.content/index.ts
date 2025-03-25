@@ -1,12 +1,12 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
-import { disableTakeout } from "./disable-takeout";
 import { colorChange, onRemove as colorChangeOnRemove } from "./color-change";
 import Takeout from "./Takeout.vue";
 import { nextPlayerOnTakeOutStuck, nextPlayerOnTakeOutStuckOnRemove } from "./next-player-on-take-out-stuck";
 import { automaticNextLeg } from "./automatic-next-leg";
 import { smallerScores } from "./smaller-scores";
 import { hideMenuInMatch, hideMenuInMatchOnRemove } from "./hide-menu-in-match";
+import { automaticFullscreen, automaticFullscreenOnRemove } from "./automatic-fullscreen";
 import { largerPlayerMatchData } from "./larger-player-match-data";
 import { largerLegsSets } from "./larger-legs-sets";
 import { largerPlayerNames } from "./larger-player-names";
@@ -117,10 +117,6 @@ async function initMatch(ctx, url: string) {
     await initStreamingMode(ctx).catch(console.error);
   }
 
-  if (config.disableTakeout.enabled) {
-    await initScript(disableTakeout, url).catch(console.error);
-  }
-
   if (config.colors.enabled) {
     await initScript(colorChange, url).catch(console.error);
   }
@@ -143,6 +139,10 @@ async function initMatch(ctx, url: string) {
 
   if (config.hideMenuInMatch.enabled) {
     await initScript(hideMenuInMatch, url).catch(console.error);
+  }
+
+  if (config.automaticFullscreen.enabled) {
+    await initScript(automaticFullscreen, url).catch(console.error);
   }
 
   if (config.largerLegsSets.enabled) {
@@ -193,6 +193,7 @@ function clearMatch() {
 
   colorChangeOnRemove();
   hideMenuInMatchOnRemove();
+  automaticFullscreenOnRemove();
   winnerAnimationOnRemove();
   callerOnRemove();
   soundFxOnRemove();

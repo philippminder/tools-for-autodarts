@@ -148,9 +148,6 @@ interface OldConfig {
     enabled: boolean;
     sec: number;
   };
-  disableTakeout: {
-    enabled: boolean;
-  };
   teamLobby: {
     enabled: boolean;
   };
@@ -274,7 +271,6 @@ async function migrateSettings() {
     config.winnerAnimation = oldConfig.winnerAnimation;
     config.ring = oldConfig.liveViewRing;
     config.nextPlayerOnTakeOutStuck = oldConfig.nextPlayerOnTakeOutStuck;
-    config.disableTakeout = oldConfig.disableTakeout;
     config.teamLobby = oldConfig.teamLobby;
 
     await AutodartsToolsConfig.setValue(config);

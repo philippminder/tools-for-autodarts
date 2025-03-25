@@ -154,19 +154,18 @@
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
             <!-- First row of feature cards -->
-            <DisableTakeoutRecognition @setting-change="updateConfig" class="feature-card" data-feature-index="7" />
             <Colors @toggle="openSettingsModal('colors')" @setting-change="updateConfig" class="feature-card" data-feature-index="8" />
+            <TakeoutNotification @setting-change="updateConfig" class="feature-card" data-feature-index="9" />
 
             <!-- Second row of feature cards -->
-            <TakeoutNotification @setting-change="updateConfig" class="feature-card" data-feature-index="9" />
             <NextPlayerOnTakeoutStuck @toggle="openSettingsModal('next-player-on-takeout-stuck')" @setting-change="updateConfig" class="feature-card" data-feature-index="10" />
+            <AutomaticNextLeg @toggle="openSettingsModal('automatic-next-leg')" @setting-change="updateConfig" class="feature-card" data-feature-index="11" />
 
             <!-- Third row of feature cards -->
-            <AutomaticNextLeg @toggle="openSettingsModal('automatic-next-leg')" @setting-change="updateConfig" class="feature-card" data-feature-index="11" />
             <SmallerScores @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="12" />
+            <HideMenuInMatch @setting-change="updateConfig" class="feature-card" data-feature-index="13" />
 
             <!-- Fourth row of feature cards -->
-            <HideMenuInMatch @setting-change="updateConfig" class="feature-card" data-feature-index="13" />
             <StreamingMode @toggle="openSettingsModal('streaming-mode')" @setting-change="updateConfig" class="feature-card" data-feature-index="14" />
 
             <!-- Fifth row of feature cards -->
@@ -179,6 +178,7 @@
 
             <!-- Seventh row of feature cards -->
             <Ring @toggle="openSettingsModal('ring')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="19" />
+            <AutomaticFullscreen @setting-change="updateConfig" class="feature-card" data-feature-index="20" />
           </div>
 
           <!-- Feature cards grid for Boards tab -->
@@ -223,7 +223,6 @@ import AutoStart from "./Settings/AutoStart.vue";
 import RecentLocalPlayers from "./Settings/RecentLocalPlayers.vue";
 import ShufflePlayers from "./Settings/ShufflePlayers.vue";
 import TeamLobby from "./Settings/TeamLobby.vue";
-import DisableTakeoutRecognition from "./Settings/DisableTakeoutRecognition.vue";
 import Colors from "./Settings/Colors.vue";
 import TakeoutNotification from "./Settings/TakeoutNotification.vue";
 import NextPlayerOnTakeoutStuck from "./Settings/NextPlayerOnTakeoutStuck.vue";
@@ -231,6 +230,7 @@ import AutomaticNextLeg from "./Settings/AutomaticNextLeg.vue";
 import SmallerScores from "./Settings/SmallerScores.vue";
 import StreamingMode from "./Settings/StreamingMode.vue";
 import HideMenuInMatch from "./Settings/HideMenuInMatch.vue";
+import AutomaticFullscreen from "./Settings/AutomaticFullscreen.vue";
 import LargerLegsSets from "./Settings/LargerLegsSets.vue";
 import LargerPlayerMatchData from "./Settings/LargerPlayerMatchData.vue";
 import LargerPlayerNames from "./Settings/LargerPlayerNames.vue";
@@ -253,135 +253,59 @@ import AppTabs from "@/components/AppTabs.vue";
 
 // Define feature groups with titles for modals
 const featureGroups = [
+  // Lobbies (Tab 0)
   {
-    // First row - Lobbies tab
-    id: "row1",
+    id: "lobbies",
     tab: 0,
     features: [
       { id: "discord-webhooks", title: "Discord Webhooks Settings", component: DiscordWebhooks, hasSettings: true },
       { id: "auto-start", title: "Auto Start Settings", component: AutoStart, hasSettings: false },
-    ],
-    settingIds: [ "discord-webhooks" ],
-  },
-  {
-    // Second row - Lobbies tab
-    id: "row2",
-    tab: 0,
-    features: [
       { id: "recent-local-players", title: "Recent Local Players Settings", component: RecentLocalPlayers, hasSettings: true },
       { id: "shuffle-players", title: "Shuffle Players Settings", component: ShufflePlayers, hasSettings: false },
-    ],
-    settingIds: [ "recent-local-players" ],
-  },
-  {
-    // Third row - Lobbies tab
-    id: "row3",
-    tab: 0,
-    features: [
       { id: "team-lobby", title: "Team Lobby Settings", component: TeamLobby, hasSettings: false },
-      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
-    settingIds: [],
+    settingIds: [ "discord-webhooks", "recent-local-players" ],
   },
+  // Matches (Tab 1)
   {
-    // First row - Matches tab
-    id: "matches-row1",
+    id: "matches",
     tab: 1,
     features: [
-      { id: "disable-takeout-recognition", title: "Disable Takeout Recognition Settings", component: DisableTakeoutRecognition, hasSettings: false },
       { id: "colors", title: "Colors Settings", component: Colors, hasSettings: true },
-    ],
-    settingIds: [ "colors" ],
-  },
-  {
-    // Second row - Matches tab
-    id: "matches-row2",
-    tab: 1,
-    features: [
       { id: "takeout-notification", title: "Takeout Notification Settings", component: TakeoutNotification, hasSettings: false },
       { id: "next-player-on-takeout-stuck", title: "Next Player On Takeout Stuck Settings", component: NextPlayerOnTakeoutStuck, hasSettings: true },
-    ],
-    settingIds: [ "next-player-on-takeout-stuck" ],
-  },
-  {
-    // Third row - Matches tab
-    id: "matches-row3",
-    tab: 1,
-    features: [
       { id: "automatic-next-leg", title: "Automatic Next Leg Settings", component: AutomaticNextLeg, hasSettings: true },
       { id: "smaller-scores", title: "Smaller Scores Settings", component: SmallerScores, hasSettings: false },
-    ],
-    settingIds: [ "automatic-next-leg" ],
-  },
-  {
-    // Fourth row - Matches tab
-    id: "matches-row4",
-    tab: 1,
-    features: [
       { id: "hide-menu-in-match", title: "Hide Menu In Match Settings", component: HideMenuInMatch, hasSettings: false },
       { id: "streaming-mode", title: "Streaming Mode Settings", component: StreamingMode, hasSettings: true },
-    ],
-    settingIds: [ "streaming-mode" ],
-  },
-  {
-    // Fifth row - Matches tab
-    id: "matches-row5",
-    tab: 1,
-    features: [
       { id: "larger-legs-sets", title: "Larger Legs Sets Settings", component: LargerLegsSets, hasSettings: true },
       { id: "larger-player-names", title: "Larger Player Names Settings", component: LargerPlayerNames, hasSettings: true },
-    ],
-    settingIds: [ "larger-legs-sets", "larger-player-names" ],
-  },
-  {
-    // Sixth row - Matches tab
-    id: "matches-row6",
-    tab: 1,
-    features: [
       { id: "larger-player-match-data", title: "Larger Player Match Data Settings", component: LargerPlayerMatchData, hasSettings: true },
       { id: "winner-animation", title: "Winner Animation Settings", component: WinnerAnimation, hasSettings: false },
-    ],
-    settingIds: [ "larger-player-match-data" ],
-  },
-  {
-    // Seventh row - Matches tab
-    id: "matches-row7",
-    tab: 1,
-    features: [
       { id: "ring", title: "Ring Settings", component: Ring, hasSettings: true },
-      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
+      { id: "automatic-fullscreen", title: "Automatic Fullscreen Settings", component: AutomaticFullscreen, hasSettings: false },
     ],
-    settingIds: [ "ring" ],
+    settingIds: [ "colors", "next-player-on-takeout-stuck", "automatic-next-leg", "streaming-mode", "larger-legs-sets", "larger-player-names", "larger-player-match-data", "ring", "automatic-fullscreen" ],
   },
+  // Boards (Tab 2)
   {
-    // First row - Boards tab
-    id: "boards-row1",
+    id: "boards",
     tab: 2,
     features: [
       { id: "external-boards", title: "External Boards Settings", component: ExternalBoards, hasSettings: false },
-      { id: "placeholder", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
     settingIds: [],
   },
+  // Sounds & Animations (Tab 3)
   {
-    // First row - Sounds & Animations tab
-    id: "sounds-animations-row1",
+    id: "sounds-animations",
     tab: 3,
     features: [
       { id: "animations", title: "Animations Settings", component: Animations, hasSettings: true },
       { id: "caller", title: "Caller Settings", component: Caller, hasSettings: true },
-    ],
-    settingIds: [ "animations", "caller" ],
-  },
-  {
-    // Second row - Sounds & Animations tab
-    id: "sounds-animations-row2",
-    tab: 3,
-    features: [
       { id: "sound-fx", title: "Sound FX Settings", component: SoundFx, hasSettings: true },
-      { id: "placeholder-2", title: "", component: null, hasSettings: false }, // Placeholder for future feature
     ],
-    settingIds: [ "sound-fx" ],
+    settingIds: [ "animations", "caller", "sound-fx" ],
   },
 ];
 

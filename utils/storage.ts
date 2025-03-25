@@ -65,6 +65,9 @@ export interface IConfig {
   hideMenuInMatch: {
     enabled: boolean;
   };
+  automaticFullscreen: {
+    enabled: boolean;
+  };
   largerLegsSets: {
     enabled: boolean;
     value: number;
@@ -87,9 +90,6 @@ export interface IConfig {
   nextPlayerOnTakeOutStuck: {
     enabled: boolean;
     sec: number;
-  };
-  disableTakeout: {
-    enabled: boolean;
   };
   teamLobby: {
     enabled: boolean;
@@ -272,6 +272,9 @@ export const defaultConfig: IConfig = {
   hideMenuInMatch: {
     enabled: false,
   },
+  automaticFullscreen: {
+    enabled: false,
+  },
   largerLegsSets: {
     enabled: false,
     value: 2.5,
@@ -294,9 +297,6 @@ export const defaultConfig: IConfig = {
   nextPlayerOnTakeOutStuck: {
     enabled: false,
     sec: 10,
-  },
-  disableTakeout: {
-    enabled: false,
   },
   teamLobby: {
     enabled: false,

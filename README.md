@@ -42,12 +42,12 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Streaming Mode**: Includes green screen support, board visualization, and thrown darts display
 - **Virtual Board Surround**: Adds a customizable surround to the dartboard
 - **Hide Menu**: Provides more space for the game view
+- **Automatic Fullscreen**: Automatically enables fullscreen mode during matches for an immersive experience
 - **Adjustable UI Elements**: Modify the size of legs, sets, and match information
 - **Larger Player Names**: Increase the font size of player names for better visibility during matches
 
 ### 🎮 Gameplay Features
 - **Takeout Visualization**: Visual notification when takeout is in progress
-- **Disable Takeout Recognition**: Requires manual confirmation after takeout
 - **Automatic Next Player**: Switches to the next player after a configurable delay when takeout is stuck
 - **Automatic Next Leg/Set**: Automatically advances to the next leg or set after takeout
 - **Smaller Font for Inactive Players**: Reduces the font size of scores for players not currently throwing
