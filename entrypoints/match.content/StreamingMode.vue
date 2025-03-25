@@ -224,7 +224,6 @@ import { waitForElement } from "@/utils";
 import {
   AutodartsToolsConfig,
   AutodartsToolsStreamingModeStatus,
-  defaultConfig,
 } from "@/utils/storage";
 import type {
   IConfig,
@@ -283,8 +282,12 @@ onMounted(async () => {
 
     await initStreamModeButton();
 
-    coordsElementScale.value = config.value.streamingMode.coordsSettings?.scale || 1;
-    scoreBoardScale.value = config.value.streamingMode.scoreBoardSettings?.scale || 1;
+    coordsElementScale.value = config.value?.streamingMode.coordsSettings?.scale || 1;
+    scoreBoardScale.value = config.value?.streamingMode.scoreBoardSettings?.scale || 1;
+    coordsElementX.value = config.value?.streamingMode.coordsSettings?.x || 0;
+    coordsElementY.value = config.value?.streamingMode.coordsSettings?.y || 0;
+    scoreBoardElementX.value = config.value?.streamingMode.scoreBoardSettings?.x || 0;
+    scoreBoardElementY.value = config.value?.streamingMode.scoreBoardSettings?.y || 0;
 
     enabled.value = await AutodartsToolsStreamingModeStatus.getValue() || false;
   } catch (e) {
@@ -292,9 +295,24 @@ onMounted(async () => {
   }
 });
 
-onBeforeUnmount(async () => {
-  await saveSettings();
-});
+watch([ coordsElementScale, scoreBoardScale, coordsElementX, coordsElementY, scoreBoardElementX, scoreBoardElementY ], async () => {
+  if (!config.value) return;
+
+  config.value!.streamingMode.coordsSettings = {
+    scale: coordsElementScale.value,
+    x: coordsElementX.value,
+    y: coordsElementY.value,
+  };
+
+  config.value!.streamingMode.scoreBoardSettings = {
+    scale: scoreBoardScale.value,
+    x: scoreBoardElementX.value,
+    y: scoreBoardElementY.value,
+  };
+
+  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  console.log("Streaming Mode setting changed");
+}, { deep: true });
 
 // Helper function to update game title and board display
 function updateGameTitleAndBoard() {
@@ -365,7 +383,6 @@ function handleToggleSettings() {
 }
 
 async function handleCloseSettings() {
-  await saveSettings();
   settings.value = false;
 }
 
@@ -380,28 +397,6 @@ function handleSliderUpdate(type: "coords" | "score", value: number[]) {
   }
 }
 
-async function saveSettings() {
-  if (!config.value) return;
-
-  await AutodartsToolsConfig.setValue({
-    ...JSON.parse(JSON.stringify(defaultConfig)),
-    ...JSON.parse(JSON.stringify(config.value)),
-    streamingMode: {
-      ...config.value.streamingMode,
-      coordsSettings: {
-        scale: coordsElementScale.value,
-        x: coordsElementX.value,
-        y: coordsElementY.value,
-      },
-      scoreBoardSettings: {
-        scale: scoreBoardScale.value,
-        x: scoreBoardElementX.value,
-        y: scoreBoardElementY.value,
-      },
-    },
-  });
-}
-
 async function handleResetSettings() {
   coordsElementScale.value = 1;
   coordsElementY.value = 0;
@@ -409,8 +404,6 @@ async function handleResetSettings() {
   scoreBoardScale.value = 1;
   scoreBoardElementY.value = 0;
   scoreBoardElementX.value = 0;
-
-  await saveSettings();
 }
 </script>
 
