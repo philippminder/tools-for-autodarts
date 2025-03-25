@@ -420,7 +420,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       console.log(`Autodarts Tools: Playing checkout guide sound for ${currentScore}`);
       // Play "you_require" followed by the player's current score
       playSound("you_require");
-      playSound(currentScore.toString());
+      playSound(`s${currentScore}`);
     }
   }
 
