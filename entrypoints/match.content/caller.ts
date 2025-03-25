@@ -452,11 +452,15 @@ function playSound(trigger: string): void {
 
     // Check for miss prefix (m) and fallback to "outside"
     // But only if the trigger doesn't contain an underscore (to avoid combined throws)
+    // and if the characters after 'm' are numbers between 1 and 20
     if (firstChar === "m" && !trigger.includes("_")) {
-      console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "outside"`);
-      matchingSounds = config.caller.sounds.filter(sound =>
-        sound.enabled && sound.triggers && sound.triggers.includes("outside"),
-      );
+      const numberAfterM = Number.parseInt(trigger.substring(1));
+      if (!Number.isNaN(numberAfterM) && numberAfterM >= 1 && numberAfterM <= 20) {
+        console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "outside"`);
+        matchingSounds = config.caller.sounds.filter(sound =>
+          sound.enabled && sound.triggers && sound.triggers.includes("outside"),
+        );
+      }
     } else if (firstChar === "d" || firstChar === "t") {
       // For double (d) and triple (t) prefixes, try multiple fallbacks
       const number = trigger.substring(1);
