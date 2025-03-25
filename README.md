@@ -82,7 +82,7 @@ You can assign sounds to be played based on these triggers:
   - `busted`: When a player busts
   - `double`, `triple`: Generic announcements for dart types
   - `outside`: When a dart lands outside the scoring area
-  - `[playername]`: Player name sounds play automatically when it's their turn
+  - `playername`: Player name sounds play automatically when it's their turn. Example: If your name is `creazy.eth` on Autodarts, simply use `creazy.eth`
 - **Cricket-Specific**:
   - `cricket_hit`: When a player hits a Cricket target (15-20 and Bull)
   - `cricket_miss`: When a player hits a non-Cricket target (Miss-14)
