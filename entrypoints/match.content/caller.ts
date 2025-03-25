@@ -325,6 +325,23 @@ function removeInteractionNotification(): void {
   interactionNotificationShown = false;
 }
 
+// Helper function to check if a sound trigger is already in queue
+function isSoundInQueue(trigger: string): boolean {
+  // Find all sounds that match the trigger from config
+  const matchingSounds = config.caller.sounds?.filter(sound =>
+    sound.enabled && sound.triggers && sound.triggers.includes(trigger),
+  ) || [];
+
+  // Check if any of the matching sounds are in the queue
+  return soundQueue.some(queuedSound =>
+    matchingSounds.some(matchingSound =>
+      queuedSound.url === matchingSound.url
+      && queuedSound.base64 === matchingSound.base64
+      && queuedSound.soundId === matchingSound.soundId,
+    ),
+  );
+}
+
 /**
  * Process game data to trigger sounds based on game events
  */
@@ -342,7 +359,8 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0) {
-    playSound("gameon");
+    // Only play gameon if it's not already in queue
+    if (!isSoundInQueue("gameon")) playSound("gameon");
     const playerName = gameData.match.players?.[gameData.match.player]?.name;
     const isBot = gameData.match.players?.[gameData.match.player]?.cpuPPR !== null;
     if (isBot) {
