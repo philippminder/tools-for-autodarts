@@ -51,9 +51,6 @@
           </AppButton>
         </div>
       </div>
-      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
-        <img :src="imageUrl" alt="Automatic Fullscreen" class="size-full object-cover">
-      </div>
     </div>
   </template>
 </template>
@@ -65,7 +62,6 @@ import { AutodartsToolsConfig, type IConfig, defaultConfig } from "@/utils/stora
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
-const imageUrl = browser.runtime.getURL("/images/automatic-fullscreen.png");
 
 async function toggleFeature() {
   if (!config.value) return;
