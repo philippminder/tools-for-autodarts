@@ -341,10 +341,13 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   if (gameData.match.variant === "Bull-off") return;
 
   // Play gameon sound if it's the first round and variant is not Bull-off
-  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.variant !== "Bull-off" && gameData.match.player === 0) {
+  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0) {
     playSound("gameon");
     const playerName = gameData.match.players?.[gameData.match.player]?.name;
-    if (playerName) {
+    const isBot = gameData.match.players?.[gameData.match.player]?.cpuPPR !== null;
+    if (isBot) {
+      playSound("bot");
+    } else if (playerName) {
       playSound(playerName.toLowerCase());
     }
   } else if (oldGameData?.match?.player !== undefined
@@ -352,10 +355,37 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     && oldGameData.match.player !== gameData.match.player
     && gameData.match.round >= 1) {
     // Get player name and play sound with player name as trigger
-    const playerName = gameData.match.players?.[gameData.match.player]?.name;
-    if (playerName) {
+    const currentPlayer = gameData.match.players?.[gameData.match.player];
+    const playerName = currentPlayer?.name;
+    const isBot = currentPlayer?.cpuPPR !== null;
+
+    if (isBot) {
+      console.log("Autodarts Tools: Bot player detected");
+      playSound("bot");
+    } else if (playerName) {
       console.log("Autodarts Tools: Player changed to", playerName);
-      playSound(playerName.toLowerCase());
+      // Try to play the player name (both regular and underscore version), if no sound found, fall back to next_player
+      const playerNameLower = playerName.toLowerCase();
+      const playerNameWithUnderscores = playerNameLower.replace(/\s+/g, "_");
+      const hasPlayerNameSound = config.caller.sounds?.some(sound =>
+        sound.enabled && sound.triggers && (
+          sound.triggers.includes(playerNameLower)
+          || (playerNameWithUnderscores !== playerNameLower && sound.triggers.includes(playerNameWithUnderscores))
+        ),
+      );
+
+      if (hasPlayerNameSound) {
+        console.log(`Autodarts Tools: Found player name sound for "${playerNameLower}" or "${playerNameWithUnderscores}"`);
+        // Try both versions of the name
+        if (playerNameWithUnderscores !== playerNameLower) {
+          playSound(playerNameLower);
+          playSound(playerNameWithUnderscores);
+        } else {
+          playSound(playerNameLower);
+        }
+      } else {
+        playSound("next_player");
+      }
     }
   }
 
@@ -392,8 +422,13 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   if (gameData.match.variant !== "Cricket") {
     if (winner) {
       playSound("gameshot");
-      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
-      if (winnerPlayerName) {
+      const winnerPlayer = gameData.match.players?.find(player => player.index === gameData.match?.winner);
+      const winnerPlayerName = winnerPlayer?.name;
+      const isBot = winnerPlayer?.cpuPPR !== null;
+
+      if (isBot) {
+        playSound("bot");
+      } else if (winnerPlayerName) {
         playSound(winnerPlayerName.toLowerCase());
       }
     } else if (busted) {
@@ -412,8 +447,13 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     // For Cricket, handle only winner and busted sounds (not the individual throws)
     if (winner) {
       playSound("gameshot");
-      const winnerPlayerName = gameData.match.players?.find(player => player.index === gameData.match?.winner)?.name;
-      if (winnerPlayerName) {
+      const winnerPlayer = gameData.match.players?.find(player => player.index === gameData.match?.winner);
+      const winnerPlayerName = winnerPlayer?.name;
+      const isBot = winnerPlayer?.cpuPPR !== null;
+
+      if (isBot) {
+        playSound("bot");
+      } else if (winnerPlayerName) {
         playSound(winnerPlayerName.toLowerCase());
       }
     } else if (busted) {

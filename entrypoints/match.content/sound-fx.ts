@@ -337,6 +337,50 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   if (gameData.match.variant === "Bull-off") return;
 
+  // Play gameon sound if it's the first round and variant is not Bull-off
+  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0) {
+    playSound("ambient_gameon");
+  } else if (oldGameData?.match?.player !== undefined
+    && gameData.match.player !== undefined
+    && oldGameData.match.player !== gameData.match.player
+    && gameData.match.round >= 1) {
+    // Get player name and play sound with player name as trigger
+    const currentPlayer = gameData.match.players?.[gameData.match.player];
+    const playerName = currentPlayer?.name;
+    const isBot = currentPlayer?.cpuPPR !== null;
+
+    if (isBot) {
+      console.log("Autodarts Tools: Bot player detected");
+      playSound("ambient_bot");
+    } else if (playerName) {
+      console.log("Autodarts Tools: Player changed to", playerName);
+      // Try to play the player name (both regular and underscore version), if no sound found, fall back to ambient_next_player
+      const playerNameLower = playerName.toLowerCase();
+      const playerNameWithUnderscores = playerNameLower.replace(/\s+/g, "_");
+      const hasPlayerNameSound = config.soundFx.sounds?.some(sound =>
+        sound.enabled && sound.triggers && (
+          sound.triggers.includes(`ambient_${playerNameLower}`)
+          || sound.triggers.includes(`ambient_${playerNameWithUnderscores}`)
+          || sound.triggers.includes(playerNameLower)
+          || sound.triggers.includes(playerNameWithUnderscores)
+        ),
+      );
+
+      if (hasPlayerNameSound) {
+        console.log(`Autodarts Tools: Found player name sound for "${playerNameLower}" or "${playerNameWithUnderscores}"`);
+        // Try both versions of the name with ambient_ prefix
+        playSound(`ambient_${playerNameLower}`);
+        if (playerNameWithUnderscores !== playerNameLower) {
+          playSound(`ambient_${playerNameWithUnderscores}`);
+        }
+      } else {
+        playSound("ambient_next_player");
+      }
+    } else {
+      playSound("ambient_next_player");
+    }
+  }
+
   // For Cricket, trigger appropriate sound based on what was hit
   if (gameData.match.variant === "Cricket"
       && gameData.match.turns[0].throws.length > 0

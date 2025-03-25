@@ -82,7 +82,9 @@ You can assign sounds to be played based on these triggers:
   - `busted`: When a player busts
   - `double`, `triple`: Generic announcements for dart types
   - `outside`: When a dart lands outside the scoring area
-  - `playername`: Player name sounds play automatically when it's their turn. Example: If your name is `creazy.eth` on Autodarts, simply use `creazy.eth`
+  - `next_player`: Plays when switching to the next player (fallback if no player name sound is found)
+  - `bot`: Plays instead of player name when the player is a CPU/bot player
+  - `playername`: Player name sounds play automatically when it's their turn. Example: If your name is `creazy.eth` on Autodarts, simply use `creazy.eth` (supports spaces or `_` like `player_name` or `player name`)
 - **Cricket-Specific**:
   - `cricket_hit`: When a player hits a Cricket target (15-20 and Bull)
   - `cricket_miss`: When a player hits a non-Cricket target (Miss-14)
@@ -138,9 +140,13 @@ Add sound effects for various game events:
 - **Point Triggers**: Sounds can be triggered for any score from `0` to `180`
 - **Individual Throws**: Sounds for specific throws like `s20`, `d16`, `t19`, etc.
 - **Combined Throws**: Trigger sounds based on a sequence of throws using format `s20_t19_d12`
-- **Special Events**: Dedicated sounds for `gameshot`, `busted`, and more
+- **Special Events**: Dedicated sounds for `ambient_gameon`, `gameshot`, `busted`, and more
+- **Player Turn Sounds**: 
+  - `ambient_next_player`: Plays when switching to the next player (fallback if no player name sound exists)
+  - `ambient_bot`: Plays when switching to a CPU/bot player
+  - Player-specific sounds using format: `ambient_playername` or `ambient_player_name`
 - **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the following formats:
-  - `gameshot_player_name` (spaces preserved)
+  - `gameshot_player name` (spaces preserved)
   - `gameshot_player_name` (with underscores replacing spaces)
   - With ambient prefix: `ambient_gameshot_player_name`
 - **Cricket Mode**: Special triggers for Cricket games:
