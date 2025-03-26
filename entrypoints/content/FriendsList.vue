@@ -182,7 +182,7 @@
       @timeout="timeoutInvitation"
       :show="showInvitation"
       :message="invitationMessage"
-      :duration="60"
+      :duration="30"
       :lobby-url="pendingInvitation.lobbyUrl"
       :class="twMerge(
         isOpen ? 'right-[21rem]' : 'right-5',
