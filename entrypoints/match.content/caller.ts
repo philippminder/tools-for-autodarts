@@ -372,7 +372,26 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     if (isBot) {
       playSound("bot");
     } else if (playerName) {
-      playSound(playerName.toLowerCase());
+      const playerNameLower = playerName.toLowerCase();
+      const playerNameWithUnderscores = playerNameLower.replace(/\s+/g, "_");
+
+      // Check if either version of the name has a sound
+      const hasPlayerNameSound = config.caller.sounds?.some(sound =>
+        sound.enabled && sound.triggers && (
+          sound.triggers.includes(playerNameLower)
+          || (playerNameWithUnderscores !== playerNameLower && sound.triggers.includes(playerNameWithUnderscores))
+        ),
+      );
+
+      if (hasPlayerNameSound) {
+        // Try both versions of the name if they're different
+        if (playerNameWithUnderscores !== playerNameLower) {
+          playSound(playerNameLower);
+          playSound(playerNameWithUnderscores);
+        } else {
+          playSound(playerNameLower);
+        }
+      }
     }
   } else if (oldGameData?.match?.player !== undefined
     && gameData.match.player !== undefined
@@ -436,7 +455,8 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   // const currentPlayerIndex = gameData.match.player;
   const isLastThrow: boolean = gameData.match.turns[0].throws.length >= 3;
   const throwName: string = currentThrow.segment.name; // S1
-  const winner: boolean = gameData.match.gameWinner >= 0; // use this for ambient_gameshot_match later || (gameData.match.variant === "X01" && gameData.match.gameScores[currentPlayerIndex] === 0);
+  const winner: boolean = gameData.match.gameWinner >= 0; // use this for matchshot later || (gameData.match.variant === "X01" && gameData.match.gameScores[currentPlayerIndex] === 0);
+  const winnerMatch: boolean = gameData.match.winner >= 0;
   const busted: boolean = gameData.match.turns[0].busted;
   const score: number = gameData.match.turns[0].score;
   const points: number = gameData.match.turns[0].points;
@@ -445,7 +465,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   // For non-Cricket variants, use normal sound logic
   if (gameData.match.variant !== "Cricket") {
     if (winner) {
-      playSound("gameshot");
+      if (winnerMatch) {
+        playSound("matchshot");
+      } else {
+        playSound("gameshot");
+      }
       const winnerPlayer = gameData.match.players?.find(player => player.index === gameData.match?.winner);
       const winnerPlayerName = winnerPlayer?.name;
       const isBot = winnerPlayer?.cpuPPR !== null;
@@ -468,7 +492,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   } else {
     // For Cricket, handle only winner and busted sounds (not the individual throws)
     if (winner) {
-      playSound("gameshot");
+      if (winnerMatch) {
+        playSound("matchshot");
+      } else {
+        playSound("gameshot");
+      }
       const winnerPlayer = gameData.match.players?.find(player => player.index === gameData.match?.winner);
       const winnerPlayerName = winnerPlayer?.name;
       const isBot = winnerPlayer?.cpuPPR !== null;
@@ -677,6 +705,17 @@ function playSound(trigger: string): void {
 
     if (matchingSounds.length) {
       console.log("Autodarts Tools: Using fallback sound for \"miss\" -> \"outside\"");
+    }
+  }
+
+  // Special case: fallback from "matchshot" to "gameshot"
+  if (!matchingSounds.length && trigger.toLowerCase() === "matchshot") {
+    matchingSounds = config.caller.sounds.filter(sound =>
+      sound.enabled && sound.triggers && sound.triggers.includes("gameshot"),
+    );
+
+    if (matchingSounds.length) {
+      console.log("Autodarts Tools: Using fallback sound for \"matchshot\" -> \"gameshot\"");
     }
   }
 

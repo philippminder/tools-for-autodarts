@@ -124,6 +124,7 @@ The caller has a sophisticated fallback system to provide complete coverage even
 - **Segment Announcements**: If a specific segment sound (e.g., `s20`) isn't available, it automatically plays just the number (`20`)
 - **Double/Triple Handling**: For doubles and triples, it follows the pattern of playing the word followed by the number (e.g., `d20` → `double` + `20`)
 - **Miss Handling**: `miss` or `m` prefixed throws will fall back to `outside` sounds
+- **Matchshot Handling**: When no `matchshot` sound is available, the system will automatically use the `gameshot` sound instead
 - **Player Announcements**: Automatically announces the current player's name at the start of their turn
 - **Game Start**: Plays the "game on" sound at the beginning of a match
 
@@ -153,6 +154,15 @@ Add sound effects for various game events:
   - `cricket_hit`: Triggered when hitting Cricket targets (15-20 and Bull) that are still open
   - `cricket_miss`: Triggered when hitting non-Cricket targets (Miss-14) or hitting targets already closed by all players
 
+#### Match vs Game Winning Sounds
+The Sound FX feature distinguishes between winning a single game (gameshot) and winning the entire match (matchshot):
+- **Match Win**: `ambient_matchshot` or `matchshot` triggers when a player wins the complete match
+- **Game Win**: `ambient_gameshot` or `gameshot` triggers when a player wins a single game/leg
+- **Player-Specific Match Win**: Create personalized match winning sounds:
+  - `matchshot_player_name` (with underscores)
+  - `matchshot_player name` (with spaces)
+  - With ambient prefix: `ambient_matchshot_player_name`
+
 #### Ambient Sound Prefix
 - Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_t20`) to create separate sound sets for caller and ambient sounds
 - This allows you to have professional voice announcements via the Caller while also having fun sound effects via Sound FX
@@ -161,14 +171,19 @@ Add sound effects for various game events:
 The Sound FX feature includes a sophisticated multi-level fallback system:
 - If an exact match with `ambient_` prefix isn't found, it tries without the prefix
 - For segment triggers like `ambient_t20`, it tries multiple fallbacks in this order:
-  1. Exact match: `ambient_t20`
-  2. Without ambient prefix: `t20`
-  3. Split into word+number: `ambient_triple` + `ambient_20`
-  4. Non-ambient word+number: `triple` + `20`
-  5. Just the number: `20`
+  - Exact match: `ambient_t20`
+  - Without ambient prefix: `t20`
+  - Split into word+number: `ambient_triple` + `ambient_20`
+  - Non-ambient word+number: `triple` + `20`
+  - Just the number: `20`
 - Similar fallback chains exist for double segments (`d16`) and single segments (`s1`)
 - For `miss` or `m` prefixed throws, it falls back to `outside` sounds
 - In Cricket games, `miss` triggers may fall back to `cricket_miss` sounds
+- **Matchshot Fallbacks**: When a player wins a match, the system tries sounds in this order:
+  - Player-specific matchshot: `ambient_matchshot_player_name`
+  - Player-specific gameshot: `ambient_gameshot_player_name`
+  - Generic matchshot: `ambient_matchshot`
+  - Generic gameshot: `ambient_gameshot`
 - If no match is found after all fallback attempts, no sound is played
 
 #### Technical Features
