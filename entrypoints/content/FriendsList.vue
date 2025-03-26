@@ -43,9 +43,12 @@
         <!-- Friends List Section -->
         <div class="space-y-4 overflow-y-auto">
           <div
-            v-for="player in config?.friendsList?.friends"
+            v-for="player in sortedFriends"
             :key="player.boardId || player.name"
             class="grid grid-cols-[auto_1fr_auto] items-center gap-2"
+            :class="{
+              'opacity-80': !friendsOnlineStatus[player.userId || player.boardId],
+            }"
           >
             <div class="relative">
               <img :src="generateAvatar(player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
@@ -58,7 +61,12 @@
                 }"
               />
             </div>
-            <span class="max-w-52 truncate text-sm">{{ player.name }}</span>
+            <span
+              class="max-w-52 truncate text-sm"
+              :class="{
+                'font-semibold': friendsOnlineStatus[player.userId || player.boardId],
+              }"
+            >{{ player.name }}</span>
             <div class="flex items-center gap-1">
               <AppButton
                 @click="removeFriend(player)"
@@ -201,6 +209,22 @@ const heartbeatInterval = ref<number | null>(null);
 const friendsStatusInterval = ref<number | null>(null);
 const friendsOnlineStatus = ref<Record<string, boolean>>({});
 let port: Runtime.Port | null = null;
+
+const sortedFriends = computed(() => {
+  if (!config.value?.friendsList?.friends) return [];
+
+  return [ ...config.value.friendsList.friends ].sort((a, b) => {
+    const aOnline = friendsOnlineStatus.value[a.userId || a.boardId] || false;
+    const bOnline = friendsOnlineStatus.value[b.userId || b.boardId] || false;
+
+    if (aOnline === bOnline) {
+      // If online status is the same, maintain original order
+      return 0;
+    }
+    // Sort online players first
+    return aOnline ? -1 : 1;
+  });
+});
 
 function isDuplicateFriend(newFriend: { name: string; boardId?: string; id?: string }) {
   if (!config.value) return false;
