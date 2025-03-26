@@ -16,6 +16,7 @@ const userFriendsStore: Record<string, {
   friends: any[];
   timestamp: number;
   online: boolean;
+  socketId?: string; // Add socketId to track user's socket connection
 }> = {};
 
 io.on("connection", (socket) => {
@@ -23,6 +24,17 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
+
+    // Remove socketId from user data on disconnect
+    for (const userId in userFriendsStore) {
+      if (userFriendsStore[userId]?.socketId === socket.id) {
+        const userData = userFriendsStore[userId];
+        if (userData) {
+          userData.socketId = undefined;
+        }
+        break;
+      }
+    }
   });
 
   socket.on("ping", () => {
@@ -41,11 +53,12 @@ io.on("connection", (socket) => {
 
     console.log(`Received friends data for user ${userId} with ${friends.length} friends`);
 
-    // Store the friends data
+    // Store the friends data with the socket ID
     userFriendsStore[userId] = {
       friends,
       timestamp: timestamp || Date.now(),
       online: true,
+      socketId: socket.id,
     };
   });
 
@@ -64,11 +77,13 @@ io.on("connection", (socket) => {
     if (userFriendsStore[userId]) {
       userFriendsStore[userId].timestamp = Date.now();
       userFriendsStore[userId].online = true;
+      userFriendsStore[userId].socketId = socket.id; // Update socket ID on heartbeat
     } else {
       userFriendsStore[userId] = {
         friends: [],
         timestamp: Date.now(),
         online: true,
+        socketId: socket.id,
       };
     }
   });
@@ -111,6 +126,90 @@ io.on("connection", (socket) => {
 
     // Send back the status results
     socket.emit("friends-status-result", { friendsStatus: result });
+  });
+
+  // Handle lobby invitations
+  socket.on("send-lobby-invitation", (data) => {
+    const { fromUserId, toUserId, lobbyUrl, fromName } = data;
+
+    if (!fromUserId || !toUserId || !lobbyUrl) {
+      console.error("Invalid lobby invitation data:", data);
+      return;
+    }
+
+    console.log(`Received lobby invitation from ${fromUserId} to ${toUserId} for lobby: ${lobbyUrl}`);
+
+    // Check if both users are mutual friends
+    const fromUserData = userFriendsStore[fromUserId];
+    const toUserData = userFriendsStore[toUserId];
+
+    if (!fromUserData || !toUserData) {
+      console.error("One or both users not found in store");
+      socket.emit("lobby-invitation-error", {
+        error: "One or both users not found",
+        toUserId,
+      });
+      return;
+    }
+
+    // Check for mutual friendship
+    const isFromUserFriendWithTo = fromUserData.friends.some(friend =>
+      friend.userId === toUserId || friend.boardId === toUserId,
+    );
+
+    const isToUserFriendWithFrom = toUserData.friends.some(friend =>
+      friend.userId === fromUserId || friend.boardId === fromUserId,
+    );
+
+    if (!isFromUserFriendWithTo || !isToUserFriendWithFrom) {
+      console.error("Users are not mutual friends");
+      socket.emit("lobby-invitation-error", {
+        error: "Users are not mutual friends",
+        toUserId,
+      });
+      return;
+    }
+
+    // Check if the recipient is online and has a socket connection
+    if (!toUserData.online || !toUserData.socketId) {
+      console.error("Recipient is offline or has no socket connection");
+      socket.emit("lobby-invitation-error", {
+        error: "Recipient is offline",
+        toUserId,
+      });
+      return;
+    }
+
+    // Send the invitation to the recipient
+    io.to(toUserData.socketId).emit("lobby-invitation", {
+      fromUserId,
+      fromName: fromName || "A friend",
+      lobbyUrl,
+    });
+
+    // Confirm to the sender that the invitation was sent
+    socket.emit("lobby-invitation-sent", { toUserId });
+  });
+
+  // Handle invitation responses
+  socket.on("lobby-invitation-response", (data) => {
+    const { fromUserId, toUserId, accepted } = data;
+
+    if (!fromUserId || !toUserId) {
+      console.error("Invalid invitation response data:", data);
+      return;
+    }
+
+    // Find the sender's socket
+    const fromUserData = userFriendsStore[fromUserId];
+
+    if (fromUserData && fromUserData.socketId) {
+      // Notify the sender about the response
+      io.to(fromUserData.socketId).emit("lobby-invitation-response", {
+        toUserId,
+        accepted,
+      });
+    }
   });
 });
 

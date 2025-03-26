@@ -72,6 +72,40 @@ export default defineBackground({
       });
     }
 
+    // Broadcast lobby invitation to all connected ports
+    function broadcastLobbyInvitation(invitation: { fromUserId: string; fromName: string; lobbyUrl: string }) {
+      console.log("Broadcasting lobby invitation:", invitation);
+      const message = {
+        type: "lobby-invitation",
+        ...invitation,
+      };
+
+      ports.forEach((port) => {
+        try {
+          port.postMessage(message);
+        } catch (err) {
+          console.error("Error sending lobby invitation to port:", err);
+        }
+      });
+    }
+
+    // Broadcast lobby invitation response to all connected ports
+    function broadcastLobbyInvitationResponse(response: { toUserId: string; accepted: boolean }) {
+      console.log("Broadcasting lobby invitation response:", response);
+      const message = {
+        type: "lobby-invitation-response",
+        ...response,
+      };
+
+      ports.forEach((port) => {
+        try {
+          port.postMessage(message);
+        } catch (err) {
+          console.error("Error sending lobby invitation response to port:", err);
+        }
+      });
+    }
+
     // Initialize socket connection
     initializeSocket();
 
@@ -167,6 +201,46 @@ export default defineBackground({
       socket.on("pong", (data) => {
         console.log("Background: Received pong:", data);
       });
+
+      // Setup new socket event handlers for invitations
+
+      socket.on("lobby-invitation", (data) => {
+        console.log("Background: Received lobby invitation:", data);
+        broadcastLobbyInvitation(data);
+      });
+
+      socket.on("lobby-invitation-response", (data) => {
+        console.log("Background: Received lobby invitation response:", data);
+        broadcastLobbyInvitationResponse(data);
+      });
+
+      socket.on("lobby-invitation-sent", (data) => {
+        console.log("Background: Lobby invitation sent:", data);
+        ports.forEach((port) => {
+          try {
+            port.postMessage({
+              type: "lobby-invitation-sent",
+              ...data,
+            });
+          } catch (err) {
+            console.error("Error forwarding invitation sent message:", err);
+          }
+        });
+      });
+
+      socket.on("lobby-invitation-error", (data) => {
+        console.log("Background: Lobby invitation error:", data);
+        ports.forEach((port) => {
+          try {
+            port.postMessage({
+              type: "lobby-invitation-error",
+              ...data,
+            });
+          } catch (err) {
+            console.error("Error forwarding invitation error message:", err);
+          }
+        });
+      });
     }
 
     function pingServer() {
@@ -260,9 +334,50 @@ export default defineBackground({
       }
     }
 
-    // Basic message handler
-    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      console.log("Background: Received message:", message);
+    // Function to send lobby invitation to a friend
+    function sendLobbyInvitation(fromUserId: string, fromName: string, toUserId: string, lobbyUrl: string) {
+      if (socket && socket.connected) {
+        console.log("Sending lobby invitation from", fromUserId, "to", toUserId, "for lobby:", lobbyUrl);
+        socket.emit("send-lobby-invitation", {
+          fromUserId,
+          fromName,
+          toUserId,
+          lobbyUrl,
+        });
+        return { success: true };
+      } else {
+        console.log("Cannot send lobby invitation: socket not connected");
+        return {
+          success: false,
+          error: "Socket not connected",
+          status: connectionStatus,
+        };
+      }
+    }
+
+    // Function to send invitation response
+    function sendInvitationResponse(fromUserId: string, toUserId: string, accepted: boolean) {
+      if (socket && socket.connected) {
+        console.log("Sending invitation response from", toUserId, "to", fromUserId, "accepted:", accepted);
+        socket.emit("lobby-invitation-response", {
+          fromUserId,
+          toUserId,
+          accepted,
+        });
+        return { success: true };
+      } else {
+        console.log("Cannot send invitation response: socket not connected");
+        return {
+          success: false,
+          error: "Socket not connected",
+          status: connectionStatus,
+        };
+      }
+    }
+
+    // Handle messages from content scripts
+    browser.runtime.onMessage.addListener(async (message, sender) => {
+      console.log("Background: Received message", message.type, "from", sender?.tab?.url || "unknown");
 
       // Socket.IO related messages
       if (message.type === "socket:initialize") {
@@ -450,36 +565,28 @@ export default defineBackground({
 
       // Handle connection status request
       if (message.type === "get-socket-status") {
-        sendResponse({ status: connectionStatus });
-        return true;
-      }
-
-      // Handle sending friends data
-      if (message.type === "update-friends") {
-        const { userId, friends } = message;
-        const result = sendFriendsData(userId, friends);
-        sendResponse(result);
-        return true;
-      }
-
-      // Handle heartbeat
-      if (message.type === "heartbeat") {
-        const { userId } = message;
-        const result = sendHeartbeat(userId);
-        sendResponse(result);
-        return true;
-      }
-
-      // Handle check friends status
-      if (message.type === "check-friends-status") {
-        const { userId, friendIds } = message;
-        checkFriendsStatus(userId, friendIds)
-          .then(result => sendResponse(result))
-          .catch(error => sendResponse({
-            success: false,
-            error: error instanceof Error ? error.message : String(error),
-          }));
-        return true; // Keep the message channel open for the async response
+        return {
+          status: connectionStatus,
+        };
+      } else if (message.type === "update-friends") {
+        return sendFriendsData(message.userId, message.friends);
+      } else if (message.type === "heartbeat") {
+        return sendHeartbeat(message.userId);
+      } else if (message.type === "check-friends-status") {
+        return checkFriendsStatus(message.userId, message.friendIds);
+      } else if (message.type === "send-lobby-invitation") {
+        return sendLobbyInvitation(
+          message.fromUserId,
+          message.fromName,
+          message.toUserId,
+          message.lobbyUrl,
+        );
+      } else if (message.type === "lobby-invitation-response") {
+        return sendInvitationResponse(
+          message.fromUserId,
+          message.toUserId,
+          message.accepted,
+        );
       }
 
 >>>>>>> 71e4fa7 (🔧 Enhance Friends List and Background Script for Real-Time Updates)
