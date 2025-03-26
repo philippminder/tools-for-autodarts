@@ -24,8 +24,13 @@ export default defineConfig({
     ],
     permissions: [
       "storage",
+      "background",
       // "*://discord.com/api/webhooks/*",
     ],
+    background: {
+      service_worker: "background.js",
+      type: "module",
+    },
     name: "Tools for Autodarts",
     description: "Tools for Autodarts enhances the gaming experience on autodarts.io",
     // content_scripts: [
@@ -44,7 +49,7 @@ export default defineConfig({
         matches: [ "*://play.autodarts.io/*" ],
       },
       {
-        resources: [ "websocket-capture.js", "auth-cookie.js" ],
+        resources: [ "websocket-capture.js", "auth-cookie.js", "background.js" ],
         matches: [ "*://play.autodarts.io/*" ],
       },
     ],

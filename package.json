@@ -27,6 +27,7 @@
     "lodash": "^4.17.21",
     "mitt": "^3.0.1",
     "radix-vue": "^1.8.5",
+    "socket.io-client": "^4.8.1",
     "sortablejs": "^1.15.6",
     "vue": "^3.4.31"
   },

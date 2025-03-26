@@ -141,6 +141,15 @@ import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { generateAvatar } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: () => void;
+const lastPong = ref<{ timestamp: number } | null>(null);
+
+// Listen for pong messages from the background script
+browser.runtime.onMessage.addListener((message) => {
+  if (message.type === "socket:pong") {
+    lastPong.value = message.data;
+    console.log("Received pong in content script:", message.data);
+  }
+});
 
 const config = ref<IConfig>();
 const gameData = ref<IGameData>();
@@ -179,6 +188,9 @@ onBeforeMount(async () => {
 });
 
 onMounted(async () => {
+  // Initialize socket in background
+  browser.runtime.sendMessage({ type: "socket:initialize" });
+
   gameDataWatcherUnwatch = AutodartsToolsGameData.watch((_gameData: IGameData) => {
     gameData.value = _gameData;
     if (!config.value) return;
@@ -192,16 +204,15 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  // Cleanup socket in background
+  browser.runtime.sendMessage({ type: "socket:cleanup" });
   gameDataWatcherUnwatch();
 });
 
 async function saveFriend() {
   if (!config.value) return;
 
-  if (isDuplicateFriend(newFriend.value)) {
-    alert("This friend is already in your list!");
-    return;
-  }
+  if (isDuplicateFriend(newFriend.value)) return;
 
   config.value.friendsList.friends.push({
     name: newFriend.value.name,
@@ -218,10 +229,7 @@ async function saveFriend() {
 async function addFriend(player: IPlayerInfo) {
   if (!config.value) return;
 
-  if (isDuplicateFriend(player)) {
-    alert("This friend is already in your list!");
-    return;
-  }
+  if (isDuplicateFriend(player)) return;
 
   config.value.friendsList.friends.push({
     id: player.id,
