@@ -345,6 +345,7 @@ function isSoundInQueue(trigger: string): boolean {
 /**
  * Process game data to trigger sounds based on game events
  */
+let lastScore: number = 0;
 async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
   if (!gameData.match || !gameData.match.turns?.length) return;
 
@@ -356,6 +357,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   }
 
   if (gameData.match.variant === "Bull-off") return;
+
+  // This is for cricket to prevent playing the score when not changed since last round
+  if (gameData.match.turns[0].throws.length === 0) {
+    lastScore = gameData.match.gameScores[gameData.match.player];
+  }
 
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0) {
@@ -432,8 +438,8 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   const throwName: string = currentThrow.segment.name; // S1
   const winner: boolean = gameData.match.gameWinner >= 0; // use this for ambient_gameshot_match later || (gameData.match.variant === "X01" && gameData.match.gameScores[currentPlayerIndex] === 0);
   const busted: boolean = gameData.match.turns[0].busted;
-  const points: number = gameData.match.turns[0].points;
   const score: number = gameData.match.turns[0].score;
+  const points: number = gameData.match.turns[0].points;
   const combinedThrows: string = gameData.match.turns[0].throws.map(t => t.segment.name.toLowerCase()).join("_");
 
   // For non-Cricket variants, use normal sound logic
@@ -476,11 +482,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       playSound("busted");
     } else if (gameData.match.players && gameData.match.players.length > 1 && isLastThrow) {
       if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
-      playSound(score.toString());
+      if (score !== lastScore) playSound(score.toString());
+      lastScore = score;
     } else {
       if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
     }
-    // Note: we don't play individual throw sounds as we've handled cricket_hit/cricket_miss above
   }
 }
 
