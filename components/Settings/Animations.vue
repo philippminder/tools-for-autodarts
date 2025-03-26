@@ -71,13 +71,13 @@
             </div>
 
             <div
-              v-if="allowAdd"
               ref="animationsContainer"
               :key="containerKey"
               class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
             >
               <div
                 @click="openAddAnimationModal"
+                v-if="allowAdd"
                 class="add-animation-button flex aspect-video cursor-pointer items-center justify-center rounded-md border-2 border-dashed border-white/30 bg-transparent p-4 transition-colors hover:bg-white/10"
               >
                 <div class="flex flex-col items-center">
@@ -134,7 +134,7 @@
                 </div>
 
                 <!-- Info section -->
-                <div class="absolute inset-x-0 bottom-0 bg-black/70 p-2 text-xs">
+                <div class="absolute inset-x-0 bottom-0 cursor-move bg-black/70 p-2 text-xs">
                   <div class="truncate font-mono uppercase">
                     {{ Array.isArray(animation.triggers) ? animation.triggers.join(', ') : '' }}
                   </div>
@@ -257,8 +257,10 @@ import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
 import AppSelect from "../AppSelect.vue";
 import { AutodartsToolsConfig, type IAnimation, type IConfig } from "@/utils/storage";
+import { useNotification } from "@/composables/useNotification";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
+const { notification, showNotification, hideNotification } = useNotification();
 useStorage("adt:active-settings", "animations");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/animations.png");
@@ -329,11 +331,11 @@ function initSortable() {
   sortableInstance = Sortable.create(animationsContainer.value, {
     animation: 150,
     draggable: "[data-id]",
-    filter: ".add-animation-button", // Don't make the "Add Animation" button draggable
+    filter: ".flex.h-32", // Don't make the "Add Animation" button draggable
     ghostClass: "bg-gray-700",
+    handle: ".cursor-move", // Use the info section as the drag handle
     onStart(evt) {
-      isDragging.value = true;
-      currentDragIndex.value = evt.oldIndex !== undefined ? evt.oldIndex : null;
+      console.log("TEST");
     },
     onEnd(evt) {
       isDragging.value = false;
@@ -345,13 +347,23 @@ function initSortable() {
         const oldIndex = evt.oldIndex;
         const newIndex = evt.newIndex;
 
-        if (oldIndex === undefined || newIndex === undefined) return;
+        // Update the data array to match the DOM
+        if (oldIndex !== undefined && newIndex !== undefined) {
+          const movedItem = config.value.animations.data.splice(oldIndex - 1, 1)[0];
 
-        const item = config.value.animations.data[oldIndex];
+          config.value.animations.data.splice(newIndex - 1, 0, movedItem);
 
-        // Remove from old position and insert at new position
-        config.value.animations.data.splice(oldIndex, 1);
-        config.value.animations.data.splice(newIndex, 0, item);
+          // Update the container key to force re-render
+          containerKey.value++;
+
+          // Show notification
+          showNotification("Animation order updated");
+
+          // Re-initialize sortable after a short delay to ensure DOM is updated
+          setTimeout(() => {
+            initSortable();
+          }, 50);
+        }
       }
     },
   });
@@ -403,7 +415,7 @@ function saveAnimation() {
     config.value.animations.data[editingIndex.value] = animation;
   } else {
     // Add to animations data array
-    config.value.animations.data.push(animation);
+    config.value.animations.data.unshift(animation);
   }
 
   // Reset form and close modal
