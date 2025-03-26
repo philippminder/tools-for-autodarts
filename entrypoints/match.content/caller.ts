@@ -454,9 +454,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     } else if (isLastThrow) {
       if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
       // Only play points sound if there's more than one player
-      if (gameData.match.players && gameData.match.players.length > 1) {
-        playSound(points.toString());
-      }
+      playSound(points.toString());
       playSound(combinedThrows);
     } else {
       if (config.caller.callEveryDart) playSound(throwName.toLowerCase());
