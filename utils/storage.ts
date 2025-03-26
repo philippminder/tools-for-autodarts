@@ -280,7 +280,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export interface IFriend {
-  id?: string;
+  userId?: string;
   name: string;
   boardId: string;
   avatarUrl: string;

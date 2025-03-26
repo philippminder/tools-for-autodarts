@@ -24,7 +24,7 @@ export default defineConfig({
     ],
     permissions: [
       "storage",
-      // "background",
+      "background",
       // "*://discord.com/api/webhooks/*",
     ],
     background: {
