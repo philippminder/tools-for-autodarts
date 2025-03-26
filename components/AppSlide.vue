@@ -31,7 +31,8 @@
       <!-- Header -->
       <div class="border-b border-white/20 px-4 py-3">
         <div class="flex items-center justify-between">
-          <h2 v-if="title" class="text-lg font-bold text-[var(--chakra-colors-white)]">
+          <slot v-if="$slots.title" name="title" />
+          <h2 v-else-if="title" class="text-lg font-bold text-[var(--chakra-colors-white)]">
             {{ title }}
           </h2>
           <AppButton

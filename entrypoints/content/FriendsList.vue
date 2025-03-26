@@ -15,9 +15,31 @@
 
     <AppSlide
       v-model="isOpen"
-      title="Friends List"
     >
-      <div class="grid h-full grid-rows-[1fr_1fr_3rem] gap-4">
+      <template #title>
+        <div class="flex items-center gap-2">
+          <span class="relative flex size-2">
+            <span
+              class="absolute inline-flex size-full rounded-full opacity-75"
+              :class="{
+                'bg-green-500': socketStatus === 'connected',
+                'bg-red-500': socketStatus === 'error' || socketStatus === 'disconnected',
+                'bg-yellow-500': socketStatus === 'connecting',
+              }"
+            />
+            <span
+              class="relative inline-flex size-full rounded-full"
+              :class="{
+                'bg-green-500': socketStatus === 'connected',
+                'bg-red-500': socketStatus === 'error' || socketStatus === 'disconnected',
+                'bg-yellow-500': socketStatus === 'connecting',
+              }"
+            />
+          </span>
+          <span>Friends List</span>
+        </div>
+      </template>
+      <div class="grid h-full grid-rows-[1fr_auto_3rem] gap-4">
         <!-- Friends List Section -->
         <div class="space-y-4 overflow-y-auto">
           <div
@@ -54,7 +76,7 @@
           <h3 class="mb-3 text-sm font-semibold">
             Recent Players
           </h3>
-          <div class="space-y-4 overflow-y-auto">
+          <div v-if="config?.friendsList?.recentPlayers?.length" class="space-y-4 overflow-y-auto">
             <div
               v-for="player in config?.friendsList?.recentPlayers"
               :key="player.id"
@@ -66,6 +88,11 @@
                 <span class="icon-[pixelarticons--user-plus]" />
               </AppButton>
             </div>
+          </div>
+          <div v-else>
+            <p class="text-center text-sm text-gray-500">
+              No recent players
+            </p>
           </div>
         </div>
 
@@ -141,15 +168,6 @@ import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { generateAvatar } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: () => void;
-const lastPong = ref<{ timestamp: number } | null>(null);
-
-// Listen for pong messages from the background script
-browser.runtime.onMessage.addListener((message) => {
-  if (message.type === "socket:pong") {
-    lastPong.value = message.data;
-    console.log("Received pong in content script:", message.data);
-  }
-});
 
 const config = ref<IConfig>();
 const gameData = ref<IGameData>();
@@ -161,6 +179,7 @@ const newFriend = ref({
 });
 const showRemoveConfirmation = ref(false);
 const playerToRemove = ref<IFriend | null>(null);
+const socketStatus = ref<"connected" | "disconnected" | "connecting" | "error">("disconnected");
 
 function isDuplicateFriend(newFriend: { name: string; boardId?: string; id?: string }) {
   if (!config.value) return false;
@@ -188,9 +207,6 @@ onBeforeMount(async () => {
 });
 
 onMounted(async () => {
-  // Initialize socket in background
-  browser.runtime.sendMessage({ type: "socket:initialize" });
-
   gameDataWatcherUnwatch = AutodartsToolsGameData.watch((_gameData: IGameData) => {
     gameData.value = _gameData;
     if (!config.value) return;
@@ -201,11 +217,26 @@ onMounted(async () => {
       ).values(),
     ).slice(0, 10);
   });
+
+  // Get initial socket status
+  try {
+    const response = await browser.runtime.sendMessage({ type: "get-socket-status" });
+    if (response && response.status) {
+      socketStatus.value = response.status;
+    }
+  } catch (error) {
+    console.error("Error getting socket status:", error);
+  }
+
+  // Listen for socket status updates
+  browser.runtime.onMessage.addListener((message) => {
+    if (message.type === "socket-status-update") {
+      socketStatus.value = message.status;
+    }
+  });
 });
 
 onBeforeUnmount(() => {
-  // Cleanup socket in background
-  browser.runtime.sendMessage({ type: "socket:cleanup" });
   gameDataWatcherUnwatch();
 });
 

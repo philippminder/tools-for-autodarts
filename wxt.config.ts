@@ -24,7 +24,7 @@ export default defineConfig({
     ],
     permissions: [
       "storage",
-      "background",
+      // "background",
       // "*://discord.com/api/webhooks/*",
     ],
     background: {
@@ -49,7 +49,7 @@ export default defineConfig({
         matches: [ "*://play.autodarts.io/*" ],
       },
       {
-        resources: [ "websocket-capture.js", "auth-cookie.js", "background.js" ],
+        resources: [ "websocket-capture.js", "auth-cookie.js" ],
         matches: [ "*://play.autodarts.io/*" ],
       },
     ],
