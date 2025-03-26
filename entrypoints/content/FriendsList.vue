@@ -47,7 +47,17 @@
             :key="player.boardId || player.name"
             class="grid grid-cols-[auto_1fr_auto] items-center gap-2"
           >
-            <img :src="generateAvatar(player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
+            <div class="relative">
+              <img :src="generateAvatar(player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
+              <span
+                v-if="player.userId || player.boardId"
+                class="absolute -bottom-0.5 -right-0.5 inline-flex size-2 rounded-full"
+                :class="{
+                  'bg-green-500': friendsOnlineStatus[player.userId || player.boardId],
+                  'bg-gray-400': !friendsOnlineStatus[player.userId || player.boardId],
+                }"
+              />
+            </div>
             <span class="max-w-52 truncate text-sm">{{ player.name }}</span>
             <div class="flex items-center gap-1">
               <AppButton
@@ -60,7 +70,7 @@
                 <span class="icon-[pixelarticons--user-minus]" />
               </AppButton>
               <AppButton
-                v-if="player.id"
+                v-if="player.userId"
                 size="xs"
                 auto
                 title="Add to Lobby"
@@ -87,7 +97,7 @@
             >
               <img :src="generateAvatar(player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
               <span class="max-w-52 truncate text-sm">{{ player.name }}</span>
-              <AppButton @click="addFriend(player)" size="xs" auto title="Add to friends">
+              <AppButton @click="addFriend(player as unknown as IPlayerInfo)" size="xs" auto title="Add to friends">
                 <span class="icon-[pixelarticons--user-plus]" />
               </AppButton>
             </div>
@@ -159,6 +169,8 @@
 </template>
 
 <script setup lang="ts">
+import { isEqual } from "lodash";
+import type { Runtime } from "wxt/browser";
 import AppButton from "@/components/AppButton.vue";
 import AppSlide from "@/components/AppSlide.vue";
 import AppModal from "@/components/AppModal.vue";
@@ -168,7 +180,7 @@ import type { IConfig, IFriend, IPlayerInfo } from "@/utils/storage";
 import type { IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
-import { generateAvatar } from "@/utils/helpers";
+import { generateAvatar, getUserIdFromToken } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: () => void;
 
@@ -183,6 +195,12 @@ const newFriend = ref({
 const showRemoveConfirmation = ref(false);
 const playerToRemove = ref<IFriend | null>(null);
 const socketStatus = ref<"connected" | "disconnected" | "connecting" | "error">("disconnected");
+const userId = ref<string | null>(null);
+const previousFriends = ref<IFriend[]>([]);
+const heartbeatInterval = ref<number | null>(null);
+const friendsStatusInterval = ref<number | null>(null);
+const friendsOnlineStatus = ref<Record<string, boolean>>({});
+let port: Runtime.Port | null = null;
 
 function isDuplicateFriend(newFriend: { name: string; boardId?: string; id?: string }) {
   if (!config.value) return false;
@@ -197,19 +215,125 @@ watch(config, async (_, oldValue) => {
 
   await AutodartsToolsConfig.setValue(toRaw(config.value!));
   console.log("Friends List setting changed");
+
+  // Only send friends data when the friends array has changed
+  if (socketStatus.value === "connected" && userId.value && config.value) {
+    const currentFriends = toRaw(config.value.friendsList.friends);
+    if (!isEqual(currentFriends, previousFriends.value)) {
+      previousFriends.value = [ ...currentFriends ];
+      sendFriendsToServer();
+    }
+  }
 }, { deep: true });
 
-onBeforeMount(async () => {
+// Function to send friends data to socket server
+async function sendFriendsToServer() {
+  if (!config.value?.friendsList?.friends || !userId.value) return;
+
+  console.log("Sending friends to server:", config.value.friendsList.friends);
+
+  try {
+    await browser.runtime.sendMessage({
+      type: "update-friends",
+      userId: userId.value,
+      friends: config.value.friendsList.friends,
+    });
+  } catch (error) {
+    console.error("Error sending friends data:", error);
+  }
+}
+
+// Send heartbeat to keep user's timestamp updated
+async function sendHeartbeat() {
+  if (!userId.value) return;
+
+  try {
+    await browser.runtime.sendMessage({
+      type: "heartbeat",
+      userId: userId.value,
+    });
+  } catch (error) {
+    console.error("Error sending heartbeat:", error);
+  }
+}
+
+// Check online status for all friends
+async function checkFriendsStatus() {
+  if (!config.value?.friendsList?.friends || !userId.value || socketStatus.value !== "connected") return;
+
+  try {
+    // Extract friend ids to check
+    const friendIds = config.value.friendsList.friends
+      .map(friend => friend.userId || friend.boardId)
+      .filter(Boolean) as string[];
+
+    if (friendIds.length === 0) return;
+
+    // Send request to check friends status
+    await browser.runtime.sendMessage({
+      type: "check-friends-status",
+      userId: userId.value,
+      friendIds,
+    });
+  } catch (error) {
+    console.error("Error checking friends status:", error);
+  }
+}
+
+// Setup port connection with background script
+function setupPortConnection() {
+  // Connect to background script
+  port = browser.runtime.connect({ name: "friends-list" });
+
+  // Handle messages from background script
+  port?.onMessage.addListener((message: any) => {
+    if (message.type === "socket-status-update") {
+      const previousStatus = socketStatus.value;
+      socketStatus.value = message.status;
+
+      // If socket just connected, send friends data
+      if (previousStatus !== "connected" && message.status === "connected" && userId.value) {
+        sendFriendsToServer();
+        // Send heartbeat when connection is established
+        sendHeartbeat();
+        // Do initial check of friends status
+        checkFriendsStatus();
+      }
+    } else if (message.type === "friends-status-result" && message.friendsStatus) {
+      // Update the friends online status
+      friendsOnlineStatus.value = message.friendsStatus;
+    }
+  });
+
+  // Handle disconnection
+  port?.onDisconnect.addListener(() => {
+    console.log("Disconnected from background script");
+    port = null;
+    // Try to reconnect after a short delay
+    setTimeout(setupPortConnection, 1000);
+  });
+}
+
+// Initialize port connection
+setupPortConnection();
+
+onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   gameData.value = await AutodartsToolsGameData.getValue();
   if (!config.value?.friendsList) config.value.friendsList = defaultConfig.friendsList;
 
+  // Initialize previous friends
+  if (config.value?.friendsList?.friends) {
+    previousFriends.value = [ ...toRaw(config.value.friendsList.friends) ];
+  }
+
+  // Get user ID from JWT
+  userId.value = await getUserIdFromToken();
+
   // for development only
   await nextTick();
   config.value.friendsList.enabled = true;
-});
 
-onMounted(async () => {
   gameDataWatcherUnwatch = AutodartsToolsGameData.watch((_gameData: IGameData) => {
     gameData.value = _gameData;
     if (!config.value) return;
@@ -226,21 +350,49 @@ onMounted(async () => {
     const response = await browser.runtime.sendMessage({ type: "get-socket-status" });
     if (response && response.status) {
       socketStatus.value = response.status;
+
+      // If socket is already connected, send friends data
+      if (response.status === "connected" && userId.value) {
+        sendFriendsToServer();
+        // Send initial heartbeat
+        sendHeartbeat();
+        // Do initial check of friends status
+        checkFriendsStatus();
+      }
     }
   } catch (error) {
     console.error("Error getting socket status:", error);
   }
 
-  // Listen for socket status updates
-  browser.runtime.onMessage.addListener((message) => {
-    if (message.type === "socket-status-update") {
-      socketStatus.value = message.status;
-    }
-  });
+  // Start heartbeat interval
+  if (userId.value) {
+    // Send heartbeat every 30 seconds
+    heartbeatInterval.value = window.setInterval(sendHeartbeat, 30000);
+
+    // Check friends status every 30 seconds
+    friendsStatusInterval.value = window.setInterval(checkFriendsStatus, 30000);
+  }
 });
 
 onBeforeUnmount(() => {
   gameDataWatcherUnwatch();
+
+  // Disconnect port
+  if (port) {
+    port.disconnect();
+    port = null;
+  }
+
+  // Clear intervals on component unmount
+  if (heartbeatInterval.value) {
+    clearInterval(heartbeatInterval.value);
+    heartbeatInterval.value = null;
+  }
+
+  if (friendsStatusInterval.value) {
+    clearInterval(friendsStatusInterval.value);
+    friendsStatusInterval.value = null;
+  }
 });
 
 async function saveFriend() {
@@ -266,7 +418,7 @@ async function addFriend(player: IPlayerInfo) {
   if (isDuplicateFriend(player)) return;
 
   config.value.friendsList.friends.push({
-    id: player.id,
+    userId: player.userId,
     name: player.name,
     boardId: player.boardId || "",
     avatarUrl: player.avatarUrl || generateAvatar(player.boardId || player.name),

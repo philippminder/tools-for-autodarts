@@ -64,6 +64,30 @@ export async function getAuthToken() {
   return globalStatus.auth?.token || "";
 }
 
+/**
+ * Decodes a JWT token and extracts the user ID from the 'sub' claim
+ * @returns The user ID from the JWT token or null if not found
+ */
+export async function getUserIdFromToken(): Promise<string | null> {
+  try {
+    const token = await getAuthToken();
+    if (!token) return null;
+
+    // JWT token consists of three parts: header.payload.signature
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    // Decode the payload (middle part)
+    const payload = JSON.parse(atob(parts[1]));
+
+    // Extract and return the 'sub' claim which contains the user ID
+    return payload.sub || null;
+  } catch (error) {
+    console.error("Error decoding JWT token:", error);
+    return null;
+  }
+}
+
 // Function to make authenticated API requests
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = await getAuthToken();

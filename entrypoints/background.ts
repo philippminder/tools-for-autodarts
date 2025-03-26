@@ -1,5 +1,6 @@
 import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
+import type { Runtime } from "wxt/browser";
 
 console.log("Background script loading...");
 
@@ -10,17 +11,62 @@ export default defineBackground({
     let socket: Socket | null = null;
     const SOCKET_SERVER_URL = "http://localhost:4455";
     let connectionStatus = "disconnected";
+    let ports: Runtime.Port[] = [];
+
+    // Handle port connections from content scripts
+    browser.runtime.onConnect.addListener((port) => {
+      console.log("New port connection from content script", port.name);
+      ports.push(port);
+
+      // Remove port when disconnected
+      port.onDisconnect.addListener(() => {
+        console.log("Port disconnected", port.name);
+        ports = ports.filter(p => p !== port);
+      });
+
+      // Send initial status
+      port.postMessage({
+        type: "socket-status-update",
+        status: connectionStatus,
+      });
+    });
+
+    // Broadcast connection status to all connected ports
+    function broadcastConnectionStatus() {
+      console.log("Broadcasting connection status:", connectionStatus);
+      const message = {
+        type: "socket-status-update",
+        status: connectionStatus,
+      };
+
+      ports.forEach((port) => {
+        try {
+          port.postMessage(message);
+        } catch (err) {
+          console.error("Error sending message to port:", err);
+        }
+      });
+    }
+
+    // Broadcast friends status to all connected ports
+    function broadcastFriendsStatus(friendsStatus: Record<string, boolean>) {
+      console.log("Broadcasting friends status:", friendsStatus);
+      const message = {
+        type: "friends-status-result",
+        friendsStatus,
+      };
+
+      ports.forEach((port) => {
+        try {
+          port.postMessage(message);
+        } catch (err) {
+          console.error("Error sending friends status to port:", err);
+        }
+      });
+    }
 
     // Initialize socket connection
     initializeSocket();
-
-    // Broadcast connection status to any listeners
-    function broadcastConnectionStatus() {
-      browser.runtime.sendMessage({
-        type: "socket-status-update",
-        status: connectionStatus,
-      }).catch(err => console.log("Error broadcasting status:", err));
-    }
 
     function initializeSocket() {
       console.log("Autodarts Tools: Initializing socket connection to", SOCKET_SERVER_URL);
@@ -125,6 +171,88 @@ export default defineBackground({
       }
     }
 
+    // Function to send friend data to socket server
+    function sendFriendsData(userId: string, friends: any[]) {
+      if (socket && socket.connected) {
+        console.log("Sending friends data to server for user:", userId);
+        socket.emit("update-friends", {
+          userId,
+          friends,
+          timestamp: Date.now(),
+        });
+        return { success: true };
+      } else {
+        console.log("Cannot send friends data: socket not connected");
+        return {
+          success: false,
+          error: "Socket not connected",
+          status: connectionStatus,
+        };
+      }
+    }
+
+    // Function to send heartbeat to socket server
+    function sendHeartbeat(userId: string) {
+      if (socket && socket.connected) {
+        console.log("Sending heartbeat to server for user:", userId);
+        socket.emit("heartbeat", {
+          userId,
+          timestamp: Date.now(),
+        });
+        return { success: true };
+      } else {
+        console.log("Cannot send heartbeat: socket not connected");
+        return {
+          success: false,
+          error: "Socket not connected",
+          status: connectionStatus,
+        };
+      }
+    }
+
+    // Function to check friends online status
+    function checkFriendsStatus(userId: string, friendIds: string[]) {
+      if (socket && socket.connected) {
+        console.log("Checking friends status for user:", userId, "friends:", friendIds.length);
+
+        // Set up a one-time listener for the response
+        return new Promise((resolve) => {
+          const responseHandler = (data: { friendsStatus: Record<string, boolean> }) => {
+            console.log("Received friends status response:", data);
+            if (socket) {
+              socket.off("friends-status-result", responseHandler);
+            }
+
+            resolve({
+              success: true,
+              friendsStatus: data.friendsStatus,
+            });
+
+            // Forward the response to all connected ports
+            broadcastFriendsStatus(data.friendsStatus);
+          };
+
+          // Listen for the response
+          if (socket) {
+            socket.once("friends-status-result", responseHandler);
+
+            // Send the request
+            socket.emit("check-friends-status", {
+              userId,
+              friendIds,
+            });
+          }
+        });
+      } else {
+        console.log("Cannot check friends status: socket not connected");
+        return Promise.resolve({
+          success: false,
+          error: "Socket not connected",
+          status: connectionStatus,
+        });
+      }
+    }
+
     // Basic message handler
     browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.log("Background: Received message:", message);
@@ -189,6 +317,34 @@ export default defineBackground({
       if (message.type === "get-socket-status") {
         sendResponse({ status: connectionStatus });
         return true;
+      }
+
+      // Handle sending friends data
+      if (message.type === "update-friends") {
+        const { userId, friends } = message;
+        const result = sendFriendsData(userId, friends);
+        sendResponse(result);
+        return true;
+      }
+
+      // Handle heartbeat
+      if (message.type === "heartbeat") {
+        const { userId } = message;
+        const result = sendHeartbeat(userId);
+        sendResponse(result);
+        return true;
+      }
+
+      // Handle check friends status
+      if (message.type === "check-friends-status") {
+        const { userId, friendIds } = message;
+        checkFriendsStatus(userId, friendIds)
+          .then(result => sendResponse(result))
+          .catch(error => sendResponse({
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          }));
+        return true; // Keep the message channel open for the async response
       }
 
       return true; // Keep the message channel open for async responses
