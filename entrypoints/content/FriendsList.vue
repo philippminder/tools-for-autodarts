@@ -76,7 +76,10 @@
           <h3 class="mb-3 text-sm font-semibold">
             Recent Players
           </h3>
-          <div v-if="config?.friendsList?.recentPlayers?.length" class="space-y-4 overflow-y-auto">
+          <div
+            v-if="config?.friendsList?.recentPlayers?.length"
+            class="space-y-4 overflow-y-auto"
+          >
             <div
               v-for="player in config?.friendsList?.recentPlayers"
               :key="player.id"
