@@ -51,7 +51,7 @@
             }"
           >
             <div class="relative">
-              <img :src="generateAvatar(player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
+              <img :src="generateAvatar(player.userId || player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
               <span
                 v-if="player.userId || player.boardId"
                 class="absolute -bottom-0.5 -right-0.5 inline-flex size-2 rounded-full"
@@ -78,7 +78,8 @@
                 <span class="icon-[pixelarticons--user-minus]" />
               </AppButton>
               <AppButton
-                v-if="player.userId"
+                @click="inviteFriend(player as unknown as IFriend)"
+                v-if="player.userId && lobbyId && friendsOnlineStatus[player.userId] && socketStatus === 'connected'"
                 size="xs"
                 auto
                 title="Add to Lobby"
@@ -91,7 +92,7 @@
 
         <!-- Current Players Section -->
         <div class="border-t border-white/20 pt-4">
-          <h3 class="mb-3 text-sm font-semibold">
+          <h3 class="mb-3 text-center text-sm font-semibold">
             Recent Players
           </h3>
           <div
@@ -103,7 +104,7 @@
               :key="player.id"
               class="grid grid-cols-[auto_1fr_auto] items-center gap-2"
             >
-              <img :src="generateAvatar(player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
+              <img :src="generateAvatar(player.userId || player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
               <span class="max-w-52 truncate text-sm">{{ player.name }}</span>
               <AppButton @click="addFriend(player as unknown as IPlayerInfo)" size="xs" auto title="Add to friends">
                 <span class="icon-[pixelarticons--user-plus]" />
@@ -173,27 +174,46 @@
       title="Remove Friend"
       message="Are you sure you want to remove this friend from your list?"
     />
+
+    <!-- Add the AppInvite component -->
+    <AppInvite
+      @accept="acceptInvitation"
+      @decline="declineInvitation"
+      @timeout="timeoutInvitation"
+      :show="showInvitation"
+      :message="invitationMessage"
+      :duration="60"
+      :lobby-url="pendingInvitation.lobbyUrl"
+      :class="twMerge(
+        isOpen ? 'right-[21rem]' : 'right-5',
+      )"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { isEqual } from "lodash";
 import type { Runtime } from "wxt/browser";
+import { twMerge } from "tailwind-merge";
 import AppButton from "@/components/AppButton.vue";
 import AppSlide from "@/components/AppSlide.vue";
 import AppModal from "@/components/AppModal.vue";
 import AppInput from "@/components/AppInput.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import AppInvite from "@/components/AppInvite.vue";
 import type { IConfig, IFriend, IPlayerInfo } from "@/utils/storage";
 import type { IGameData } from "@/utils/game-data-storage";
-import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
+import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus, defaultConfig } from "@/utils/storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { generateAvatar, getUserIdFromToken } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: () => void;
+let urlWatcherUnwatch: () => void;
 
 const config = ref<IConfig>();
 const gameData = ref<IGameData>();
+const url = ref<string | null>(null);
+const lobbyId = ref<string | null>(null);
 const isOpen = ref(true);
 const showAddFriendModal = ref(false);
 const newFriend = ref({
@@ -208,6 +228,18 @@ const previousFriends = ref<IFriend[]>([]);
 const heartbeatInterval = ref<number | null>(null);
 const friendsStatusInterval = ref<number | null>(null);
 const friendsOnlineStatus = ref<Record<string, boolean>>({});
+// Add new reactive variables for invitations
+const showInvitation = ref(false);
+const invitationMessage = ref("");
+const pendingInvitation = ref<{
+  fromUserId: string;
+  fromName: string;
+  lobbyUrl: string;
+}>({
+  fromUserId: "",
+  fromName: "",
+  lobbyUrl: "",
+});
 let port: Runtime.Port | null = null;
 
 const sortedFriends = computed(() => {
@@ -304,7 +336,6 @@ async function checkFriendsStatus() {
   }
 }
 
-// Setup port connection with background script
 function setupPortConnection() {
   // Connect to background script
   port = browser.runtime.connect({ name: "friends-list" });
@@ -326,6 +357,22 @@ function setupPortConnection() {
     } else if (message.type === "friends-status-result" && message.friendsStatus) {
       // Update the friends online status
       friendsOnlineStatus.value = message.friendsStatus;
+    } else if (message.type === "lobby-invitation") {
+      // Handle incoming lobby invitation
+      handleIncomingInvitation(message);
+    } else if (message.type === "lobby-invitation-sent") {
+      console.log("Lobby invitation sent successfully to", message.toUserId);
+    } else if (message.type === "lobby-invitation-error") {
+      console.error("Error sending lobby invitation:", message.error);
+      // Show an error notification or alert
+      alert(`Failed to send invitation: ${message.error}`);
+    } else if (message.type === "lobby-invitation-response") {
+      console.log("Invitation response received:", message);
+      if (message.accepted) {
+        console.log("Friend accepted your invitation!");
+      } else {
+        console.log("Friend declined your invitation.");
+      }
     }
   });
 
@@ -340,6 +387,69 @@ function setupPortConnection() {
 
 // Initialize port connection
 setupPortConnection();
+
+// Handle incoming lobby invitation
+function handleIncomingInvitation(data: { fromUserId: string; fromName: string; lobbyUrl: string }) {
+  const fromName = config.value?.friendsList?.friends.find(friend => friend.userId === data.fromUserId)?.name || data.fromName;
+  // Store invitation data
+  pendingInvitation.value = data;
+
+  // Set message and show notification
+  invitationMessage.value = `${fromName} invites you to join their lobby`;
+  showInvitation.value = true;
+}
+
+// Accept lobby invitation
+function acceptInvitation() {
+  if (!pendingInvitation.value.lobbyUrl) return;
+
+  // Send acceptance response
+  if (userId.value && pendingInvitation.value.fromUserId) {
+    sendInvitationResponse(true);
+  }
+
+  // Navigate to the lobby URL
+  window.location.href = pendingInvitation.value.lobbyUrl;
+
+  // Hide notification
+  showInvitation.value = false;
+}
+
+// Decline lobby invitation
+function declineInvitation() {
+  // Send decline response
+  if (userId.value && pendingInvitation.value.fromUserId) {
+    sendInvitationResponse(false);
+  }
+
+  // Hide notification
+  showInvitation.value = false;
+}
+
+// Handle invitation timeout
+function timeoutInvitation() {
+  // Send decline response on timeout
+  if (userId.value && pendingInvitation.value.fromUserId) {
+    sendInvitationResponse(false);
+  }
+
+  // Hide notification
+  showInvitation.value = false;
+}
+
+// Send invitation response to server
+function sendInvitationResponse(accepted: boolean) {
+  try {
+    browser.runtime.sendMessage({
+      type: "lobby-invitation-response",
+      fromUserId: pendingInvitation.value.fromUserId,
+      toUserId: userId.value,
+      accepted,
+    });
+  } catch (error) {
+    console.error("Error sending invitation response:", error);
+  }
+}
 
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
@@ -358,13 +468,22 @@ onMounted(async () => {
   await nextTick();
   config.value.friendsList.enabled = true;
 
+  url.value = window.location.href;
+  lobbyId.value = getLobbyId();
+  console.log("LOBBY ID:", url.value);
+
+  urlWatcherUnwatch = AutodartsToolsUrlStatus.watch((_url: string) => {
+    url.value = _url;
+    lobbyId.value = getLobbyId();
+  });
+
   gameDataWatcherUnwatch = AutodartsToolsGameData.watch((_gameData: IGameData) => {
     gameData.value = _gameData;
     if (!config.value) return;
     config.value.friendsList.recentPlayers = Array.from(
       new Map(
         [ ...(gameData.value?.match?.players || []), ...(config.value.friendsList.recentPlayers || []) ]
-          .map(player => [ player.id || player.boardId || player.name, player ]),
+          .map(player => [ player.userId || player.boardId || player.name, player ]),
       ).values(),
     ).slice(0, 10);
   });
@@ -399,7 +518,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  gameDataWatcherUnwatch();
+  gameDataWatcherUnwatch?.();
+  urlWatcherUnwatch?.();
 
   // Disconnect port
   if (port) {
@@ -418,6 +538,12 @@ onBeforeUnmount(() => {
     friendsStatusInterval.value = null;
   }
 });
+
+function getLobbyId() {
+  if (!url.value) return null;
+  const lobbyIdMatch = url.value.match(/\/lobbies\/([0-9a-f-]+)/);
+  return lobbyIdMatch ? lobbyIdMatch[1] : null;
+}
 
 async function saveFriend() {
   if (!config.value) return;
@@ -471,5 +597,47 @@ async function confirmRemoveFriend() {
 function cancelRemoveFriend() {
   showRemoveConfirmation.value = false;
   playerToRemove.value = null;
+}
+
+async function inviteFriend(player: IFriend) {
+  console.log("Inviting friend:", player);
+
+  if (!userId.value || !player.userId) {
+    console.error("Cannot invite: missing user ID for sender or recipient");
+    return;
+  }
+
+  try {
+    // Get the lobby URL from the input
+    const lobbyUrl = url.value || window.location.href;
+
+    if (!lobbyUrl) {
+      console.error("Lobby URL is empty");
+      alert("Lobby invite URL is empty. Please create or join a lobby first.");
+      return;
+    }
+
+    // Get the name of the current user to pass with the invitation
+    const globalStatus = await AutodartsToolsGlobalStatus.getValue();
+    const fromName = globalStatus?.user?.name || "A friend";
+
+    // Send the invitation to the socket server
+    browser.runtime.sendMessage({
+      type: "send-lobby-invitation",
+      fromUserId: userId.value,
+      fromName,
+      toUserId: player.userId,
+      lobbyUrl,
+    });
+
+    console.log("Sending lobby invitation:", {
+      fromUserId: userId.value,
+      toUserId: player.userId,
+      lobbyUrl,
+    });
+  } catch (error) {
+    console.error("Error inviting friend:", error);
+    alert("Failed to send invitation. Please try again.");
+  }
 }
 </script>
