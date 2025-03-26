@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.4] - 2025-03-26
+
+### Changed
+- Enhanced sound playback logic:
+  - Simplified sound playback in game data processing to play points sound consistently regardless of player count
+  - Refined cricket scoring sound logic to prevent playing score sounds when the score hasn't changed since the last round
+  - Improved score handling for non-final throws in cricket matches
+- Updated Animations component:
+  - Removed debug logging from drag-and-drop initialization
+  - Maintained existing drag-and-drop functionality for improved user experience
+
+### Fixed
+- Fixed issue where points sound wouldn't play consistently (Issue #82)
+- Fixed score sound playing incorrectly during cricket matches (Issue #83)
+
 ## [2.0.2] - 2025-03-25
 
 ### Added
