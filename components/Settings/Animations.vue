@@ -334,9 +334,6 @@ function initSortable() {
     filter: ".flex.h-32", // Don't make the "Add Animation" button draggable
     ghostClass: "bg-gray-700",
     handle: ".cursor-move", // Use the info section as the drag handle
-    onStart(evt) {
-      console.log("TEST");
-    },
     onEnd(evt) {
       isDragging.value = false;
       currentDragIndex.value = null;
