@@ -17,6 +17,29 @@ All notable changes to this project will be documented in this file.
 - Fixed issue where points sound wouldn't play consistently (Issue #82)
 - Fixed score sound playing incorrectly during cricket matches (Issue #83)
 
+## [2.0.3] - 2025-03-25
+
+### Added
+- Implemented Automatic Fullscreen feature that enables fullscreen mode during matches for a more immersive experience
+- Added sound queue management system to prevent duplicate sound playback, improving the audio experience
+
+### Changed
+- Enhanced Animations component:
+  - Added conditional rendering for the "Add Animation" button
+  - Updated drag-and-drop functionality using the info section as the drag handle
+  - Implemented notification system for animation order updates
+  - Changed animation adding method to place new items at the beginning of the list
+- Updated sound playback logic to prepend 's' to current score for consistent audio feedback
+- Updated project version to 63 and marketing version to 2.0.3
+
+### Removed
+- Removed Disable Takeout Recognition feature and its associated logic
+- Deleted unused Automatic Fullscreen image and cleaned up component references
+
+### Fixed
+- Fixed issue with redundant sound triggers during gameplay (Issue #78)
+- Fixed UI issue with Automatic Fullscreen component (Issue #77)
+
 ## [2.0.2] - 2025-03-25
 
 ### Added
