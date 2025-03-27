@@ -569,10 +569,9 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       }
     } else if (busted) {
       playSound("ambient_busted");
+    } else {
+      playSound(`ambient_${throwName.toLowerCase()}`);
     }
-
-    // Note: For Cricket, we don't play the individual throw sounds in the usual way
-    // as we've already handled cricket_hit and cricket_miss above
   }
 }
 
