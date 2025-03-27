@@ -163,8 +163,8 @@
             :type="config.streamingMode.enabled ? 'success' : 'default'"
             class="aspect-square !size-10 rounded-full p-0"
           >
-            <span v-if="config.streamingMode.enabled" class="icon-[pixelarticons--check]" />
-            <span v-else class="icon-[pixelarticons--close]" />
+            <span v-if="config.streamingMode.enabled" class="font-mono text-xs uppercase">On</span>
+            <span v-else class="font-mono text-xs uppercase">Off</span>
           </AppButton>
         </div>
       </div>

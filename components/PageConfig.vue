@@ -104,7 +104,7 @@
               These actions are destructive and cannot be undone. Please proceed with caution and may export your settings before proceeding.
             </p>
             <div class="rounded border border-red-500/30 bg-red-500/5 p-4">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                 <div>
                   <h3 class="font-semibold text-red-300">
                     Reset All Settings
@@ -116,7 +116,7 @@
                 <AppButton
                   @click="resetAllSettings"
                   auto
-                  class="border-red-500/30 bg-red-500/20 hover:bg-red-500/40"
+                  type="danger"
                 >
                   Reset All Settings
                 </AppButton>
