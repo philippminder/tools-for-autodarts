@@ -32,17 +32,8 @@ export async function nextPlayerOnTakeOutStuck() {
   try {
     console.warn("Autodarts Tools: Next player on take out stuck - TEST THIS WITH LIVE BOARD");
 
-    const configValue = await AutodartsToolsConfig.getValue();
-    if (!configValue || !configValue.nextPlayerOnTakeOutStuck || !configValue.nextPlayerOnTakeOutStuck.enabled) return;
-
-    // check if element with id "ad-ext_next-leg-active" is already added to body. if yes, return
-    if (document.getElementById("ad-ext_next-leg-active")) return;
-
-    // add element with id "ad-ext_next-leg-active" to body
-    const nextLegActiveEl = document.createElement("div");
-    nextLegActiveEl.id = "ad-ext_next-leg-active";
-    nextLegActiveEl.style.display = "none";
-    document.body.appendChild(nextLegActiveEl);
+    const config = await AutodartsToolsConfig.getValue();
+    if (!config || !config.nextPlayerOnTakeOutStuck || !config.nextPlayerOnTakeOutStuck.enabled) return;
 
     let takeOutTimout: NodeJS.Timeout;
 
@@ -68,7 +59,7 @@ export async function nextPlayerOnTakeOutStuck() {
         const nextBtn = await waitForElementWithTextContent("button", "Next", 1000);
         if (!nextBtn) return;
 
-        let startSec = configValue.nextPlayerOnTakeOutStuck.sec;
+        let startSec = config.nextPlayerOnTakeOutStuck.sec;
 
         const nextBtnTextEl = document.createElement("span");
         nextBtnTextEl.id = "ad-ext_next-leg-text";
@@ -92,7 +83,8 @@ export async function nextPlayerOnTakeOutStuck() {
             element?.remove();
           }
         }, 1000);
-      } else if (boardData.status !== "Takeout in progress") {
+      } else {
+        if (takeOutTimout) clearInterval(takeOutTimout);
         remove();
       }
     });
