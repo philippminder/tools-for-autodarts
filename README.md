@@ -145,6 +145,7 @@ Add sound effects for various game events:
 - **Player Turn Sounds**: 
   - `ambient_next_player`: Plays when switching to the next player (fallback if no player name sound exists)
   - `ambient_bot`: Plays when switching to a CPU/bot player
+  - `bot_throw`: Plays when a bot player throws a dart
   - Player-specific sounds using format: `ambient_playername` or `ambient_player_name`
 - **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the following formats:
   - `gameshot_player name` (spaces preserved)

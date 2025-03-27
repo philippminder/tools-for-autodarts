@@ -352,6 +352,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     if (isBot) {
       console.log("Autodarts Tools: Bot player detected");
       playSound("ambient_bot");
+      playSound("bot_throw");
     } else if (playerName) {
       console.log("Autodarts Tools: Player changed to", playerName);
       // Try to play the player name (both regular and underscore version), if no sound found, fall back to ambient_next_player
