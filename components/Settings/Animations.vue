@@ -252,6 +252,7 @@ import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
 import AppSelect from "../AppSelect.vue";
+import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IAnimation, type IConfig } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
 
