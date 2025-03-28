@@ -196,7 +196,7 @@
           <label for="sound-text" class="mb-1 flex items-center justify-between text-sm font-medium text-white">
             <span>Triggers <span class="text-xs text-white/60">(one per line)</span></span>
             <a
-              href="https://github.com/creazy231/tools-for-autodarts/tree/tools-2.0.0?tab=readme-ov-file#supported-triggers"
+              href="https://github.com/creazy231/tools-for-autodarts?tab=readme-ov-file#%EF%B8%8F-caller-feature"
               target="_blank"
               class="text-blue-400 hover:text-blue-300"
             >
@@ -353,7 +353,7 @@
             />
           </div>
           <p class="mt-2 text-xs text-white/60">
-            Enter a base URL where sounds are stored. The system will attempt to fetch sounds for values 0-180 with .mp3 and .wav extensions.
+            Enter a URL to a sound directory containing sounds. The script will then automatically check for matching files and triggers.
           </p>
           <div v-if="urlError" class="mt-1 text-sm text-red-500">
             {{ urlError }}
@@ -377,8 +377,59 @@
           />
         </div>
 
-        <!-- Progress display -->
-        <div v-if="isImporting">
+        <!-- ZIP file processing status -->
+        <div v-if="isZipFile">
+          <div class="space-y-3 rounded-md bg-white/5 p-3">
+            <p class="text-sm font-medium">
+              Processing ZIP file
+            </p>
+
+            <!-- ZIP download progress -->
+            <div v-if="isDownloadingZip">
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-xs">Downloading ZIP file via background service...</span>
+                <span class="text-xs">{{ zipDownloadProgress }}%</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-blue-500 transition-all duration-300"
+                  :style="`width: ${zipDownloadProgress}%`"
+                />
+              </div>
+            </div>
+
+            <!-- ZIP extraction progress -->
+            <div v-if="isExtractingZip">
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-xs">Extracting ZIP contents...</span>
+                <span class="text-xs">{{ zipExtractedFiles }} / {{ zipTotalFiles || '?' }}</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-blue-500 transition-all duration-300"
+                  :style="`width: ${zipTotalFiles ? (zipExtractedFiles / zipTotalFiles) * 100 : 0}%`"
+                />
+              </div>
+            </div>
+
+            <!-- CSV processing progress -->
+            <div v-if="isProcessingCsv">
+              <div class="mb-1 flex items-center justify-between">
+                <span class="text-xs">Processing sound mappings...</span>
+                <span class="text-xs">{{ csvProcessingProgress }}%</span>
+              </div>
+              <div class="h-2 overflow-hidden rounded-full bg-white/10">
+                <div
+                  class="h-full rounded-full bg-blue-500 transition-all duration-300"
+                  :style="`width: ${csvProcessingProgress}%`"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regular URL import progress display -->
+        <div v-else-if="isImporting">
           <div class="mb-2 flex items-center justify-between">
             <span class="text-sm">Importing sounds...</span>
             <span class="text-sm">{{ importedCount }} found</span>
@@ -399,8 +450,8 @@
         <AppButton
           @click="fetchSoundsFromURL"
           type="success"
-          :disabled="!baseURL || isImporting"
-          :loading="isImporting"
+          :disabled="!baseURL || isImporting || isDownloadingZip || isExtractingZip || isProcessingCsv"
+          :loading="isImporting || isDownloadingZip || isExtractingZip || isProcessingCsv"
         >
           Fetch Sounds
         </AppButton>
@@ -477,6 +528,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import Sortable from "sortablejs";
 import { useStorage } from "@vueuse/core";
+import JSZip from "jszip";
 import AppButton from "../AppButton.vue";
 import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";
@@ -489,12 +541,15 @@ import { useNotification } from "@/composables/useNotification";
 import {
   backgroundFetch,
   base64toBlob,
+  chunkedBackgroundFetch,
   deleteSoundFromIndexedDB,
   detectAudioMimeType,
   getSoundFromIndexedDB,
   isIndexedDBAvailable,
   saveSoundToIndexedDB,
 } from "@/utils/helpers";
+
+// Import JSZip for handling zip files
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
 useStorage("adt:active-settings", "caller");
@@ -548,17 +603,57 @@ const isImporting = ref(false);
 const generateTriggersFromURLFilenames = ref(true);
 const { notification, showNotification, hideNotification } = useNotification();
 
+// Zip Import related refs
+const isZipFile = ref(false);
+const isDownloadingZip = ref(false);
+const zipDownloadProgress = ref(0);
+const isExtractingZip = ref(false);
+const zipTotalFiles = ref(0);
+const zipExtractedFiles = ref(0);
+const isProcessingCsv = ref(false);
+const csvProcessingProgress = ref(0);
+const csvTotalEntries = ref(0);
+
 // Predefined caller sets for the select input
 const callerSets = [
   { value: "", label: "Select a caller set (optional)" },
-  // { value: "https://autodarts.x10.mx/russ_bray", label: "Russ Bray" },
-  // { value: "https://autodarts.x10.mx/georgeno", label: "Georgeno" },
-  // { value: "https://autodarts.x10.mx/shorty", label: "Shorty" },
-  // { value: "https://autodarts.x10.mx/haulpinks", label: "Haulpinks" },
-  // { value: "https://autodarts.x10.mx/lothar", label: "Lothar" },
-  // { value: "https://autodarts.x10.mx/lidarts", label: "Lidarts" },
-  // { value: "https://autodarts.x10.mx/bayrisch", label: "Bayrisch" },
-  { value: "https://autodarts.x10.mx/1_male_eng", label: "Male English" },
+
+  // Dutch (nl-NL)
+  { value: "https://darts-downloads.peschi.org/soundfiles/nl-NL-Laura-Female-v5.zip", label: "NL - Laura (Female)" },
+
+  // French (fr-FR)
+  { value: "https://darts-downloads.peschi.org/soundfiles/fr-FR-Remi-Male-v3.zip", label: "FR - Remi (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/fr-FR-Lea-Female-v3.zip", label: "FR - Lea (Female)" },
+
+  // Spanish (es-ES)
+  { value: "https://darts-downloads.peschi.org/soundfiles/es-ES-Lucia-Female-v3.zip", label: "ES - Lucia (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/es-ES-Sergio-Male-v3.zip", label: "ES - Sergio (Male)" },
+
+  // Austrian German (de-AT)
+  { value: "https://darts-downloads.peschi.org/soundfiles/de-AT-Hannah-Female-v5.zip", label: "AT - Hannah (Female)" },
+
+  // German (de-DE)
+  { value: "https://darts-downloads.peschi.org/soundfiles/de-DE-Vicki-Female-v8.zip", label: "DE - Vicki (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/de-DE-Daniel-Male-v8.zip", label: "DE - Daniel (Male)" },
+
+  // British English (en-GB)
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-GB-Amy-Female-v4.zip", label: "GB - Amy (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-GB-Arthur-Male-v4.zip", label: "GB - Arthur (Male)" },
+
+  // American English (en-US)
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Ivy-Female-v8.zip", label: "US - Ivy (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Joey-Male-v9.zip", label: "US - Joey (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Joanna-Female-v9.zip", label: "US - Joanna (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Matthew-Male-v6.zip", label: "US - Matthew (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Danielle-Female-v6.zip", label: "US - Danielle (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Kimberly-Female-v5.zip", label: "US - Kimberly (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Ruth-Female-v5.zip", label: "US - Ruth (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Salli-Female-v5.zip", label: "US - Salli (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Kevin-Male-v5.zip", label: "US - Kevin (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Justin-Male-v5.zip", label: "US - Justin (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Stephen-Male-v8.zip", label: "US - Stephen (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Kendra-Female-v9.zip", label: "US - Kendra (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Gregory-Male-v6.zip", label: "US - Gregory (Male)" },
 ];
 
 // Computed property for trigger text handling
@@ -1115,6 +1210,15 @@ function openImportURLModal() {
   importProgress.value = 0;
   importedCount.value = 0;
   selectedPresetURL.value = "";
+  isZipFile.value = false;
+  isDownloadingZip.value = false;
+  zipDownloadProgress.value = 0;
+  isExtractingZip.value = false;
+  zipTotalFiles.value = 0;
+  zipExtractedFiles.value = 0;
+  isProcessingCsv.value = false;
+  csvProcessingProgress.value = 0;
+  csvTotalEntries.value = 0;
 }
 
 function closeImportURLModal() {
@@ -1131,6 +1235,243 @@ function closeImportURLModal() {
   }
 }
 
+// Parse CSV content into an array of objects
+function parseCSV(csv: string) {
+  // Split the CSV by newlines and filter out empty lines
+  const lines = csv.split(/\r\n|\n|\r/).filter(line => line.trim() !== "");
+
+  if (lines.length === 0) return [];
+
+  // Process each line
+  return lines.map((line) => {
+    // Split by semicolon and remove empty/whitespace-only values
+    const values = line.split(";").map(v => v.trim()).filter(v => v);
+
+    // First value is both filename and display name
+    const filename = values[0] || "";
+    // Second value is the trigger, if not present use filename as trigger
+    const trigger = values[1] || filename;
+
+    return {
+      file: filename,
+      name: filename,
+      triggers: trigger,
+    };
+  });
+}
+
+// Check if URL is a ZIP file by looking at Content-Type or extension
+async function checkIfZipURL(url: string): Promise<boolean> {
+  try {
+    // Check URL extension first
+    if (url.toLowerCase().endsWith(".zip")) {
+      return true;
+    }
+
+    // Try HEAD request to check Content-Type using backgroundFetch instead of direct fetch
+    const response = await backgroundFetch(url, { method: "HEAD" });
+    if (response.ok) {
+      // For HEAD requests, we need to check headers in a different way
+      // since backgroundFetch doesn't return headers directly
+      return url.toLowerCase().endsWith(".zip"); // Fallback to extension check for now
+    }
+    return false;
+  } catch (error) {
+    console.warn("Error checking if URL is a ZIP file:", error);
+    // Default to checking extension if request fails
+    return url.toLowerCase().endsWith(".zip");
+  }
+}
+
+// Download ZIP file with progress reporting using chunkedBackgroundFetch
+async function downloadZipWithProgress(url: string): Promise<ArrayBuffer> {
+  isDownloadingZip.value = true;
+  zipDownloadProgress.value = 0;
+
+  try {
+    console.log("Downloading ZIP file using chunkedBackgroundFetch");
+
+    // Start with 10% to show progress has begun
+    zipDownloadProgress.value = 10;
+
+    // Use chunkedBackgroundFetch to bypass CORS and message size limitations
+    const response = await chunkedBackgroundFetch(url);
+
+    if (!response.ok) {
+      throw new Error(`Failed to download ZIP file: ${response.error || "Unknown error"}`);
+    }
+
+    // Show 50% progress since we've received the file data
+    zipDownloadProgress.value = 50;
+
+    // Since we're getting base64 data back from chunkedBackgroundFetch, we need to convert it back to ArrayBuffer
+    const base64Data = response.data;
+    if (!base64Data || typeof base64Data !== "string") {
+      throw new Error("Invalid response data");
+    }
+
+    // Convert base64 to blob then to ArrayBuffer
+    const byteString = atob(base64Data.split(",")[1]);
+    const mimeType = base64Data.split(",")[0].split(":")[1].split(";")[0];
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+
+    // Fill the array buffer
+    for (let i = 0; i < byteString.length; i++) {
+      uint8Array[i] = byteString.charCodeAt(i);
+    }
+
+    // Show complete progress
+    zipDownloadProgress.value = 100;
+
+    return arrayBuffer;
+  } catch (error) {
+    console.error("Error downloading ZIP:", error);
+    throw error;
+  } finally {
+    isDownloadingZip.value = false;
+  }
+}
+
+// Process CSV file and sound files from ZIP
+async function processCSVandSounds(csvContent: string, zipFiles: Map<string, Blob>): Promise<ISound[]> {
+  isProcessingCsv.value = true;
+  csvProcessingProgress.value = 0;
+
+  try {
+    const csvEntries = parseCSV(csvContent);
+    csvTotalEntries.value = csvEntries.length;
+    const sounds: ISound[] = [];
+
+    // Process each entry in the CSV
+    for (let i = 0; i < csvEntries.length; i++) {
+      const entry = csvEntries[i];
+      csvProcessingProgress.value = Math.round((i / csvEntries.length) * 100);
+
+      // Skip if name is not a number and no trigger is defined
+      const isNameNumber = !Number.isNaN(Number(entry.name));
+      const hasTrigger = entry.triggers && entry.triggers !== entry.name;
+      if (!isNameNumber && !hasTrigger) {
+        continue;
+      }
+
+      // Find the corresponding sound file in the ZIP by index
+      // The pattern is AM-XXXXX_INDEX_mono.mp3 where INDEX matches the array position
+      const soundFile = Array.from(zipFiles.keys()).find((filename) => {
+        const match = filename.match(/AM-\d+_(\d+)_mono\.mp3$/);
+        return match && Number.parseInt(match[1]) === i;
+      });
+
+      if (!soundFile) continue;
+
+      // Get the blob for this sound file
+      const blob = zipFiles.get(soundFile);
+      if (!blob) continue;
+
+      // Convert the blob to base64
+      const base64Data = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+      });
+
+      // Create triggers array from the CSV entry
+      const triggers = entry.triggers?.split(";")
+        .map(t => t.trim().toLowerCase())
+        .filter(t => t.length > 0) || [];
+
+      // Store in IndexedDB if available
+      let soundId: string | null = null;
+      if (isIndexedDBAvailable()) {
+        soundId = await saveSoundToIndexedDB(
+          entry.name || soundFile,
+          base64Data,
+        );
+      }
+
+      // Create sound object
+      const sound: ISound = {
+        name: entry.name || soundFile,
+        url: "",
+        base64: soundId ? "" : base64Data,
+        soundId: soundId || "",
+        enabled: true,
+        triggers: Array.isArray(triggers) ? triggers : [ triggers ],
+      };
+
+      sounds.push(sound);
+    }
+
+    return sounds;
+  } finally {
+    isProcessingCsv.value = false;
+  }
+}
+
+// Extract files from a ZIP object with progress reporting
+async function extractZipWithProgress(zipData: ArrayBuffer): Promise<Map<string, Blob>> {
+  isExtractingZip.value = true;
+  zipExtractedFiles.value = 0;
+
+  try {
+    const zip = await JSZip.loadAsync(zipData);
+    const files = new Map<string, Blob>();
+    zipTotalFiles.value = Object.keys(zip.files).length;
+
+    // First find the inner ZIP file if it exists
+    let innerZipFile: JSZip | null = null;
+    let csvFile: string | null = null;
+
+    // First pass - identify CSV and inner ZIP files
+    for (const [ filename, file ] of Object.entries(zip.files)) {
+      if (file.dir) continue;
+
+      // Check if it's a CSV file
+      if (filename.toLowerCase().endsWith(".csv")) {
+        csvFile = filename;
+      }
+
+      // Check if it's a ZIP file
+      if (filename.toLowerCase().endsWith(".zip")) {
+        const innerZipData = await file.async("arraybuffer");
+        innerZipFile = await JSZip.loadAsync(innerZipData);
+        // Update total files count to include inner ZIP contents
+        zipTotalFiles.value = zipTotalFiles.value - 1 + Object.keys(innerZipFile.files).length;
+      }
+
+      zipExtractedFiles.value++;
+    }
+
+    // If we found a CSV and inner ZIP, process the inner ZIP files
+    if (csvFile && innerZipFile) {
+      const csvContent = await zip.file(csvFile)!.async("text");
+      files.set(csvFile, new Blob([ csvContent ], { type: "text/csv" }));
+
+      // Extract all files from the inner ZIP
+      for (const [ innerFilename, innerFile ] of Object.entries(innerZipFile.files)) {
+        if (innerFile.dir) continue;
+
+        const content = await innerFile.async("blob");
+        files.set(innerFilename, content);
+        zipExtractedFiles.value++;
+      }
+    } else {
+      // Otherwise just extract all files from the main ZIP
+      for (const [ filename, file ] of Object.entries(zip.files)) {
+        if (file.dir) continue;
+
+        const content = await file.async("blob");
+        files.set(filename, content);
+      }
+    }
+
+    return files;
+  } finally {
+    isExtractingZip.value = false;
+  }
+}
+
+// Enhanced fetchSoundsFromURL function to handle ZIP files
 async function fetchSoundsFromURL() {
   if (!config.value) return;
 
@@ -1158,7 +1499,126 @@ async function fetchSoundsFromURL() {
     };
   }
 
-  // Start import process
+  // Check if URL points to a ZIP file
+  isZipFile.value = await checkIfZipURL(baseURL.value);
+
+  console.log("Autodarts Tools: Zip file", isZipFile.value);
+
+  // Handle ZIP file
+  if (isZipFile.value) {
+    try {
+      // Download the ZIP file using backgroundFetch
+      const zipData = await downloadZipWithProgress(baseURL.value);
+
+      // Extract the ZIP contents
+      const extractedFiles = await extractZipWithProgress(zipData);
+
+      // Check if we have a CSV file
+      const csvFile = Array.from(extractedFiles.keys()).find(filename =>
+        filename.toLowerCase().endsWith(".csv"),
+      );
+
+      if (csvFile) {
+        // We found a CSV file, process it with the sound files
+        const csvBlob = extractedFiles.get(csvFile)!;
+        const csvContent = await csvBlob.text();
+
+        // Process the CSV and sound files
+        const sounds = await processCSVandSounds(csvContent, extractedFiles);
+
+        console.log("Autodarts Tools: Sounds", sounds);
+
+        if (sounds.length === 0) {
+          showNotification("No sounds found in the ZIP file or CSV mapping", "error");
+          closeImportURLModal();
+          return;
+        }
+
+        // Add the sounds to the config
+        config.value.caller.sounds = [ ...sounds, ...config.value.caller.sounds ];
+        importedCount.value = sounds.length;
+
+        // Show success notification
+        showNotification(`Successfully imported ${sounds.length} sounds from ZIP file`);
+      } else {
+        // No CSV file found - process each file individually like regular sounds
+        const sounds: ISound[] = [];
+
+        for (const [ filename, blob ] of extractedFiles.entries()) {
+          // Skip non-audio files
+          if (!filename.toLowerCase().match(/\.(mp3|wav|ogg)$/)) continue;
+
+          // Convert to base64
+          const base64Data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+
+          // Generate triggers from filenames if enabled
+          const triggers = generateTriggersFromURLFilenames.value
+            ? extractTriggerFromFilename(filename)
+            : [];
+
+          // Store in IndexedDB if available
+          let soundId: string | null = null;
+          if (isIndexedDBAvailable()) {
+            const nameWithoutExt = filename.substring(0, filename.lastIndexOf("."));
+            soundId = await saveSoundToIndexedDB(nameWithoutExt, base64Data);
+          }
+
+          // Create sound object
+          const sound: ISound = {
+            name: filename.substring(0, filename.lastIndexOf(".")),
+            url: "",
+            base64: soundId ? "" : base64Data,
+            soundId: soundId || "",
+            enabled: true,
+            triggers,
+          };
+
+          sounds.push(sound);
+        }
+
+        if (sounds.length === 0) {
+          showNotification("No audio files found in the ZIP file", "error");
+          closeImportURLModal();
+          return;
+        }
+
+        // Add the sounds to the config
+        config.value.caller.sounds = [ ...sounds, ...config.value.caller.sounds ];
+        importedCount.value = sounds.length;
+
+        // Show success notification
+        showNotification(`Successfully imported ${sounds.length} sounds from ZIP file`);
+      }
+
+      // Update config
+      await AutodartsToolsConfig.setValue(toRaw(config.value));
+      emit("settingChange");
+
+      // Close modal
+      closeImportURLModal();
+    } catch (error) {
+      console.error("Error processing ZIP file:", error);
+
+      // Provide a more specific error message if possible
+      let errorMessage = "Error processing ZIP file";
+      if (error instanceof Error) {
+        if (error.message.includes("Failed to download")) {
+          errorMessage = "Failed to download ZIP file - check your URL";
+        } else if (error.message.includes("Invalid") || error.message.includes("corrupt")) {
+          errorMessage = "Invalid or corrupted ZIP file";
+        }
+      }
+
+      showNotification(errorMessage, "error");
+    }
+    return;
+  }
+
+  // Start import process for regular URL
   isImporting.value = true;
   importProgress.value = 0;
   importedCount.value = 0;
@@ -1181,7 +1641,7 @@ async function fetchSoundsFromURL() {
         const soundURL = `${baseURL.value.endsWith("/") ? baseURL.value : `${baseURL.value}/`}${encodedFilename}${ext}`;
 
         try {
-          // Use the backgroundFetch utility to bypass CORS
+          // Use backgroundFetch utility to bypass CORS
           const response = await backgroundFetch(soundURL);
 
           // If found, process it
@@ -1238,7 +1698,7 @@ async function fetchSoundsFromURL() {
         const soundURL = `${baseURL.value.endsWith("/") ? baseURL.value : `${baseURL.value}/`}${i}${ext}`;
 
         try {
-          // Use the backgroundFetch utility instead of direct fetch to bypass CORS
+          // Use backgroundFetch utility to bypass CORS
           const response = await backgroundFetch(soundURL);
 
           // If found, process it
@@ -1302,7 +1762,6 @@ async function fetchSoundsFromURL() {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Update config
-
     await AutodartsToolsConfig.setValue(toRaw(config.value!));
     emit("settingChange");
     console.log("Caller setting changed");
