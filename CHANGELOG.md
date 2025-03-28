@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.5] - 2025-03-27
+
+### Added
+- Added ZIP file support for sound imports, making it easier to import multiple sound files at once
+- Added bot throw sound effect to enhance gameplay audio feedback
+- Enhanced sound playback logic for match and player-specific sounds
+
+### Changed
+- Updated UI components for improved consistency and user experience:
+  - Refactored settings components to use AppButton and AppToggle
+  - Enhanced modal components styling
+  - Improved layout and button semantics in PageConfig
+  - Fixed spacing in average stats display
+- Updated external links and enhanced sound import instructions
+- Changed error logging in winner-animation from console.error to console.warn for non-critical issues
+- Refined sound playback logic for ambient sounds
+- Excluded "Bull-off" variant from game data processing
+
+### Fixed
+- Fixed NextPlayerOnTakeoutStuck component logic
+- Improved type safety in background chunk declaration
+
 ## [2.0.4] - 2025-03-26
 
 ### Changed
