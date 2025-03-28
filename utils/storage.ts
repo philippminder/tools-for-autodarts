@@ -1,6 +1,7 @@
 import type { WxtStorageItem } from "wxt/storage";
 import { storage } from "wxt/storage";
 import type { BoardStatus } from "@/utils/types";
+import type { IPlayer } from "@/utils/websocket-helpers";
 
 export interface IConfig {
   version: number;
@@ -118,6 +119,11 @@ export interface IConfig {
     enabled: boolean;
     sounds: ISound[];
   };
+  friendsList: {
+    enabled: boolean;
+    friends: IFriend[];
+    recentPlayers: IPlayer[];
+  };
 }
 
 export interface ISound {
@@ -146,6 +152,8 @@ export interface IGlobalStatus {
 }
 
 export interface IPlayerInfo {
+  id?: string;
+  index?: number;
   name: string;
   score: string;
   isActive: boolean;
@@ -155,6 +163,71 @@ export interface IPlayerInfo {
   stats?: string;
   matchHasLegs?: boolean;
   matchHasSets?: boolean;
+  userId?: string;
+  avatarUrl?: string;
+  hostId?: string;
+  boardId?: string;
+  cpuPPR?: number | null;
+  user?: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    userSettings: {
+      showCheckoutGuide: boolean;
+      countEachThrow: boolean;
+      showChalkboard: boolean;
+      showAnimations: boolean;
+      caller: string;
+      callerEmotion: string;
+      callerLanguage: string;
+      callerVolume: number;
+      callScores: boolean;
+      callCheckouts: boolean;
+      showSeasonalEffects: boolean;
+    };
+    country: string;
+    legsPlayed: number;
+    total180s: number;
+    average: number;
+    averageUntil170: number;
+    first9Average: number;
+    checkoutRate: number;
+    tournamentsPlayed: number;
+    tournamentWins: number;
+    tournamentAverage: number;
+    tournamentAverageUntil170: number;
+    tournament180s: number;
+  };
+  host?: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    userSettings: {
+      showCheckoutGuide: boolean;
+      countEachThrow: boolean;
+      showChalkboard: boolean;
+      showAnimations: boolean;
+      caller: string;
+      callerEmotion: string;
+      callerLanguage: string;
+      callerVolume: number;
+      callScores: boolean;
+      callCheckouts: boolean;
+      showSeasonalEffects: boolean;
+    };
+    country: string;
+    legsPlayed: number;
+    total180s: number;
+    average: number;
+    averageUntil170: number;
+    first9Average: number;
+    checkoutRate: number;
+    tournamentsPlayed: number;
+    tournamentWins: number;
+    tournamentAverage: number;
+    tournamentAverageUntil170: number;
+    tournament180s: number;
+  };
 }
 
 export interface ILobbyStatus {
@@ -205,6 +278,12 @@ export interface ILobbyStatus {
 }
 
 export type TBoardStatus = BoardStatus | undefined;
+
+export interface IFriend {
+  userId?: string;
+  name: string;
+  avatarUrl: string;
+}
 
 export const defaultConfig: IConfig = {
   version: 1,
@@ -306,6 +385,11 @@ export const defaultConfig: IConfig = {
     size: 2,
     colorEnabled: true,
     color: "#000000",
+  },
+  friendsList: {
+    enabled: false,
+    friends: [],
+    recentPlayers: [],
   },
   animations: {
     enabled: false,

@@ -188,11 +188,11 @@ The Sound FX feature includes a sophisticated multi-level fallback system:
 - If no match is found after all fallback attempts, no sound is played
 
 #### Technical Features
-- **Queue Management**: Sounds are carefully queued to prevent overlapping
+- **Queue Management**: Enhanced sound queue management to prevent overlapping and ensure proper playback order (improved in v2.0.3)
 - **Format Support**: Plays both URL-based sounds and base64-encoded audio
 - **IndexedDB Storage**: Efficiently stores sound files in browser database to improve performance
 - **Error Handling**: Automatically falls back to alternative sources if a sound fails to play
-- **Safari Compatible**: Works with all browsers including Safari's strict audio policies
+- **Safari Compatible**: Works with all major browsers including Safari's strict audio policies
 
 ### 🎬 Animations
 

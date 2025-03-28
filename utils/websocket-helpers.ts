@@ -35,7 +35,7 @@ interface IUser {
   userSettings: IUserSettings;
 }
 
-interface IPlayer {
+export interface IPlayer {
   avatarUrl: string;
   boardId: string;
   boardName: string;

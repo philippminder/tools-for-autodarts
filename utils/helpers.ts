@@ -64,6 +64,30 @@ export async function getAuthToken() {
   return globalStatus.auth?.token || "";
 }
 
+/**
+ * Decodes a JWT token and extracts the user ID from the 'sub' claim
+ * @returns The user ID from the JWT token or null if not found
+ */
+export async function getUserIdFromToken(): Promise<string | null> {
+  try {
+    const token = await getAuthToken();
+    if (!token) return null;
+
+    // JWT token consists of three parts: header.payload.signature
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+
+    // Decode the payload (middle part)
+    const payload = JSON.parse(atob(parts[1]));
+
+    // Extract and return the 'sub' claim which contains the user ID
+    return payload.sub || null;
+  } catch (error) {
+    console.error("Error decoding JWT token:", error);
+    return null;
+  }
+}
+
 // Function to make authenticated API requests
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = await getAuthToken();
@@ -681,4 +705,102 @@ export function safeClone<T>(obj: T): T {
   }
 
   return result as T;
+}
+
+/**
+ * Converts a string into a consistent numerical seed for avatar generation
+ */
+export function idToSeed(id: string): number {
+  let seed = 0;
+  for (let i = 0; i < id.length; i++) {
+    seed = id.charCodeAt(i) + ((seed << 5) - seed);
+  }
+  return seed;
+}
+
+/**
+ * Returns a light, vibrant color for avatar pixels based on a seed
+ */
+export function getLightColor(seed: number): string {
+  const avatarColors = [
+    "#9763f8", "#e5739f", "#bbf5ec", "#5df0ab", "#4ac6e3",
+    "#ff6b6b", "#ffb84d", "#8fa3ae", "#f490b1", "#aed581",
+    "#f9e180", "#84b84c", "#4b4b6c", "#d9d9d9",
+  ];
+  return avatarColors[Math.abs(seed) % avatarColors.length];
+}
+
+/**
+ * Returns a darker, vibrant color for avatar backgrounds based on a seed
+ */
+export function getDarkerVibrantColor(seed: number): string {
+  const backgroundColors = [
+    "#401354", "#404c29", "#625a01", "#59282a", "#4e6a03",
+    "#8fa3ae", "#f490b1", "#aed581", "#ff6b6b", "#ffb84d",
+    "#4b4b6c", "#84b84c", "#d9d9d9", "#f9e180",
+  ];
+  return backgroundColors[Math.abs(seed) % backgroundColors.length];
+}
+
+/**
+ * Checks if a Gravatar URL points to a custom uploaded image or a default one
+ * @param avatarUrl The Gravatar URL to check
+ * @returns Promise that resolves to true if it's a custom image, false if it's a default image
+ */
+export async function isCustomGravatar(avatarUrl: string): Promise<boolean> {
+  if (!avatarUrl) return false;
+  try {
+    // Add the d=404 parameter to the URL
+    const url = new URL(avatarUrl);
+    url.searchParams.set("d", "404");
+
+    // Make the request
+    const response = await fetch(url.toString());
+    return response.status === 200;
+  } catch (error) {
+    console.error("Error checking Gravatar:", error);
+    return false;
+  }
+}
+
+/**
+ * Generates a retro-style pixel art avatar based on a name
+ * Uses an 8x8 grid with mirrored pattern for consistent, unique avatars
+ */
+export function generateAvatar(name: string): string {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) return "";
+
+  const size = 64; // R1 S64 size
+  const gridSize = 8;
+  const pixelSize = size / gridSize;
+
+  canvas.width = size;
+  canvas.height = size;
+
+  const seed = idToSeed(name);
+  const avatarColor = getLightColor(seed);
+  const backgroundColor = getDarkerVibrantColor(seed + 1); // Use offset seed for background
+
+  // Fill background
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, size, size);
+
+  // Draw pixel pattern
+  ctx.fillStyle = avatarColor;
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize / 2; x++) {
+      const shouldFill = (seed >> (y * 4 + x)) & 1;
+      if (shouldFill) {
+        // Draw left side
+        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        // Mirror to right side
+        ctx.fillRect((gridSize - 1 - x) * pixelSize, y * pixelSize, pixelSize, pixelSize);
+      }
+    }
+  }
+
+  return canvas.toDataURL("image/png");
 }

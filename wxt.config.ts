@@ -24,8 +24,13 @@ export default defineConfig({
     ],
     permissions: [
       "storage",
+      // "background",
       // "*://discord.com/api/webhooks/*",
     ],
+    background: {
+      service_worker: "background.js",
+      type: "module",
+    },
     name: "Tools for Autodarts",
     description: "Tools for Autodarts enhances the gaming experience on autodarts.io",
     // content_scripts: [

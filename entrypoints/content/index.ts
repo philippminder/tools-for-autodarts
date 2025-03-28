@@ -1,12 +1,14 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
 import App from "./App.vue";
+import FriendsList from "@/entrypoints/content/FriendsList.vue";
 import { waitForElement } from "@/utils";
-import { AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus } from "@/utils/storage";
+import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus } from "@/utils/storage";
 import { isiOS } from "@/utils/helpers";
 import Migration from "@/components/Migration.vue";
 
 let migrationModalUI: any;
+let friendsListUI: any;
 
 export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
@@ -40,15 +42,6 @@ export default defineContentScript({
       console.error("Failed to inject auth cookie script:", error);
     }
 
-    try {
-      const storage = await browser.storage.local.get("config");
-      if (storage.config) {
-        await initMigrationModal(ctx);
-      }
-    } catch (error) {
-      console.error("Failed to check for migration data:", error);
-    }
-
     if (window.location.href.includes("/tools")) {
       document.querySelector("#root")?.remove();
       window.location.href = "/settings";
@@ -77,26 +70,65 @@ export default defineContentScript({
       });
       ui.mount();
     }
+
+    const config = await AutodartsToolsConfig.getValue();
+    if (config.friendsList.enabled) {
+      await initFriendsList(ctx).catch(console.error);
+    }
+
+    try {
+      const storage = await browser.storage.local.get("config");
+      if (storage.config) {
+        await initMigrationModal(ctx).catch(console.error);
+      }
+    } catch (error) {
+      console.error("Failed to check for migration data:", error);
+    }
   },
 });
 
 async function initMigrationModal(ctx) {
+  await waitForElement("#root > div > div:nth-of-type(2)", 15000);
   migrationModalUI = await createShadowRootUi(ctx, {
     name: "autodarts-tools-migration-modal",
     position: "inline",
     anchor: "#root > div > div:nth-of-type(2)",
     onMount: (container) => {
-      console.log("Autodarts Tools: Takeout initialized");
-      const takeout = createApp(Migration);
-      takeout.mount(container);
+      console.log("Autodarts Tools: Migration modal initialized");
+      const migrationModal = createApp(Migration);
+      migrationModal.mount(container);
       if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
         container.classList.add("dark");
       }
-      return takeout;
+      return migrationModal;
     },
-    onRemove: (takeout) => {
-      takeout?.unmount();
+    onRemove: (migrationModal) => {
+      migrationModal?.unmount();
     },
   });
   migrationModalUI.mount();
+}
+
+async function initFriendsList(ctx) {
+  await waitForElement("#root > div > div:nth-of-type(2)", 15000);
+  friendsListUI = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-friends-list",
+    position: "inline",
+    anchor: "#root > div > div:nth-of-type(2)",
+    onMount: (container: any) => {
+      console.log("Autodarts Tools: Friends list initialized");
+      const app = createApp(FriendsList);
+      app.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return app;
+    },
+    onRemove: (app: any) => {
+      app?.unmount();
+      console.log("Autodarts Tools: Friends list removed");
+    },
+  });
+
+  friendsListUI.mount();
 }
