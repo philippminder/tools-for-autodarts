@@ -111,16 +111,11 @@
 
                 <!-- Toggle button -->
                 <div class="absolute left-2 top-2 z-20">
-                  <button
-                    @click.stop="toggleAnimationEnabled(index)"
-                    class="flex size-8 items-center justify-center rounded-full border border-solid p-0"
-                    :class="animation.enabled
-                      ? 'border-[var(--chakra-colors-borderGreen)] bg-[var(--chakra-colors-glassGreen)] text-[var(--chakra-colors-white)] hover:bg-[rgba(58,255,0,0.3)]'
-                      : 'bg-[var(--chakra-colors-whiteAlpha-200)] text-[var(--chakra-colors-whiteAlpha-900)] hover:bg-[var(--chakra-colors-whiteAlpha-300)]'"
-                  >
-                    <span v-if="animation.enabled" class="font-mono text-xs uppercase">On</span>
-                    <span v-else class="font-mono text-xs uppercase">Off</span>
-                  </button>
+                  <AppToggle
+                    @update:model-value="toggleAnimationEnabled(index)"
+                    :model-value="animation.enabled"
+                    size="sm"
+                  />
                 </div>
 
                 <!-- Edit button -->
