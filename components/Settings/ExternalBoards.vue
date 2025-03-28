@@ -14,14 +14,10 @@
       </div>
       <div class="flex">
         <div @click="$emit('toggle', 'external-boards')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-        <AppButton
-          @click="toggleFeature"
-          :type="config.externalBoards.enabled ? 'success' : 'default'"
-          class="aspect-square !size-10 rounded-full p-0"
-        >
-          <span v-if="config.externalBoards.enabled" class="font-mono text-xs uppercase">On</span>
-          <span v-else class="font-mono text-xs uppercase">Off</span>
-        </AppButton>
+        <AppToggle
+          @update:model-value="toggleFeature"
+          v-model="config.externalBoards.enabled"
+        />
       </div>
     </div>
     <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
@@ -32,7 +28,7 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
-import AppButton from "@/components/AppButton.vue";
+import AppToggle from "../AppToggle.vue";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);

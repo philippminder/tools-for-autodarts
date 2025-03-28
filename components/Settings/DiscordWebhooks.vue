@@ -19,7 +19,6 @@
                 { label: 'Automatic', value: false },
                 { label: 'Manual', value: true },
               ]"
-              button-size="sm"
             />
             <div class="relative">
               <span class="absolute inset-y-0 left-3 flex items-center text-white/60">
@@ -59,14 +58,10 @@
         </div>
         <div class="flex">
           <div @click="$emit('toggle', 'discord-webhooks')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-          <AppButton
-            @click="toggleFeature"
-            :type="config.discord.enabled ? 'success' : 'default'"
-            class="aspect-square !size-10 rounded-full p-0"
-          >
-            <span v-if="config.discord.enabled" class="font-mono text-xs uppercase">On</span>
-            <span v-else class="font-mono text-xs uppercase">Off</span>
-          </AppButton>
+          <AppToggle
+            @update:model-value="toggleFeature"
+            v-model="config.discord.enabled"
+          />
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
@@ -78,9 +73,9 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
-import AppButton from "../AppButton.vue";
 import AppRadioGroup from "../AppRadioGroup.vue";
 import AppInput from "../AppInput.vue";
+import AppToggle from "../AppToggle.vue";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);

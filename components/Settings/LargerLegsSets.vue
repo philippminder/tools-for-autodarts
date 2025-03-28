@@ -52,14 +52,10 @@
         </div>
         <div class="flex">
           <div @click="$emit('toggle', 'larger-legs-sets')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-          <AppButton
-            @click="toggleFeature"
-            :type="config.largerLegsSets.enabled ? 'success' : 'default'"
-            class="aspect-square !size-10 rounded-full p-0"
-          >
-            <span v-if="config.largerLegsSets.enabled" class="font-mono text-xs uppercase">On</span>
-            <span v-else class="font-mono text-xs uppercase">Off</span>
-          </AppButton>
+          <AppToggle
+            @update:model-value="toggleFeature"
+            v-model="config.largerLegsSets.enabled"
+          />
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
@@ -70,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import AppButton from "../AppButton.vue";
+import AppToggle from "../AppToggle.vue";
 import AppInput from "../AppInput.vue";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 

@@ -200,6 +200,21 @@
             :key="reloadKey"
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
+            <!-- Warning message for sound and animation features -->
+            <div class="col-span-full rounded-md border border-yellow-500/50 bg-yellow-500/10 p-4 text-xs">
+              <div class="flex items-start">
+                <div>
+                  <p class="font-medium text-yellow-400">
+                    Performance Warning
+                  </p>
+                  <p class="mt-1 text-white/70">
+                    Enabling the <b>Animations</b>, <b>Caller</b>, or <b>Sound FX</b> features may cause performance issues and may require decent hardware.
+                    If you experience any lags or errors, try disabling these features.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <!-- First row of feature cards -->
             <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="23" />
             <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="24" />

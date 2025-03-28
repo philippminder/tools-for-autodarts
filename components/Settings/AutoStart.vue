@@ -15,14 +15,10 @@
       </div>
       <div class="flex">
         <div @click="$emit('toggle', 'auto-start')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-        <AppButton
-          @click="toggleFeature"
-          :type="config.autoStart.enabled ? 'success' : 'default'"
-          class="aspect-square !size-10 rounded-full p-0"
-        >
-          <span v-if="config.autoStart.enabled" class="font-mono text-xs uppercase">On</span>
-          <span v-else class="font-mono text-xs uppercase">Off</span>
-        </AppButton>
+        <AppToggle
+          @update:model-value="toggleFeature"
+          v-model="config.autoStart.enabled"
+        />
       </div>
     </div>
     <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
@@ -32,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import AppButton from "../AppButton.vue";
+import AppToggle from "../AppToggle.vue";
 import { type IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig } from "@/utils/storage";
 

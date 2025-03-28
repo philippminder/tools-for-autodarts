@@ -31,33 +31,25 @@
           <div class="space-y-3 text-white/70">
             <p>Configure the caller settings for the game. Click the plus button to add a new sound.</p>
 
-            <div class="flex flex-col gap-5 sm:flex-row">
+            <div class="flex flex-col gap-20 sm:flex-row">
               <div class="mt-2 flex items-center gap-2">
-                <AppButton
-                  @click="config.caller.callEveryDart = !config.caller.callEveryDart"
-                  :type="config.caller.callEveryDart ? 'success' : 'default'"
-                  class="aspect-square !size-10 rounded-full p-0"
-                >
-                  <span v-if="config.caller.callEveryDart" class="font-mono text-xs uppercase">On</span>
-                  <span v-else class="font-mono text-xs uppercase">Off</span>
-                </AppButton>
                 <div class="flex items-center gap-2">
                   <span>Call every dart</span>
                 </div>
+                <AppToggle
+                  @update:model-value="config.caller.callEveryDart = !config.caller.callEveryDart"
+                  v-model="config.caller.callEveryDart"
+                />
               </div>
 
               <div class="mt-2 flex items-center gap-2">
-                <AppButton
-                  @click="config.caller.callCheckout = !config.caller.callCheckout"
-                  :type="config.caller.callCheckout ? 'success' : 'default'"
-                  class="aspect-square !size-10 rounded-full p-0"
-                >
-                  <span v-if="config.caller.callCheckout" class="font-mono text-xs uppercase">On</span>
-                  <span v-else class="font-mono text-xs uppercase">Off</span>
-                </AppButton>
                 <div class="flex items-center gap-2">
                   <span>Call checkout</span>
                 </div>
+                <AppToggle
+                  @update:model-value="config.caller.callCheckout = !config.caller.callCheckout"
+                  v-model="config.caller.callCheckout"
+                />
               </div>
             </div>
 
@@ -99,20 +91,15 @@
 
                 <!-- Toggle button -->
                 <div class="absolute left-2 top-2 z-20">
-                  <button
-                    @click.stop="toggleSound(index)"
-                    class="flex size-8 items-center justify-center rounded-full border border-solid p-0"
-                    :class="sound.enabled
-                      ? 'border-[var(--chakra-colors-borderGreen)] bg-[var(--chakra-colors-glassGreen)] text-[var(--chakra-colors-white)] hover:bg-[rgba(58,255,0,0.3)]'
-                      : 'bg-[var(--chakra-colors-whiteAlpha-200)] text-[var(--chakra-colors-whiteAlpha-900)] hover:bg-[var(--chakra-colors-whiteAlpha-300)]'"
-                  >
-                    <span v-if="sound.enabled" class="font-mono text-xxs uppercase">On</span>
-                    <span v-else class="font-mono text-xxs uppercase">Off</span>
-                  </button>
+                  <AppToggle
+                    @update:model-value="toggleSound(index)"
+                    v-model="sound.enabled"
+                    size="sm"
+                  />
                 </div>
 
                 <!-- Sound name (centered) -->
-                <div v-if="sound.name" class="absolute left-1/2 top-3.5 z-20 max-w-full -translate-x-1/2 truncate px-10">
+                <div v-if="sound.name" class="absolute left-[7.5rem] top-3.5 z-20 max-w-28 truncate">
                   <div class="truncate rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
                     {{ sound.name }}
                   </div>
@@ -473,14 +460,10 @@
         </div>
         <div class="flex">
           <div @click="$emit('toggle', 'caller')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-          <AppButton
-            @click="toggleFeature"
-            :type="config?.caller?.enabled ? 'success' : 'default'"
-            class="aspect-square !size-10 rounded-full p-0"
-          >
-            <span v-if="config?.caller?.enabled" class="font-mono text-xs uppercase">On</span>
-            <span v-else class="font-mono text-xs uppercase">Off</span>
-          </AppButton>
+          <AppToggle
+            @update:model-value="toggleFeature"
+            v-model="config.caller.enabled"
+          />
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
@@ -500,6 +483,7 @@ import AppTextarea from "../AppTextarea.vue";
 import AppInput from "../AppInput.vue";
 import AppNotification from "../AppNotification.vue";
 import AppSelect from "../AppSelect.vue";
+import AppToggle from "../AppToggle.vue";
 import { AutodartsToolsConfig, type IConfig, type ISound } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
 import {

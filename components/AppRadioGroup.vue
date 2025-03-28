@@ -1,46 +1,32 @@
 <template>
   <div
     :class="twMerge(
-      'flex gap-2',
-      vertical ? 'flex-col' : 'flex-wrap gap-5',
+      'relative flex overflow-hidden rounded-md bg-[var(--chakra-colors-whiteAlpha-200)]',
+      vertical ? 'flex-col' : 'flex-row',
       className,
     )"
   >
-    <div
+    <button
+      @click="!option.disabled && selectOption(option.value)"
       v-for="(option, index) in options"
       :key="index"
+      :disabled="option.disabled"
       :class="twMerge(
-        'flex items-center',
+        'flex h-10 items-center justify-center px-4 font-semibold text-[var(--chakra-colors-whiteAlpha-900)] transition-colors',
+        buttonSize === 'sm' ? 'h-8 px-3 text-sm' : buttonSize === 'lg' ? 'h-12 px-5' : 'h-10 px-4',
+        modelValue === option.value
+          ? 'bg-[var(--chakra-colors-whiteAlpha-300)]'
+          : 'enabled:hover:bg-[var(--chakra-colors-whiteAlpha-200)]',
         option.disabled ? 'cursor-not-allowed opacity-50' : '',
       )"
     >
-      <AppButton
-        @click="!option.disabled && selectOption(option.value)"
-        :type="modelValue === option.value ? 'success' : 'default'"
-        :class="twMerge(
-          'aspect-square min-w-8 rounded-full p-0',
-          buttonSize === 'sm' ? '!size-8' : buttonSize === 'lg' ? '!size-12' : '!size-10',
-        )"
-        :disabled="option.disabled"
-      >
-        <span v-if="modelValue === option.value" class="icon-[pixelarticons--check]" />
-      </AppButton>
-      <span
-        v-if="option.label"
-        :class="twMerge(
-          'ml-2',
-          option.disabled ? 'text-white/50' : '',
-        )"
-      >
-        {{ option.label }}
-      </span>
-    </div>
+      {{ option.label }}
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
-import AppButton from "@/components/AppButton.vue";
 
 interface RadioOption {
   label?: string;

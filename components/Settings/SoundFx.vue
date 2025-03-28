@@ -64,20 +64,15 @@
 
                 <!-- Toggle button -->
                 <div class="absolute left-2 top-2 z-20">
-                  <button
-                    @click.stop="toggleSound(index)"
-                    class="flex size-8 items-center justify-center rounded-full border border-solid p-0"
-                    :class="sound.enabled
-                      ? 'border-[var(--chakra-colors-borderGreen)] bg-[var(--chakra-colors-glassGreen)] text-[var(--chakra-colors-white)] hover:bg-[rgba(58,255,0,0.3)]'
-                      : 'bg-[var(--chakra-colors-whiteAlpha-200)] text-[var(--chakra-colors-whiteAlpha-900)] hover:bg-[var(--chakra-colors-whiteAlpha-300)]'"
-                  >
-                    <span v-if="sound.enabled" class="font-mono text-xxs uppercase">On</span>
-                    <span v-else class="font-mono text-xxs uppercase">Off</span>
-                  </button>
+                  <AppToggle
+                    @update:model-value="toggleSound(index)"
+                    v-model="sound.enabled"
+                    size="sm"
+                  />
                 </div>
 
                 <!-- Sound name (centered) -->
-                <div v-if="sound.name" class="absolute left-1/2 top-3.5 z-20 max-w-full -translate-x-1/2 truncate px-10">
+                <div v-if="sound.name" class="absolute left-[7.5rem] top-3.5 z-20 max-w-28 truncate">
                   <div class="truncate rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
                     {{ sound.name }}
                   </div>
@@ -342,14 +337,10 @@
         </div>
         <div class="flex">
           <div @click="$emit('toggle', 'sound-fx')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-          <AppButton
-            @click="toggleFeature"
-            :type="config.soundFx?.enabled ? 'success' : 'default'"
-            class="aspect-square !size-10 rounded-full p-0"
-          >
-            <span v-if="config.soundFx?.enabled" class="font-mono text-xs uppercase">On</span>
-            <span v-else class="font-mono text-xs uppercase">Off</span>
-          </AppButton>
+          <AppToggle
+            @update:model-value="toggleFeature"
+            v-model="config.soundFx.enabled"
+          />
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
@@ -363,6 +354,7 @@
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import Sortable from "sortablejs";
 import { useStorage } from "@vueuse/core";
+import AppToggle from "../AppToggle.vue";
 import AppButton from "../AppButton.vue";
 import AppModal from "../AppModal.vue";
 import AppTextarea from "../AppTextarea.vue";

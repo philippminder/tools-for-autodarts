@@ -18,13 +18,16 @@
               <h4 class="font-semibold">
                 Background Type
               </h4>
-              <AppRadioGroup
-                v-model="backgroundMode"
-                :options="[
-                  { label: 'Image Background', value: true },
-                  { label: 'Chroma Key Color', value: false },
-                ]"
-              />
+
+              <div class="flex">
+                <AppRadioGroup
+                  v-model="backgroundMode"
+                  :options="[
+                    { label: 'Image Background', value: true },
+                    { label: 'Chroma Key Color', value: false },
+                  ]"
+                />
+              </div>
 
               <!-- Chroma Key Color Selection (when in chroma key mode) -->
               <div v-if="!backgroundMode" class="mt-4">
@@ -104,7 +107,7 @@
                 </div>
 
                 <!-- Board Mode Selection (only if board display is enabled) -->
-                <div v-if="config.streamingMode.board" class="grid grid-cols-[auto_1fr] items-center gap-4 pl-8">
+                <div v-if="config.streamingMode.board" class="grid grid-cols-[auto_1fr] items-center gap-4">
                   <AppRadioGroup
                     v-model="config.streamingMode.boardImage"
                     :options="[
@@ -158,14 +161,10 @@
         </div>
         <div class="flex">
           <div @click="$emit('toggle', 'streaming-mode')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-          <AppButton
-            @click="toggleFeature"
-            :type="config.streamingMode.enabled ? 'success' : 'default'"
-            class="aspect-square !size-10 rounded-full p-0"
-          >
-            <span v-if="config.streamingMode.enabled" class="font-mono text-xs uppercase">On</span>
-            <span v-else class="font-mono text-xs uppercase">Off</span>
-          </AppButton>
+          <AppToggle
+            @update:model-value="toggleFeature"
+            v-model="config.streamingMode.enabled"
+          />
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">

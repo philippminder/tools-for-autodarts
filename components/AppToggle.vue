@@ -1,28 +1,63 @@
 <template>
-  <button
-    @click="toggle"
-    :class="twMerge(
-      'flex aspect-square !size-10 items-center justify-center rounded-full p-0 transition-colors',
-      modelValue
-        ? 'border border-solid border-[var(--chakra-colors-borderGreen)] bg-[var(--chakra-colors-glassGreen)] text-[var(--chakra-colors-white)] enabled:hover:bg-[rgba(58,255,0,0.3)] enabled:active:bg-[rgba(58,255,0,0.3)]'
-        : 'bg-[var(--chakra-colors-whiteAlpha-200)] text-[var(--chakra-colors-whiteAlpha-900)] enabled:hover:bg-[var(--chakra-colors-whiteAlpha-300)] enabled:active:bg-[var(--chakra-colors-whiteAlpha-300)]',
-    )"
+  <div
+    class="relative flex overflow-hidden rounded-md bg-[var(--chakra-colors-whiteAlpha-200)]"
+    :class="{
+      'h-6': props.size === 'xs',
+      'h-8': props.size === 'sm',
+      'h-10': props.size === 'md',
+    }"
   >
-    <span v-if="modelValue" class="icon-[pixelarticons--check]" />
-    <span v-else class="icon-[pixelarticons--close]" />
-  </button>
+    <button
+      @click="setToOn"
+      :class="twMerge(
+        'flex h-full items-center justify-center text-[var(--chakra-colors-whiteAlpha-900)] transition-colors',
+        props.size === 'xs' ? 'px-3 text-xs font-medium'
+        : props.size === 'sm' ? 'px-4 text-sm font-semibold' : 'px-4 font-semibold',
+        props.modelValue
+          ? 'bg-[var(--chakra-colors-whiteAlpha-300)]'
+          : 'enabled:hover:bg-[var(--chakra-colors-whiteAlpha-200)]',
+      )"
+    >
+      On
+    </button>
+    <button
+      @click="setToOff"
+      :class="twMerge(
+        'flex h-full items-center justify-center text-[var(--chakra-colors-whiteAlpha-900)] transition-colors',
+        props.size === 'xs' ? 'px-3 text-xs font-medium'
+        : props.size === 'sm' ? 'px-4 text-sm font-semibold' : 'px-4 font-semibold',
+        !props.modelValue
+          ? 'bg-[var(--chakra-colors-whiteAlpha-300)]'
+          : 'enabled:hover:bg-[var(--chakra-colors-whiteAlpha-200)]',
+      )"
+    >
+      Off
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
 
-const props = defineProps<{
+// Define props with defaults
+const props = withDefaults(defineProps<{
   modelValue: boolean;
-}>();
+  size?: "xs" | "sm" | "md";
+}>(), {
+  size: "md",
+});
 
 const emit = defineEmits([ "update:modelValue" ]);
 
-function toggle() {
-  emit("update:modelValue", !props.modelValue);
+function setToOn() {
+  if (!props.modelValue) {
+    emit("update:modelValue", true);
+  }
+}
+
+function setToOff() {
+  if (props.modelValue) {
+    emit("update:modelValue", false);
+  }
 }
 </script>

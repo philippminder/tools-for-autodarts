@@ -15,9 +15,11 @@
 
             <div class="mt-4 space-y-4">
               <!-- Ring Color Settings -->
-              <div class="grid grid-cols-[5rem_5rem_5rem_auto] items-center gap-4">
+              <div class="grid grid-cols-[5rem_10rem_5rem_auto] items-center gap-4">
                 <p>Ring color</p>
-                <AppToggle v-model="config.ring.colorEnabled" />
+                <div class="flex">
+                  <AppToggle v-model="config.ring.colorEnabled" />
+                </div>
                 <input
                   v-if="config.ring.colorEnabled"
                   v-model="config.ring.color"
@@ -63,14 +65,10 @@
         </div>
         <div class="flex">
           <div @click="$emit('toggle', 'ring')" class="absolute inset-y-0 left-12 right-0 cursor-pointer" />
-          <AppButton
-            @click="toggleFeature"
-            :type="config.ring.enabled ? 'success' : 'default'"
-            class="aspect-square !size-10 rounded-full p-0"
-          >
-            <span v-if="config.ring.enabled" class="font-mono text-xs uppercase">On</span>
-            <span v-else class="font-mono text-xs uppercase">Off</span>
-          </AppButton>
+          <AppToggle
+            @update:model-value="toggleFeature"
+            v-model="config.ring.enabled"
+          />
         </div>
       </div>
       <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
@@ -82,7 +80,6 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
-import AppButton from "../AppButton.vue";
 import AppToggle from "../AppToggle.vue";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
