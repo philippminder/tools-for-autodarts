@@ -477,6 +477,8 @@ export async function backgroundFetch(url: string, options: RequestInit = {}): P
   statusText?: string;
   data?: string;
   error?: string;
+  tooLarge?: boolean;
+  suggestChunked?: boolean;
 }> {
   try {
     // Send a message to the background script to perform the fetch
@@ -486,9 +488,98 @@ export async function backgroundFetch(url: string, options: RequestInit = {}): P
       options,
     });
 
+    // If response suggests using chunked download for large files
+    if (response.ok && response.tooLarge && response.suggestChunked) {
+      console.log("File too large for regular backgroundFetch, using chunkedBackgroundFetch instead");
+      return await chunkedBackgroundFetch(url, options);
+    }
+
     return response;
   } catch (error) {
     console.error("Error in backgroundFetch:", error);
+    // If we get a "message too large" error, try chunked download
+    if (error instanceof Error && error.message.includes("Message length exceeded")) {
+      console.log("Message size exceeded, falling back to chunkedBackgroundFetch");
+      return await chunkedBackgroundFetch(url, options);
+    }
+
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+// Function to download large files in chunks through the background script
+export async function chunkedBackgroundFetch(url: string, options: RequestInit = {}): Promise<{
+  ok: boolean;
+  status?: number;
+  statusText?: string;
+  data?: string;
+  error?: string;
+}> {
+  try {
+    // Step 1: Start a chunked download
+    const startResponse = await browser.runtime.sendMessage({
+      type: "fetch",
+      url,
+      options,
+      chunked: true,
+      action: "start",
+    });
+
+    if (!startResponse.ok) {
+      return {
+        ok: false,
+        status: startResponse.status,
+        statusText: startResponse.statusText,
+        error: startResponse.error || "Failed to start chunked download",
+      };
+    }
+
+    // Get download ID and total chunks
+    const { downloadId, totalChunks, mimeType } = startResponse;
+
+    // Step 2: Fetch each chunk
+    const chunks: string[] = [];
+    for (let i = 0; i < totalChunks; i++) {
+      // Request chunk from background
+      const chunkResponse = await browser.runtime.sendMessage({
+        type: "fetch",
+        chunked: true,
+        action: "getChunk",
+        downloadId,
+        chunkIndex: i,
+      });
+
+      if (!chunkResponse.ok) {
+        return {
+          ok: false,
+          error: `Failed to retrieve chunk ${i}/${totalChunks}`,
+        };
+      }
+
+      chunks.push(chunkResponse.chunk);
+    }
+
+    // Step 3: Complete the download and clean up
+    await browser.runtime.sendMessage({
+      type: "fetch",
+      chunked: true,
+      action: "complete",
+      downloadId,
+    });
+
+    // Combine all chunks and create a data URL
+    const base64Data = chunks.join("");
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+
+    return {
+      ok: true,
+      data: dataUrl,
+    };
+  } catch (error) {
+    console.error("Error in chunkedBackgroundFetch:", error);
     return {
       ok: false,
       error: error instanceof Error ? error.message : String(error),
