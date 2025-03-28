@@ -102,6 +102,7 @@
 <script setup lang="ts">
 import AppToggle from "../AppToggle.vue";
 import AppInput from "../AppInput.vue";
+import AppButton from "../AppButton.vue";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
