@@ -282,7 +282,6 @@ export type TBoardStatus = BoardStatus | undefined;
 export interface IFriend {
   userId?: string;
   name: string;
-  boardId: string;
   avatarUrl: string;
 }
 

@@ -71,8 +71,6 @@ io.on("connection", (socket) => {
       return;
     }
 
-    console.log(`Received heartbeat from user ${userId}`);
-
     // Update timestamp or create entry if it doesn't exist
     if (userFriendsStore[userId]) {
       userFriendsStore[userId].timestamp = Date.now();
@@ -97,8 +95,6 @@ io.on("connection", (socket) => {
       return;
     }
 
-    console.log(`User ${userId} checking status of ${friendIds.length} friends`, friendIds);
-
     const result: Record<string, boolean> = {};
 
     // Check each friend's status
@@ -114,8 +110,6 @@ io.on("connection", (socket) => {
         const isMutualFriend = friendData.friends.some(friend =>
           friend.userId === userId || friend.boardId === userId,
         );
-
-        console.log("isMutualFriend", isMutualFriend);
 
         // Only return true if it's a mutual friendship
         if (isMutualFriend) {

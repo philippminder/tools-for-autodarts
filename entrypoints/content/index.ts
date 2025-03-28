@@ -3,7 +3,7 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import FriendsList from "@/entrypoints/content/FriendsList.vue";
 import { waitForElement } from "@/utils";
-import { AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus } from "@/utils/storage";
+import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus } from "@/utils/storage";
 import { isiOS } from "@/utils/helpers";
 import Migration from "@/components/Migration.vue";
 
@@ -71,7 +71,10 @@ export default defineContentScript({
       ui.mount();
     }
 
-    await initFriendsList(ctx).catch(console.error);
+    const config = await AutodartsToolsConfig.getValue();
+    if (config.friendsList.enabled) {
+      await initFriendsList(ctx).catch(console.error);
+    }
 
     try {
       const storage = await browser.storage.local.get("config");

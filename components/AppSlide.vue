@@ -53,7 +53,7 @@
       </div>
 
       <!-- Content -->
-      <div class="h-[calc(100%-3.3rem)] px-4 py-3">
+      <div class="h-[calc(100%-3.3rem)] py-3">
         <slot />
       </div>
     </div>

@@ -39,7 +39,7 @@
             >
               <span class="icon-[pixelarticons--arrow-left]" />
             </AppButton>
-            <h1 class="text-xl font-bold sm:text-2xl md:text-3xl">
+            <h1 class="text-xl font-bold lg:text-2xl xl:text-3xl">
               Autodarts Tools
             </h1>
           </div>
@@ -142,9 +142,7 @@
 
             <!-- Third row of feature cards -->
             <TeamLobby @setting-change="updateConfig" class="feature-card" data-feature-index="5" />
-            <div class="feature-card" data-feature-index="6">
-            <!-- Placeholder for future feature -->
-            </div>
+            <FriendsList @setting-change="updateConfig" class="feature-card" data-feature-index="6" />
           </div>
 
           <!-- Feature cards grid for Matches tab -->
@@ -255,6 +253,7 @@ import Animations from "./Settings/Animations.vue";
 import Caller from "./Settings/Caller.vue";
 import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
+import FriendsList from "./Settings/FriendsList.vue";
 import type { IConfig, ISound } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
 import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCallerSoundsFromIndexedDB, getAllSoundFxFromIndexedDB, isIndexedDBAvailable, saveSoundFxToIndexedDB, saveSoundToIndexedDB } from "@/utils/helpers";

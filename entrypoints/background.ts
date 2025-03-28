@@ -284,12 +284,30 @@ export default defineBackground({
         });
         return { success: true };
       } else {
-        console.log("Cannot send heartbeat: socket not connected");
-        return {
-          success: false,
-          error: "Socket not connected",
-          status: connectionStatus,
-        };
+        console.log("Socket not connected, attempting to reconnect...");
+        initializeSocket();
+
+        // Return a promise to handle the reconnection attempt
+        return new Promise((resolve) => {
+          // Wait a bit for the connection to establish
+          setTimeout(() => {
+            if (socket && socket.connected) {
+              console.log("Reconnected successfully, sending heartbeat");
+              socket.emit("heartbeat", {
+                userId,
+                timestamp: Date.now(),
+              });
+              resolve({ success: true });
+            } else {
+              console.log("Reconnection failed, could not send heartbeat");
+              resolve({
+                success: false,
+                error: "Socket reconnection failed",
+                status: connectionStatus,
+              });
+            }
+          }, 1000); // Give it 1 second to establish connection
+        });
       }
     }
 
@@ -404,8 +422,9 @@ export default defineBackground({
 
       // Handle connection status request
       if (message.type === "get-socket-status") {
-        sendResponse({ status: connectionStatus });
-        return true;
+        return {
+          status: connectionStatus,
+        };
       }
 
       // Handle fetch requests with chunked download support
@@ -557,33 +576,29 @@ export default defineBackground({
         }
       }
 
-<<<<<<< HEAD
-=======
-      // Handle ping request
-      if (message.type === "test-socket") {
-        pingServer();
-        return true;
+      // Handle friends and lobby related messages
+      if (message.type === "update-friends") {
+        return sendFriendsData(message.userId, message.friends);
       }
 
-      // Handle connection status request
-      if (message.type === "get-socket-status") {
-        return {
-          status: connectionStatus,
-        };
-      } else if (message.type === "update-friends") {
-        return sendFriendsData(message.userId, message.friends);
-      } else if (message.type === "heartbeat") {
+      if (message.type === "heartbeat") {
         return sendHeartbeat(message.userId);
-      } else if (message.type === "check-friends-status") {
+      }
+
+      if (message.type === "check-friends-status") {
         return checkFriendsStatus(message.userId, message.friendIds);
-      } else if (message.type === "send-lobby-invitation") {
+      }
+
+      if (message.type === "send-lobby-invitation") {
         return sendLobbyInvitation(
           message.fromUserId,
           message.fromName,
           message.toUserId,
           message.lobbyUrl,
         );
-      } else if (message.type === "lobby-invitation-response") {
+      }
+
+      if (message.type === "lobby-invitation-response") {
         return sendInvitationResponse(
           message.fromUserId,
           message.toUserId,
@@ -591,7 +606,6 @@ export default defineBackground({
         );
       }
 
->>>>>>> 71e4fa7 (🔧 Enhance Friends List and Background Script for Real-Time Updates)
       return true; // Keep the message channel open for async responses
     });
 

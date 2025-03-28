@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="config?.friendsList?.enabled"
-    class="absolute bottom-5 left-48 z-20"
+    class="absolute bottom-4 left-48 z-20"
   >
     <div>
       <AppButton
@@ -39,35 +39,16 @@
           <span>Friends List</span>
         </div>
       </template>
-      <div class="grid h-full grid-rows-[1fr_auto_3rem] gap-4">
+      <div class="grid h-full grid-rows-[1fr_1fr_3rem] gap-4">
         <!-- Friends List Section -->
-        <div class="space-y-4 overflow-y-auto">
-          <div
+        <div class="min-h-40 space-y-4 overflow-y-auto px-4">
+          <FriendItem
             v-for="player in sortedFriends"
-            :key="player.boardId || player.name"
-            class="grid grid-cols-[auto_1fr_auto] items-center gap-2"
-            :class="{
-              'opacity-80': !friendsOnlineStatus[player.userId || player.boardId],
-            }"
+            :key="player.userId || player.name"
+            :friend="player"
+            :is-online="player.userId ? friendsOnlineStatus[player.userId] : false"
           >
-            <div class="relative">
-              <img :src="generateAvatar(player.userId || player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
-              <span
-                v-if="player.userId || player.boardId"
-                class="absolute -bottom-0.5 -right-0.5 inline-flex size-2 rounded-full"
-                :class="{
-                  'bg-green-500': friendsOnlineStatus[player.userId || player.boardId],
-                  'bg-gray-400': !friendsOnlineStatus[player.userId || player.boardId],
-                }"
-              />
-            </div>
-            <span
-              class="max-w-52 truncate text-sm"
-              :class="{
-                'font-semibold': friendsOnlineStatus[player.userId || player.boardId],
-              }"
-            >{{ player.name }}</span>
-            <div class="flex items-center gap-1">
+            <template #actions>
               <AppButton
                 @click="removeFriend(player)"
                 size="xs"
@@ -86,30 +67,30 @@
               >
                 <span class="icon-[pixelarticons--add-box]" />
               </AppButton>
-            </div>
-          </div>
+            </template>
+          </FriendItem>
         </div>
 
         <!-- Current Players Section -->
-        <div class="border-t border-white/20 pt-4">
+        <div class="min-h-40 overflow-y-auto border-t border-white/20 pt-4">
           <h3 class="mb-3 text-center text-sm font-semibold">
             Recent Players
           </h3>
           <div
             v-if="config?.friendsList?.recentPlayers?.length"
-            class="space-y-4 overflow-y-auto"
+            class="space-y-4 px-4"
           >
-            <div
+            <FriendItem
               v-for="player in config?.friendsList?.recentPlayers"
-              :key="player.id"
-              class="grid grid-cols-[auto_1fr_auto] items-center gap-2"
+              :key="player.userId || player.name"
+              :friend="player"
             >
-              <img :src="generateAvatar(player.userId || player.boardId || player.name)" class="size-6 rounded-full" :alt="player.name">
-              <span class="max-w-52 truncate text-sm">{{ player.name }}</span>
-              <AppButton @click="addFriend(player as unknown as IPlayerInfo)" size="xs" auto title="Add to friends">
-                <span class="icon-[pixelarticons--user-plus]" />
-              </AppButton>
-            </div>
+              <template #actions>
+                <AppButton @click="addFriend(player as unknown as IPlayerInfo)" size="xs" auto title="Add to friends">
+                  <span class="icon-[pixelarticons--user-plus]" />
+                </AppButton>
+              </template>
+            </FriendItem>
           </div>
           <div v-else>
             <p class="text-center text-sm text-gray-500">
@@ -117,54 +98,8 @@
             </p>
           </div>
         </div>
-
-        <!-- Button Section -->
-        <div class="flex items-center justify-center">
-          <AppButton @click="showAddFriendModal = true">
-            Add Friend
-          </AppButton>
-        </div>
       </div>
     </AppSlide>
-
-    <!-- Add Friend Modal -->
-    <AppModal
-      size="lg"
-      :show="showAddFriendModal"
-      title="Add New Friend"
-    >
-      <div class="space-y-4">
-        <div class="space-y-2">
-          <AppInput
-            v-model="newFriend.name"
-            label="Friend Name"
-            placeholder="Enter friend's name"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <AppInput
-            v-model="newFriend.boardId"
-            label="Board ID"
-            placeholder="Enter board ID"
-          />
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex w-full items-center space-x-3">
-          <AppButton @click="showAddFriendModal = false">
-            Cancel
-          </AppButton>
-          <AppButton
-            @click="saveFriend"
-            type="success"
-          >
-            Save
-          </AppButton>
-        </div>
-      </template>
-    </AppModal>
 
     <!-- Confirmation Dialog for Friend Removal -->
     <ConfirmDialog
@@ -197,10 +132,9 @@ import type { Runtime } from "wxt/browser";
 import { twMerge } from "tailwind-merge";
 import AppButton from "@/components/AppButton.vue";
 import AppSlide from "@/components/AppSlide.vue";
-import AppModal from "@/components/AppModal.vue";
-import AppInput from "@/components/AppInput.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppInvite from "@/components/AppInvite.vue";
+import FriendItem from "@/components/FriendItem.vue";
 import type { IConfig, IFriend, IPlayerInfo } from "@/utils/storage";
 import type { IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus, defaultConfig } from "@/utils/storage";
@@ -214,12 +148,7 @@ const config = ref<IConfig>();
 const gameData = ref<IGameData>();
 const url = ref<string | null>(null);
 const lobbyId = ref<string | null>(null);
-const isOpen = ref(true);
-const showAddFriendModal = ref(false);
-const newFriend = ref({
-  name: "",
-  boardId: "",
-});
+const isOpen = ref(false);
 const showRemoveConfirmation = ref(false);
 const playerToRemove = ref<IFriend | null>(null);
 const socketStatus = ref<"connected" | "disconnected" | "connecting" | "error">("disconnected");
@@ -246,8 +175,8 @@ const sortedFriends = computed(() => {
   if (!config.value?.friendsList?.friends) return [];
 
   return [ ...config.value.friendsList.friends ].sort((a, b) => {
-    const aOnline = friendsOnlineStatus.value[a.userId || a.boardId] || false;
-    const bOnline = friendsOnlineStatus.value[b.userId || b.boardId] || false;
+    const aOnline = a.userId ? friendsOnlineStatus.value[a.userId] || false : false;
+    const bOnline = b.userId ? friendsOnlineStatus.value[b.userId] || false : false;
 
     if (aOnline === bOnline) {
       // If online status is the same, maintain original order
@@ -258,11 +187,10 @@ const sortedFriends = computed(() => {
   });
 });
 
-function isDuplicateFriend(newFriend: { name: string; boardId?: string; id?: string }) {
+function isDuplicateFriend(newFriend: { name: string; id?: string }) {
   if (!config.value) return false;
   return config.value.friendsList.friends.some(friend =>
-    (friend.boardId && friend.boardId === newFriend.boardId)
-    || (friend.name.toLowerCase() === newFriend.name.toLowerCase()),
+    friend.name.toLowerCase() === newFriend.name.toLowerCase(),
   );
 }
 
@@ -320,7 +248,7 @@ async function checkFriendsStatus() {
   try {
     // Extract friend ids to check
     const friendIds = config.value.friendsList.friends
-      .map(friend => friend.userId || friend.boardId)
+      .map(friend => friend.userId)
       .filter(Boolean) as string[];
 
     if (friendIds.length === 0) return;
@@ -483,7 +411,7 @@ onMounted(async () => {
     config.value.friendsList.recentPlayers = Array.from(
       new Map(
         [ ...(gameData.value?.match?.players || []), ...(config.value.friendsList.recentPlayers || []) ]
-          .map(player => [ player.userId || player.boardId || player.name, player ]),
+          .map(player => [ player.userId || player.name, player ]),
       ).values(),
     ).slice(0, 10);
   });
@@ -545,23 +473,6 @@ function getLobbyId() {
   return lobbyIdMatch ? lobbyIdMatch[1] : null;
 }
 
-async function saveFriend() {
-  if (!config.value) return;
-
-  if (isDuplicateFriend(newFriend.value)) return;
-
-  config.value.friendsList.friends.push({
-    name: newFriend.value.name,
-    boardId: newFriend.value.boardId,
-    avatarUrl: generateAvatar(newFriend.value.boardId || newFriend.value.name),
-  });
-
-  await AutodartsToolsConfig.setValue(toRaw(config.value));
-
-  showAddFriendModal.value = false;
-  newFriend.value = { name: "", boardId: "" };
-}
-
 async function addFriend(player: IPlayerInfo) {
   if (!config.value) return;
 
@@ -570,8 +481,7 @@ async function addFriend(player: IPlayerInfo) {
   config.value.friendsList.friends.push({
     userId: player.userId,
     name: player.name,
-    boardId: player.boardId || "",
-    avatarUrl: player.avatarUrl || generateAvatar(player.boardId || player.name),
+    avatarUrl: player.avatarUrl || generateAvatar(player.name),
   });
 
   await AutodartsToolsConfig.setValue(toRaw(config.value!));
@@ -586,7 +496,7 @@ async function confirmRemoveFriend() {
   if (!config.value || !playerToRemove.value) return;
 
   config.value.friendsList.friends = config.value.friendsList.friends.filter(
-    (friend: IFriend) => friend.boardId !== playerToRemove.value?.boardId,
+    (friend: IFriend) => friend.userId !== playerToRemove.value?.userId && friend.name !== playerToRemove.value?.name,
   );
 
   await AutodartsToolsConfig.setValue(toRaw(config.value));
