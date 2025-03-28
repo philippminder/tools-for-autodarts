@@ -15,7 +15,7 @@
       />
       <div
         :class="twMerge(
-          'dialog-bg relative scale-100 rounded-xl p-6 shadow-lg',
+          'dialog-bg relative mx-4 scale-100 rounded-xl p-6 shadow-lg',
 
           // Size variants
           size === 'xs' && 'w-full max-w-xs',
