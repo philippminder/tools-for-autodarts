@@ -1,12 +1,14 @@
 <template>
   <div
     v-if="config?.friendsList?.enabled"
-    class="absolute bottom-4 left-48 z-20"
+    class="absolute z-20"
+    :class="navigationHeight > 100 ? 'bottom-4' : 'bottom-4 left-4'"
+    :style="navigationHeight > 100 ? { left: `calc(${navigationWidth}rem + 2rem)` } : {}"
   >
     <div>
       <AppButton
         @click="isOpen = true"
-        class="rounded-full p-0"
+        class="friends-list-toggle rounded-full p-0"
         size="lg"
       >
         <span class="icon-[pixelarticons--users] text-sm" />
@@ -147,6 +149,7 @@ import { generateAvatar, getUserIdFromToken } from "@/utils/helpers";
 let gameDataWatcherUnwatch: () => void;
 let urlWatcherUnwatch: () => void;
 let configWatcherUnwatch: () => void;
+let navigationObserver: ResizeObserver | null = null;
 
 const config = ref<IConfig>();
 const gameData = ref<IGameData>();
@@ -161,6 +164,9 @@ const previousFriends = ref<IFriend[]>([]);
 const heartbeatInterval = ref<number | null>(null);
 const friendsStatusInterval = ref<number | null>(null);
 const friendsOnlineStatus = ref<Record<string, boolean>>({});
+// Add reactive variables for navigation dimensions
+const navigationHeight = ref(0);
+const navigationWidth = ref(0);
 // Add new reactive variables for invitations
 const showInvitation = ref(false);
 const invitationMessage = ref("");
@@ -417,6 +423,24 @@ onMounted(async () => {
     lobbyId.value = getLobbyId();
   });
 
+  // Set up navigation observer
+  const observeNavigation = () => {
+    const navigationElement = document.querySelector("#root .navigation");
+    if (navigationElement) {
+      navigationObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          navigationHeight.value = entry.contentRect.height;
+          navigationWidth.value = entry.contentRect.width / 16; // Convert pixels to rem
+        }
+      });
+      navigationObserver.observe(navigationElement);
+    } else {
+      // If element not found, retry after a short delay
+      setTimeout(observeNavigation, 500);
+    }
+  };
+  observeNavigation();
+
   gameDataWatcherUnwatch = AutodartsToolsGameData.watch((_gameData: IGameData) => {
     gameData.value = _gameData;
     if (!config.value) return;
@@ -472,6 +496,12 @@ onBeforeUnmount(() => {
   gameDataWatcherUnwatch?.();
   urlWatcherUnwatch?.();
   configWatcherUnwatch?.();
+
+  // Disconnect and cleanup navigation observer
+  if (navigationObserver) {
+    navigationObserver.disconnect();
+    navigationObserver = null;
+  }
 
   // Disconnect port
   if (port) {

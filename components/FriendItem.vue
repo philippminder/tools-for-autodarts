@@ -39,7 +39,8 @@ const props = defineProps<{
   noStatus?: boolean;
 }>();
 
-const avatarSrc = ref<string>("");
+// Initialize with generated avatar immediately to prevent blank display
+const avatarSrc = ref<string>(generateAvatar(props.friend.userId || props.friend.name));
 
 // Check if the gravatar URL is a default or custom one using fetch with d=404
 async function isDefaultGravatar(url: string): Promise<boolean> {
@@ -70,16 +71,13 @@ onMounted(async () => {
       if (!isDefault) {
         // Use the custom avatar if it exists
         avatarSrc.value = props.friend.avatarUrl;
-        return;
       }
     } else {
       // If it's not a Gravatar URL, use it directly
       avatarSrc.value = props.friend.avatarUrl;
-      return;
     }
   }
 
-  // Generate an avatar based on the user ID or name
-  avatarSrc.value = generateAvatar(props.friend.userId || props.friend.name);
+  // No need to set avatarSrc here as it's already initialized with a generated avatar
 });
 </script>
