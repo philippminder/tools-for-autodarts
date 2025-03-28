@@ -16,9 +16,10 @@ export default defineBackground({
     }>();
 
     let socket: Socket | null = null;
-    const SOCKET_SERVER_URL = import.meta.env.PROD
-      ? "https://adt-socket.tobias-thiele.de"
-      : "http://localhost:4455";
+    // const SOCKET_SERVER_URL = import.meta.env.PROD
+    //   ? "https://adt-socket.tobias-thiele.de"
+    //   : "http://localhost:4455";
+    const SOCKET_SERVER_URL = "https://adt-socket.tobias-thiele.de";
     let connectionStatus = "disconnected";
     let ports: Runtime.Port[] = [];
 

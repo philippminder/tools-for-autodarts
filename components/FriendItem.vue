@@ -8,7 +8,7 @@
     <div class="relative">
       <img :src="avatarSrc" class="size-6 rounded-full" :alt="friend.name">
       <span
-        v-if="friend.userId"
+        v-if="friend.userId && !noStatus"
         class="absolute -bottom-0.5 -right-0.5 inline-flex size-2 rounded-full"
         :class="{
           'bg-green-500': friend.userId && isOnline,
@@ -36,6 +36,7 @@ import type { IFriend } from "@/utils/storage";
 const props = defineProps<{
   friend: IFriend;
   isOnline?: boolean;
+  noStatus?: boolean;
 }>();
 
 const avatarSrc = ref<string>("");

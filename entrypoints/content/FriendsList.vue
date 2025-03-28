@@ -84,6 +84,8 @@
               v-for="player in config?.friendsList?.recentPlayers"
               :key="player.userId || player.name"
               :friend="player"
+              no-status
+              class="font-semibold"
             >
               <template #actions>
                 <AppButton @click="addFriend(player as unknown as IPlayerInfo)" size="xs" auto title="Add to friends">
