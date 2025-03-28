@@ -21,8 +21,6 @@ export default defineContentScript({
   cssInjectionMode: "ui",
   async main(ctx: any) {
     lobbyReadyUnwatch = AutodartsToolsUrlStatus.watch(async (url: string) => {
-      console.log("URL:", url);
-
       if (!url && (isiOS() || isSafari())) url = window.location.href;
 
       const config: IConfig = await AutodartsToolsConfig.getValue();

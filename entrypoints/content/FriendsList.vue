@@ -129,9 +129,10 @@
 </template>
 
 <script setup lang="ts">
-import { isEqual } from "lodash";
+import { isEqual, merge } from "lodash";
 import type { Runtime } from "wxt/browser";
 import { twMerge } from "tailwind-merge";
+import { watchIgnorable } from "@vueuse/core";
 import AppButton from "@/components/AppButton.vue";
 import AppSlide from "@/components/AppSlide.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
@@ -145,6 +146,7 @@ import { generateAvatar, getUserIdFromToken } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: () => void;
 let urlWatcherUnwatch: () => void;
+let configWatcherUnwatch: () => void;
 
 const config = ref<IConfig>();
 const gameData = ref<IGameData>();
@@ -196,20 +198,28 @@ function isDuplicateFriend(newFriend: { name: string; id?: string }) {
   );
 }
 
-watch(config, async (_, oldValue) => {
+const { ignoreUpdates } = watchIgnorable(config, async (newConfig, oldValue) => {
   if (!oldValue) return;
 
-  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  await AutodartsToolsConfig.setValue(toRaw(newConfig!));
   console.log("Friends List setting changed");
 
   // Only send friends data when the friends array has changed
-  if (socketStatus.value === "connected" && userId.value && config.value) {
-    const currentFriends = toRaw(config.value.friendsList.friends);
+  if (socketStatus.value === "connected" && userId.value && newConfig) {
+    const currentFriends = toRaw(newConfig.friendsList.friends);
     if (!isEqual(currentFriends, previousFriends.value)) {
       previousFriends.value = [ ...currentFriends ];
       sendFriendsToServer();
     }
   }
+
+  // Fetch the latest config and merge it
+  ignoreUpdates(async () => {
+    const latestConfig = await AutodartsToolsConfig.getValue();
+    if (config.value) {
+      merge(config.value, latestConfig);
+    }
+  });
 }, { deep: true });
 
 // Function to send friends data to socket server
@@ -418,6 +428,17 @@ onMounted(async () => {
     ).slice(0, 10);
   });
 
+  // Watch for external config changes
+  configWatcherUnwatch = AutodartsToolsConfig.watch((_config: IConfig) => {
+    ignoreUpdates(() => {
+      if (config.value) {
+        merge(config.value, _config);
+      } else {
+        config.value = _config;
+      }
+    });
+  });
+
   // Get initial socket status
   try {
     const response = await browser.runtime.sendMessage({ type: "get-socket-status" });
@@ -450,6 +471,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   gameDataWatcherUnwatch?.();
   urlWatcherUnwatch?.();
+  configWatcherUnwatch?.();
 
   // Disconnect port
   if (port) {
@@ -485,8 +507,6 @@ async function addFriend(player: IPlayerInfo) {
     name: player.name,
     avatarUrl: player.avatarUrl || generateAvatar(player.name),
   });
-
-  await AutodartsToolsConfig.setValue(toRaw(config.value!));
 }
 
 async function removeFriend(player: IFriend) {
@@ -501,7 +521,6 @@ async function confirmRemoveFriend() {
     (friend: IFriend) => friend.userId !== playerToRemove.value?.userId && friend.name !== playerToRemove.value?.name,
   );
 
-  await AutodartsToolsConfig.setValue(toRaw(config.value));
   showRemoveConfirmation.value = false;
   playerToRemove.value = null;
 }
