@@ -163,8 +163,8 @@
             </div>
             <div v-if="showAvg && (gameData?.match?.stats?.[index]?.legStats?.average || gameData?.match?.stats?.[index]?.setStats?.average || gameData?.match?.stats?.[index]?.matchStats?.average)" class="whitespace-nowrap text-lg font-bold text-gray-500">
               ∅
-              <span v-if="gameData?.match?.stats?.[index]?.legStats?.average?.toString()">{{ gameData?.match?.stats?.[index]?.legStats.average.toFixed(1) }} /</span>
-              <span v-if="gameData?.match?.stats?.[index]?.setStats?.average?.toString()">{{ gameData?.match?.stats?.[index]?.setStats?.average.toFixed(1) }} /</span>
+              <span v-if="gameData?.match?.stats?.[index]?.legStats?.average?.toString()">{{ gameData?.match?.stats?.[index]?.legStats.average.toFixed(1) }} / </span>
+              <span v-if="gameData?.match?.stats?.[index]?.setStats?.average?.toString()">{{ gameData?.match?.stats?.[index]?.setStats?.average.toFixed(1) }} / </span>
               <span v-if="gameData?.match?.stats?.[index]?.matchStats.average?.toString()">{{ gameData?.match?.stats?.[index]?.matchStats?.average .toFixed(1) }}</span>
             </div>
           </div>
