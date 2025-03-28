@@ -196,7 +196,7 @@
           <label for="sound-text" class="mb-1 flex items-center justify-between text-sm font-medium text-white">
             <span>Triggers <span class="text-xs text-white/60">(one per line)</span></span>
             <a
-              href="https://github.com/creazy231/tools-for-autodarts/tree/tools-2.0.0?tab=readme-ov-file#supported-triggers"
+              href="https://github.com/creazy231/tools-for-autodarts?tab=readme-ov-file#%EF%B8%8F-caller-feature"
               target="_blank"
               class="text-blue-400 hover:text-blue-300"
             >
@@ -353,15 +353,8 @@
             />
           </div>
           <p class="mt-2 text-xs text-white/60">
-            Enter a URL to a sound directory or a ZIP file containing sounds. ZIP files with CSV mapping will be automatically processed.
+            Enter a URL to a sound directory containing sounds. The script will then automatically check for matching files and triggers.
           </p>
-          <div class="mt-1 rounded-md bg-blue-950/50 p-2 text-xs text-white/80">
-            <span class="icon-[pixelarticons--info-box] mr-1 align-text-bottom text-blue-400" />
-            <span>
-              <strong>ZIP Support:</strong> Import from sound packs in ZIP format. If a ZIP contains a CSV file and another ZIP with sounds,
-              the system will automatically extract and map sounds according to the CSV triggers.
-            </span>
-          </div>
           <div v-if="urlError" class="mt-1 text-sm text-red-500">
             {{ urlError }}
           </div>
@@ -624,14 +617,43 @@ const csvTotalEntries = ref(0);
 // Predefined caller sets for the select input
 const callerSets = [
   { value: "", label: "Select a caller set (optional)" },
-  // { value: "https://autodarts.x10.mx/russ_bray", label: "Russ Bray" },
-  // { value: "https://autodarts.x10.mx/georgeno", label: "Georgeno" },
-  // { value: "https://autodarts.x10.mx/shorty", label: "Shorty" },
-  // { value: "https://autodarts.x10.mx/haulpinks", label: "Haulpinks" },
-  // { value: "https://autodarts.x10.mx/lothar", label: "Lothar" },
-  // { value: "https://autodarts.x10.mx/lidarts", label: "Lidarts" },
-  // { value: "https://autodarts.x10.mx/bayrisch", label: "Bayrisch" },
-  { value: "https://autodarts.x10.mx/1_male_eng", label: "Male English" },
+
+  // Dutch (nl-NL)
+  { value: "https://darts-downloads.peschi.org/soundfiles/nl-NL-Laura-Female-v5.zip", label: "NL - Laura (Female)" },
+
+  // French (fr-FR)
+  { value: "https://darts-downloads.peschi.org/soundfiles/fr-FR-Remi-Male-v3.zip", label: "FR - Remi (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/fr-FR-Lea-Female-v3.zip", label: "FR - Lea (Female)" },
+
+  // Spanish (es-ES)
+  { value: "https://darts-downloads.peschi.org/soundfiles/es-ES-Lucia-Female-v3.zip", label: "ES - Lucia (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/es-ES-Sergio-Male-v3.zip", label: "ES - Sergio (Male)" },
+
+  // Austrian German (de-AT)
+  { value: "https://darts-downloads.peschi.org/soundfiles/de-AT-Hannah-Female-v5.zip", label: "AT - Hannah (Female)" },
+
+  // German (de-DE)
+  { value: "https://darts-downloads.peschi.org/soundfiles/de-DE-Vicki-Female-v8.zip", label: "DE - Vicki (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/de-DE-Daniel-Male-v8.zip", label: "DE - Daniel (Male)" },
+
+  // British English (en-GB)
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-GB-Amy-Female-v4.zip", label: "GB - Amy (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-GB-Arthur-Male-v4.zip", label: "GB - Arthur (Male)" },
+
+  // American English (en-US)
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Ivy-Female-v8.zip", label: "US - Ivy (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Joey-Male-v9.zip", label: "US - Joey (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Joanna-Female-v9.zip", label: "US - Joanna (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Matthew-Male-v6.zip", label: "US - Matthew (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Danielle-Female-v6.zip", label: "US - Danielle (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Kimberly-Female-v5.zip", label: "US - Kimberly (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Ruth-Female-v5.zip", label: "US - Ruth (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Salli-Female-v5.zip", label: "US - Salli (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Kevin-Male-v5.zip", label: "US - Kevin (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Justin-Male-v5.zip", label: "US - Justin (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Stephen-Male-v8.zip", label: "US - Stephen (Male)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Kendra-Female-v9.zip", label: "US - Kendra (Female)" },
+  { value: "https://darts-downloads.peschi.org/soundfiles/en-US-Gregory-Male-v6.zip", label: "US - Gregory (Male)" },
 ];
 
 // Computed property for trigger text handling
@@ -1215,23 +1237,26 @@ function closeImportURLModal() {
 
 // Parse CSV content into an array of objects
 function parseCSV(csv: string) {
-  // Split the CSV by newlines
+  // Split the CSV by newlines and filter out empty lines
   const lines = csv.split(/\r\n|\n|\r/).filter(line => line.trim() !== "");
 
   if (lines.length === 0) return [];
 
-  // Assume the first line is the header
-  const header = lines[0].split(",").map(h => h.trim());
+  // Process each line
+  return lines.map((line) => {
+    // Split by semicolon and remove empty/whitespace-only values
+    const values = line.split(";").map(v => v.trim()).filter(v => v);
 
-  return lines.slice(1).map((line) => {
-    const values = line.split(",").map(v => v.trim());
-    const entry: Record<string, string> = {};
+    // First value is both filename and display name
+    const filename = values[0] || "";
+    // Second value is the trigger, if not present use filename as trigger
+    const trigger = values[1] || filename;
 
-    header.forEach((key, i) => {
-      entry[key] = values[i] || "";
-    });
-
-    return entry;
+    return {
+      file: filename,
+      name: filename,
+      triggers: trigger,
+    };
   });
 }
 
@@ -1323,19 +1348,31 @@ async function processCSVandSounds(csvContent: string, zipFiles: Map<string, Blo
       const entry = csvEntries[i];
       csvProcessingProgress.value = Math.round((i / csvEntries.length) * 100);
 
-      // Find the corresponding sound file in the ZIP
-      const soundFilename = entry.file || "";
-      if (!soundFilename) continue;
+      // Skip if name is not a number and no trigger is defined
+      const isNameNumber = !Number.isNaN(Number(entry.name));
+      const hasTrigger = entry.triggers && entry.triggers !== entry.name;
+      if (!isNameNumber && !hasTrigger) {
+        continue;
+      }
 
-      // Look for this file in the extracted files
-      const soundFile = zipFiles.get(soundFilename);
+      // Find the corresponding sound file in the ZIP by index
+      // The pattern is AM-XXXXX_INDEX_mono.mp3 where INDEX matches the array position
+      const soundFile = Array.from(zipFiles.keys()).find((filename) => {
+        const match = filename.match(/AM-\d+_(\d+)_mono\.mp3$/);
+        return match && Number.parseInt(match[1]) === i;
+      });
+
       if (!soundFile) continue;
+
+      // Get the blob for this sound file
+      const blob = zipFiles.get(soundFile);
+      if (!blob) continue;
 
       // Convert the blob to base64
       const base64Data = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(soundFile);
+        reader.readAsDataURL(blob);
       });
 
       // Create triggers array from the CSV entry
@@ -1347,19 +1384,19 @@ async function processCSVandSounds(csvContent: string, zipFiles: Map<string, Blo
       let soundId: string | null = null;
       if (isIndexedDBAvailable()) {
         soundId = await saveSoundToIndexedDB(
-          entry.name || soundFilename,
+          entry.name || soundFile,
           base64Data,
         );
       }
 
       // Create sound object
       const sound: ISound = {
-        name: entry.name || soundFilename.substring(0, soundFilename.lastIndexOf(".")),
+        name: entry.name || soundFile,
         url: "",
         base64: soundId ? "" : base64Data,
         soundId: soundId || "",
         enabled: true,
-        triggers,
+        triggers: Array.isArray(triggers) ? triggers : [ triggers ],
       };
 
       sounds.push(sound);
@@ -1398,6 +1435,8 @@ async function extractZipWithProgress(zipData: ArrayBuffer): Promise<Map<string,
       if (filename.toLowerCase().endsWith(".zip")) {
         const innerZipData = await file.async("arraybuffer");
         innerZipFile = await JSZip.loadAsync(innerZipData);
+        // Update total files count to include inner ZIP contents
+        zipTotalFiles.value = zipTotalFiles.value - 1 + Object.keys(innerZipFile.files).length;
       }
 
       zipExtractedFiles.value++;
@@ -1486,6 +1525,8 @@ async function fetchSoundsFromURL() {
 
         // Process the CSV and sound files
         const sounds = await processCSVandSounds(csvContent, extractedFiles);
+
+        console.log("Autodarts Tools: Sounds", sounds);
 
         if (sounds.length === 0) {
           showNotification("No sounds found in the ZIP file or CSV mapping", "error");
