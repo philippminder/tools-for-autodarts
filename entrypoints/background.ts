@@ -56,7 +56,7 @@ export default defineBackground(() => {
 
                 // Split into chunks (2MB chunks to be safe)
                 const chunkSize = 2 * 1024 * 1024; // 2MB
-                const chunks = [];
+                const chunks: string[] = [];
 
                 for (let i = 0; i < base64Content.length; i += chunkSize) {
                   chunks.push(base64Content.slice(i, i + chunkSize));
