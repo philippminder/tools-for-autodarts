@@ -204,7 +204,7 @@ async function applyWinnerAnimation(gameData: any): Promise<void> {
       });
     }
   } catch (e) {
-    console.error("Autodarts Tools: Winner Animation - Error: ", e);
+    console.warn("Autodarts Tools: Winner Animation - Error: ", e);
   }
 }
 
