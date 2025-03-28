@@ -425,6 +425,25 @@ export default defineBackground({
         return {
           status: connectionStatus,
         };
+      } else if (message.type === "update-friends") {
+        return sendFriendsData(message.userId, message.friends);
+      } else if (message.type === "heartbeat") {
+        return sendHeartbeat(message.userId);
+      } else if (message.type === "check-friends-status") {
+        return checkFriendsStatus(message.userId, message.friendIds);
+      } else if (message.type === "send-lobby-invitation") {
+        return sendLobbyInvitation(
+          message.fromUserId,
+          message.fromName,
+          message.toUserId,
+          message.lobbyUrl,
+        );
+      } else if (message.type === "lobby-invitation-response") {
+        return sendInvitationResponse(
+          message.fromUserId,
+          message.toUserId,
+          message.accepted,
+        );
       }
 
       // Handle fetch requests with chunked download support
