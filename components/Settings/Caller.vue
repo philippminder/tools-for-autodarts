@@ -29,7 +29,7 @@
             </div>
           </h3>
           <div class="space-y-3 text-white/70">
-            <p>Configure the caller settings for the game. Click the plus button to add a new sound.</p>
+            <p>Configure the caller settings for the game. Click the plus button to add a new sound.<br>Click <b>Import from URL</b> to import predefined caller sets.</p>
 
             <div class="flex flex-col gap-20 sm:flex-row">
               <div class="mt-2 flex items-center gap-2">

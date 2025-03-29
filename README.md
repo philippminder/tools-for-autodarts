@@ -107,14 +107,40 @@ Due to browser security policies, especially on Safari and mobile browsers, audi
 #### Predefined Caller Sets
 The extension comes with ready-to-use caller sets that you can easily import:
 
-- **Russ Bray**: Famous PDC caller known as "The Voice"
-- **Georgeno**: Alternative caller voice set
-- **Shorty**: Short-style announcements
-- **Haulpinks**: Distinctive calling style
-- **Lothar**: German language caller
-- **Lidarts**: Caller sounds from the Lidarts platform
-- **Bayrisch**: Bavarian dialect caller
-- **Male English**: Standard male English announcements
+##### Dutch (nl-NL)
+- **NL - Laura (Female)**: Dutch female voice caller
+
+##### French (fr-FR) 
+- **FR - Remi (Male)**: French male voice caller
+- **FR - Lea (Female)**: French female voice caller
+
+##### Spanish (es-ES)
+- **ES - Lucia (Female)**: Spanish female voice caller
+- **ES - Sergio (Male)**: Spanish male voice caller  
+
+##### German & Austrian
+- **AT - Hannah (Female)**: Austrian German female voice caller
+- **DE - Vicki (Female)**: German female voice caller
+- **DE - Daniel (Male)**: German male voice caller
+
+##### British English (en-GB)
+- **GB - Amy (Female)**: British female voice caller
+- **GB - Arthur (Male)**: British male voice caller
+
+##### American English (en-US)
+- **US - Ivy (Female)**: American female voice caller
+- **US - Joey (Male)**: American male voice caller
+- **US - Joanna (Female)**: American female voice caller
+- **US - Matthew (Male)**: American male voice caller
+- **US - Danielle (Female)**: American female voice caller
+- **US - Kimberly (Female)**: American female voice caller
+- **US - Ruth (Female)**: American female voice caller
+- **US - Salli (Female)**: American female voice caller
+- **US - Kevin (Male)**: American male voice caller
+- **US - Justin (Male)**: American male voice caller
+- **US - Stephen (Male)**: American male voice caller
+- **US - Kendra (Female)**: American female voice caller
+- **US - Gregory (Male)**: American male voice caller
 
 Simply select one of these presets when adding sounds through the "Import from URL" option in the Caller settings.
 
