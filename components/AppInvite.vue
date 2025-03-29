@@ -7,30 +7,30 @@
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
-    <div v-if="show" class="fixed bottom-5 right-5 z-50 w-80 rounded-lg shadow-lg">
-      <div class="dialog-bg relative rounded-lg p-4">
-        <div class="mb-2 flex items-center gap-2">
-          <span class="icon-[pixelarticons--mail-arrow-right] text-lg" />
-          <h3 class="text-lg font-semibold">
+    <div v-if="show" class="fixed bottom-5 right-5 z-50 w-96 rounded-lg shadow-lg">
+      <div class="dialog-bg relative rounded-lg p-5">
+        <div class="mb-3 flex items-center gap-2">
+          <span class="icon-[pixelarticons--mail-arrow-right] text-xl" />
+          <h3 class="text-xl font-semibold">
             Lobby Invitation
           </h3>
         </div>
 
-        <p class="mb-3 text-sm text-white/80">
+        <p class="mb-4 text-base text-white/80">
           {{ message }}
         </p>
 
-        <div class="mb-3 flex justify-end space-x-2">
+        <div class="mb-4 flex justify-end space-x-3">
           <AppButton
             @click="$emit('decline')"
-            size="xs"
+            size="sm"
             type="danger"
           >
             Decline
           </AppButton>
           <AppButton
             @click="$emit('accept')"
-            size="xs"
+            size="sm"
             type="success"
           >
             Accept
@@ -38,7 +38,7 @@
         </div>
 
         <!-- Progress bar -->
-        <div class="h-1 w-full overflow-hidden rounded-full bg-white/20">
+        <div class="h-1.5 w-full overflow-hidden rounded-full bg-white/20">
           <div
             class="h-full bg-green-500 transition-all duration-100"
             :style="{ width: `${progressPercentage}%` }"

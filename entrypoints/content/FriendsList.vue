@@ -41,7 +41,7 @@
           <span>Friends List</span>
         </div>
       </template>
-      <div class="grid h-full grid-rows-[1fr_1fr_3rem] gap-4">
+      <div class="grid h-full grid-rows-[1fr_1fr_7rem] gap-4">
         <!-- Friends List Section -->
         <div class="min-h-40 space-y-4 overflow-y-auto px-4">
           <FriendItem
@@ -102,6 +102,16 @@
             </p>
           </div>
         </div>
+
+        <div class="border-t border-white/20 px-4 pt-4">
+          <div class="flex items-center justify-between">
+            <span class="text-sm">Allow Invitations</span>
+            <AppToggle
+              v-model="invitationsEnabled"
+              size="xs"
+            />
+          </div>
+        </div>
       </div>
     </AppSlide>
 
@@ -127,6 +137,15 @@
         isOpen ? 'right-[21rem]' : 'right-5',
       )"
     />
+
+    <!-- Add Notification component -->
+    <AppNotification
+      @close="notificationState.show = false"
+      :show="notificationState.show"
+      :message="notificationState.message"
+      :type="notificationState.type"
+      :duration="notificationState.duration"
+    />
   </div>
 </template>
 
@@ -137,9 +156,11 @@ import { twMerge } from "tailwind-merge";
 import { watchIgnorable } from "@vueuse/core";
 import AppButton from "@/components/AppButton.vue";
 import AppSlide from "@/components/AppSlide.vue";
+import AppToggle from "@/components/AppToggle.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppInvite from "@/components/AppInvite.vue";
 import FriendItem from "@/components/FriendItem.vue";
+import AppNotification from "@/components/AppNotification.vue";
 import type { IConfig, IFriend, IPlayerInfo } from "@/utils/storage";
 import type { IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus, defaultConfig } from "@/utils/storage";
@@ -170,6 +191,7 @@ const navigationWidth = ref(0);
 // Add new reactive variables for invitations
 const showInvitation = ref(false);
 const invitationMessage = ref("");
+const invitationsEnabled = ref(true);
 const pendingInvitation = ref<{
   fromUserId: string;
   fromName: string;
@@ -180,6 +202,14 @@ const pendingInvitation = ref<{
   lobbyUrl: "",
 });
 let port: Runtime.Port | null = null;
+
+// Add notification state
+const notificationState = ref({
+  show: false,
+  message: "",
+  type: "success" as "success" | "error",
+  duration: 5000,
+});
 
 const sortedFriends = computed(() => {
   if (!config.value?.friendsList?.friends) return [];
@@ -308,16 +338,25 @@ function setupPortConnection() {
       handleIncomingInvitation(message);
     } else if (message.type === "lobby-invitation-sent") {
       console.log("Lobby invitation sent successfully to", message.toUserId);
+      // Show success notification when invitation is sent
+      const friendName = config.value?.friendsList?.friends.find(f => f.userId === message.toUserId)?.name || "Friend";
+      showNotification(`Invitation sent successfully to ${friendName}!`, "success");
     } else if (message.type === "lobby-invitation-error") {
       console.error("Error sending lobby invitation:", message.error);
-      // Show an error notification or alert
-      alert(`Failed to send invitation: ${message.error}`);
+      // Show error notification
+      showNotification(`Failed to send invitation: ${message.error}`, "error");
     } else if (message.type === "lobby-invitation-response") {
       console.log("Invitation response received:", message);
       if (message.accepted) {
         console.log("Friend accepted your invitation!");
+        // Show success notification when invitation is accepted
+        const friendName = message.responderName || config.value?.friendsList?.friends.find(f => f.userId === message.toUserId)?.name || "Friend";
+        showNotification(`${friendName} accepted your invitation!`, "success");
       } else {
         console.log("Friend declined your invitation.");
+        // Show notification when invitation is declined with a better visual style
+        const friendName = message.responderName || config.value?.friendsList?.friends.find(f => f.userId === message.toUserId)?.name || "Friend";
+        showNotification(`${friendName} declined your invitation`, "error", 7000);
       }
     }
   });
@@ -336,6 +375,9 @@ setupPortConnection();
 
 // Handle incoming lobby invitation
 function handleIncomingInvitation(data: { fromUserId: string; fromName: string; lobbyUrl: string }) {
+  // Don't show invitations if they're disabled
+  if (!invitationsEnabled.value) return;
+
   const fromName = config.value?.friendsList?.friends.find(friend => friend.userId === data.fromUserId)?.name || data.fromName;
   // Store invitation data
   pendingInvitation.value = data;
@@ -397,6 +439,21 @@ function sendInvitationResponse(accepted: boolean) {
   }
 }
 
+// Function to show notification
+function showNotification(message: string, type: "success" | "error" = "success", duration: number = 5000) {
+  notificationState.value = {
+    show: true,
+    message,
+    type,
+    duration,
+  };
+
+  // Auto-hide notification after duration
+  setTimeout(() => {
+    notificationState.value.show = false;
+  }, duration);
+}
+
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   gameData.value = await AutodartsToolsGameData.getValue();
@@ -447,7 +504,6 @@ onMounted(async () => {
     config.value.friendsList.recentPlayers = Array.from(
       new Map(
         [ ...(gameData.value?.match?.players || []), ...(config.value.friendsList.recentPlayers || []) ]
-          .filter(player => !player.name?.toLowerCase().includes("bot level "))
           .map(player => [ player.userId || player.name, player ]),
       ).values(),
     ).slice(0, 10);
@@ -562,10 +618,17 @@ function cancelRemoveFriend() {
 }
 
 async function inviteFriend(player: IFriend) {
+  // Don't send invitations if they're disabled
+  if (!invitationsEnabled.value) {
+    alert("Invitations are currently disabled. Enable them in the Friends List settings.");
+    return;
+  }
+
   console.log("Inviting friend:", player);
 
   if (!userId.value || !player.userId) {
     console.error("Cannot invite: missing user ID for sender or recipient");
+    showNotification("Cannot invite: missing user ID for sender or recipient", "error");
     return;
   }
 
@@ -575,13 +638,16 @@ async function inviteFriend(player: IFriend) {
 
     if (!lobbyUrl) {
       console.error("Lobby URL is empty");
-      alert("Lobby invite URL is empty. Please create or join a lobby first.");
+      showNotification("Lobby invite URL is empty. Please create or join a lobby first.", "error");
       return;
     }
 
     // Get the name of the current user to pass with the invitation
     const globalStatus = await AutodartsToolsGlobalStatus.getValue();
     const fromName = globalStatus?.user?.name || "A friend";
+
+    // Show sending notification
+    showNotification(`Sending invitation to ${player.name}...`, "success", 2000);
 
     // Send the invitation to the socket server
     browser.runtime.sendMessage({
@@ -599,7 +665,7 @@ async function inviteFriend(player: IFriend) {
     });
   } catch (error) {
     console.error("Error inviting friend:", error);
-    alert("Failed to send invitation. Please try again.");
+    showNotification("Failed to send invitation. Please try again.", "error");
   }
 }
 </script>

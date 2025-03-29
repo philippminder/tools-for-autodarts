@@ -196,13 +196,33 @@ io.on("connection", (socket) => {
 
     // Find the sender's socket
     const fromUserData = userFriendsStore[fromUserId];
+    // Find the responder's data to get their name
+    const toUserData = userFriendsStore[toUserId];
 
     if (fromUserData && fromUserData.socketId) {
-      // Notify the sender about the response
+      // Get the name of the user who responded, if available
+      let responderName = "Friend";
+      if (toUserData && toUserData.friends) {
+        // Try to find the name from their friends list
+        const selfInToUserFriends = toUserData.friends.find(friend =>
+          friend.userId === toUserId || friend.name,
+        );
+        if (selfInToUserFriends && selfInToUserFriends.name) {
+          responderName = selfInToUserFriends.name;
+        }
+      }
+
+      // Notify the sender about the response with more details
       io.to(fromUserData.socketId).emit("lobby-invitation-response", {
         toUserId,
         accepted,
+        responderName,
+        timestamp: Date.now(),
       });
+
+      console.log(`Sent invitation response to ${fromUserId}: ${toUserId} ${accepted ? "accepted" : "declined"}`);
+    } else {
+      console.log(`Could not send response: sender ${fromUserId} not found or offline`);
     }
   });
 });

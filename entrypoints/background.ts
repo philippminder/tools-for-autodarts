@@ -93,7 +93,7 @@ export default defineBackground({
     }
 
     // Broadcast lobby invitation response to all connected ports
-    function broadcastLobbyInvitationResponse(response: { toUserId: string; accepted: boolean }) {
+    function broadcastLobbyInvitationResponse(response: { toUserId: string; accepted: boolean; responderName?: string }) {
       console.log("Broadcasting lobby invitation response:", response);
       const message = {
         type: "lobby-invitation-response",
