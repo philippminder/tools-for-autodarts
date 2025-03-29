@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.6] - 2025-04-03
+
+### Added
+- Implemented Lobby Invitation System for easier game coordination
+- Enhanced Sound FX Logic with dual audio channels for improved sound experience
+- Added Socket.IO integration for real-time communication
+
+### Changed
+- Replaced button with AppToggle component in Animations settings for improved UI interaction
+- Updated Socket Server URL Configuration in Background Script
+- Enhanced UI components with improved notification features
+- Refactored socket management for better performance
+- Updated sound playback logic for enhanced game mode handling
+
+### Fixed
+- Various UI improvements and bug fixes across components
+
 ## [2.0.5] - 2025-03-27
 
 ### Added

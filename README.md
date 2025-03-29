@@ -33,6 +33,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 ### 🚪 Lobby Enhancements
 - **Auto-Start**: Automatically starts the game 3 seconds after a player joins the lobby
 - **Discord Webhook Integration**: Sends invitation links for private lobbies to your Discord server
+- **Friends List**: Easily share game invitations with other players
 - **Shuffle Players**: Randomly reorder players in the lobby
 - **Extended Recent Players List**: Increase the number of recent local players beyond the default limit of 5
 - **Team Lobby Mode**: Removes initial player and auto-selects board for team games
@@ -167,6 +168,11 @@ The Sound FX feature distinguishes between winning a single game (gameshot) and 
 #### Ambient Sound Prefix
 - Use the `ambient_` prefix (e.g., `ambient_180`, `ambient_t20`) to create separate sound sets for caller and ambient sounds
 - This allows you to have professional voice announcements via the Caller while also having fun sound effects via Sound FX
+
+#### Dual Audio Channels
+- Enhanced sound playback with separate audio channels for caller and ambient sounds
+- Improved game mode handling for specialized sound triggers
+- Better performance with simultaneous sound playback
 
 #### Smart Fallback System
 The Sound FX feature includes a sophisticated multi-level fallback system:
