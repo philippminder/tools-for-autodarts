@@ -11,7 +11,7 @@ export async function hideMenuInMatch() {
   let menuActive: boolean = false;
 
   const menu = await waitForElement("#root > div > div");
-  const menuBar = await waitForElement("#root > div > div:nth-of-type(2) > div .chakra-wrap");
+  const menuBar = await waitForElement([ "#root > div > div:nth-of-type(2) > div .chakra-wrap", "#root > div > div:nth-of-type(2) > div > div > div > div:last-of-type" ]);
   if (!menuBar || !menu) return console.error("Autodarts Tools: No menu or menu bar found");
   menu.style.display = "none";
 

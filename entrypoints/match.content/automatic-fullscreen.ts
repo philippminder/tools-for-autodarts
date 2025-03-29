@@ -10,7 +10,7 @@ export async function automaticFullscreen() {
 
   let isFullscreen: boolean = false;
 
-  const menuBar = await waitForElement("#root > div > div:nth-of-type(2) > div .chakra-wrap");
+  const menuBar = await waitForElement([ "#root > div > div:nth-of-type(2) > div .chakra-wrap", "#root > div > div:nth-of-type(2) > div > div > div" ]);
   if (!menuBar) return console.error("Autodarts Tools: No menu bar found");
 
   const settingsBtn = menuBar.querySelector("button");
