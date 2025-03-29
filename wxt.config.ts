@@ -20,7 +20,9 @@ export default defineConfig({
     host_permissions: [
       "*://play.autodarts.io/*",
       "*://api.autodarts.io/*",
-      "<all_urls>",
+      "*://darts-downloads.peschi.org/*",
+      "*://autodarts.x10.mx/*",
+      "*://adt-socket.tobias-thiele.de/*",
     ],
     permissions: [
       "storage",

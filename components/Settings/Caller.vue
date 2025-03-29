@@ -1483,6 +1483,13 @@ async function fetchSoundsFromURL() {
       return;
     }
 
+    // Check if URL is from allowed domains
+    const isAllowedDomain = checkAllowedDomain(baseURL.value);
+    if (!isAllowedDomain) {
+      urlError.value = "Custom URLs are currently not supported due to security reasons";
+      return;
+    }
+
     // Test if URL is valid
     const urlObj = new URL(baseURL.value);
     urlError.value = "";
@@ -1777,6 +1784,22 @@ async function fetchSoundsFromURL() {
     if (importedCount.value > 0) {
       closeImportURLModal();
     }
+  }
+}
+
+// Function to check if URL is from allowed domains
+function checkAllowedDomain(url: string): boolean {
+  const allowedDomains = [
+    "darts-downloads.peschi.org",
+    "adt-socket.tobias-thiele.de",
+    "autodarts.x10.mx",
+  ];
+
+  try {
+    const urlObj = new URL(url);
+    return allowedDomains.includes(urlObj.hostname);
+  } catch (error) {
+    return false;
   }
 }
 </script>
