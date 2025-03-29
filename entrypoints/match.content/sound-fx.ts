@@ -485,8 +485,11 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
         }
       }
 
-      // Cricket targets are 15-20 and Bull (25)
-      if (segmentNumber >= 15) {
+      const gameMode = gameData.match.settings?.gameMode;
+      const segmentNumberToScore = gameMode === "Tactics" ? 10 : 15;
+
+      // Cricket targets are segmentNumberToScore-20 and Bull (25)
+      if (segmentNumber >= segmentNumberToScore) {
         // Get the segment number from the latest throw
         let stateIndex = latestThrow.segment.number;
 

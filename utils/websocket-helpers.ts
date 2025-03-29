@@ -71,6 +71,7 @@ export interface ILobbies {
 
 export interface IMatchSettings {
   mode: string;
+  gameMode: string;
 }
 
 export interface ISegment {
