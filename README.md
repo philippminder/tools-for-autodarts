@@ -138,8 +138,8 @@ The Sound FX feature adds ambient sound effects to your gameplay experience:
 
 #### Game Event Sounds
 Add sound effects for various game events:
-- **Point Triggers**: Sounds can be triggered for any score from `0` to `180`
-- **Individual Throws**: Sounds for specific throws like `s20`, `d16`, `t19`, etc.
+- **Point Triggers**: Sounds can be triggered for any score from `ambient_0` to `ambient_180`
+- **Individual Throws**: Sounds for specific throws like `ambient_s20`, `ambient_d16`, `ambient_t19`, etc.
 - **Combined Throws**: Trigger sounds based on a sequence of throws using format `s20_t19_d12`
 - **Special Events**: Dedicated sounds for `ambient_gameon`, `gameshot`, `busted`, and more
 - **Player Turn Sounds**: 

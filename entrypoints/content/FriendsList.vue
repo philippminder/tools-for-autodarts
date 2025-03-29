@@ -447,6 +447,7 @@ onMounted(async () => {
     config.value.friendsList.recentPlayers = Array.from(
       new Map(
         [ ...(gameData.value?.match?.players || []), ...(config.value.friendsList.recentPlayers || []) ]
+          .filter(player => !player.name?.toLowerCase().includes("bot level "))
           .map(player => [ player.userId || player.name, player ]),
       ).values(),
     ).slice(0, 10);

@@ -197,7 +197,7 @@ function unlockAudio(): void {
   console.log("Autodarts Tools: Attempting to unlock audio");
 
   // Create a short silent audio buffer
-  const silentAudio = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+  const silentAudio = "data:audio/mpeg;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABCaWdTb3VuZEJhbmsuY29tIC8gTGFTb25vdGhlcXVlLm9yZwBURU5DAAAAHQAAA1N3aXRjaCBQbHVzIMKpIE5DSCBTb2Z0d2FyZQBUSVQyAAAABgAAAzIyMzUAVFNTRQAAAA8AAANMYXZmNTcuODMuMTAwAAAAAAAAAAAAAAD/80DEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQsRbAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zQMSkAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
 
   // Unlock first audio player
   if (audioPlayer && !audioUnlocked) {
@@ -991,14 +991,8 @@ function playSound(trigger: string, soundChannel: number = 1): void {
           }
         }
 
-        // If no combined sounds found, fall back to just the number
-        console.log("Autodarts Tools: No triple sound combinations found, falling back to number");
-        matchingSounds = config.soundFx.sounds.filter(sound =>
-          sound.enabled && sound.triggers && (
-            sound.triggers.includes(`ambient_${number}`)
-            || sound.triggers.includes(number)
-          ),
-        );
+        // No fallback to just the number - removing this as it's not intended behavior
+        console.log("Autodarts Tools: No triple sound combinations found, not falling back to number");
       }
     }
     // Rest of the original fallback logic...
@@ -1027,6 +1021,29 @@ function playSound(trigger: string, soundChannel: number = 1): void {
 
       if (matchingSounds.length) {
         console.log("Autodarts Tools: Using fallback sound for \"ambient_miss\" -> \"ambient_outside\" or \"outside\"");
+      }
+    }
+  }
+
+  // Special case: fallback from singles (ambient_s#) to number (ambient_#)
+  if (!matchingSounds.length && trigger.toLowerCase().startsWith("ambient_s") && /^\d+$/.test(trigger.substring(9))) {
+    const number = trigger.substring(9);
+    console.log(`Autodarts Tools: Trying fallback from "${trigger}" to "ambient_${number}"`);
+
+    matchingSounds = config.soundFx.sounds.filter(sound =>
+      sound.enabled && sound.triggers && sound.triggers.includes(`ambient_${number}`),
+    );
+
+    if (matchingSounds.length) {
+      console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "ambient_${number}"`);
+    } else {
+      // Try without ambient prefix
+      matchingSounds = config.soundFx.sounds.filter(sound =>
+        sound.enabled && sound.triggers && sound.triggers.includes(number),
+      );
+
+      if (matchingSounds.length) {
+        console.log(`Autodarts Tools: Using fallback sound for "${trigger}" -> "${number}"`);
       }
     }
   }
