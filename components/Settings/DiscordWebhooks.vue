@@ -33,6 +33,34 @@
                 size="sm"
               />
             </div>
+
+            <div v-if="config?.discord?.autoStartAfterTimer" class="mt-6 border-t border-white/20 pt-4">
+              <h4 class="mb-3 font-semibold">
+                Auto-Start Timer
+              </h4>
+              <div class="flex items-center gap-4">
+                <AppToggle
+                  v-model="config.discord.autoStartAfterTimer.enabled"
+                  label="Auto-start game after timer"
+                  class="mt-6"
+                />
+                <div class="relative w-24">
+                  <AppInput
+                    v-model="minutes"
+                    type="number"
+                    label="Minutes"
+                    :disabled="!config.discord.autoStartAfterTimer.enabled"
+                    min="1"
+                    max="60"
+                    class="w-full"
+                    size="sm"
+                  />
+                </div>
+              </div>
+              <p class="mt-2 text-sm text-white/60">
+                Automatically starts the game after the specified time once the Discord webhook is sent.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -83,8 +111,26 @@ useStorage("adt:active-settings", "discord-webhooks");
 const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/discord-webhooks.png");
 
+// Computed property for minutes with type handling
+const minutes = computed({
+  get: () => config.value?.discord?.autoStartAfterTimer?.minutes?.toString() || "5",
+  set: (value: string) => {
+    if (config.value?.discord?.autoStartAfterTimer) {
+      config.value.discord.autoStartAfterTimer.minutes = Number.parseInt(value, 10);
+    }
+  },
+});
+
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
+
+  // Initialize autoStartAfterTimer if it doesn't exist
+  if (config.value && !config.value.discord.autoStartAfterTimer) {
+    config.value.discord.autoStartAfterTimer = {
+      enabled: false,
+      minutes: 5,
+    };
+  }
 });
 
 watch(config, async (_, oldValue) => {

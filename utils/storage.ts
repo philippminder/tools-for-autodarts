@@ -9,6 +9,10 @@ export interface IConfig {
     enabled: boolean;
     manually: boolean;
     url: string;
+    autoStartAfterTimer?: {
+      enabled: boolean;
+      minutes: number;
+    };
   };
   autoStart: {
     enabled: boolean;
@@ -291,6 +295,10 @@ export const defaultConfig: IConfig = {
     enabled: false,
     manually: false,
     url: "",
+    autoStartAfterTimer: {
+      enabled: false,
+      minutes: 5,
+    },
   },
   autoStart: {
     enabled: false,

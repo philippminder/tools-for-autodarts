@@ -33,6 +33,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 ### 🚪 Lobby Enhancements
 - **Auto-Start**: Automatically starts the game 3 seconds after a player joins the lobby
 - **Discord Webhook Integration**: Sends invitation links for private lobbies to your Discord server
+  - **Auto-Start Timer**: Automatically starts the game after a configurable time delay once the webhook is sent
 - **Friends List**: Easily share game invitations with other players
 - **Shuffle Players**: Randomly reorder players in the lobby
 - **Extended Recent Players List**: Increase the number of recent local players beyond the default limit of 5
