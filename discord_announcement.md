@@ -1,10 +1,5 @@
 # :dart: Tools for Autodarts v2.0.6 Released! :dart:
 
-## :sparkles: What's New
-
-### :door: Lobby Enhancements
-- **Lobby Invitation System**: Easily share game invitations with other players
-
 ### :loud_sound: Sound System Improvements
 - **Dual Audio Channels**: Enhanced sound playback with separate channels for caller and ambient sounds
 - **Improved Game Mode Handling**: Better sound triggers for specialized game modes
