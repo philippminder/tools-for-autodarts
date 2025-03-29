@@ -28,6 +28,48 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - [Firefox Add-ons](https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts)
 - [MacOS & iOS App Store](https://apps.apple.com/de/app/tools-for-autodarts/id6479754594)
 
+
+
+# 📑 Table of Contents
+
+- [Overview](#overview)
+- [Installation](#installation)
+  - [Browser Extensions](#browser-extensions)
+- [Features](#features)
+  - [Lobby Enhancements](#lobby-enhancements)
+  - [Match Customization](#match-customization)
+  - [Gameplay Features](#gameplay-features)
+  - [Audio Features](#audio-features)
+  - [Caller Feature](#caller-feature)
+    - [Configuration Options](#configuration-options)
+    - [Supported Triggers](#supported-triggers)
+    - [Cricket Mode Behavior](#cricket-mode-behavior)
+    - [Audio Interaction Requirements](#audio-interaction-requirements)
+    - [Predefined Caller Sets](#predefined-caller-sets)
+    - [Intelligent Fallback System](#intelligent-fallback-system)
+    - [Cross-Browser Audio Support](#cross-browser-audio-support)
+  - [Sound FX Feature](#sound-fx-feature)
+    - [Game Event Sounds](#game-event-sounds)
+    - [Match vs Game Winning Sounds](#match-vs-game-winning-sounds)
+    - [Ambient Sound Prefix](#ambient-sound-prefix)
+    - [Dual Audio Channels](#dual-audio-channels)
+    - [Smart Fallback System](#smart-fallback-system)
+    - [Technical Features](#technical-features)
+  - [Animations](#animations)
+    - [Configuration](#configuration)
+    - [Supported Triggers](#supported-triggers-1)
+    - [Combination Tags](#combination-tags)
+  - [Utility Features](#utility-features)
+- [Configuration](#configuration)
+  - [Settings Import/Export](#settings-importexport)
+- [Development](#development)
+  - [Getting Started](#getting-started)
+- [Contributing](#contributing)
+- [Show your support](#show-your-support)
+- [Credits](#credits)
+- [License](#license)
+
+
 ## ✨ Features
 
 ### 🚪 Lobby Enhancements
