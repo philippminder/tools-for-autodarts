@@ -290,7 +290,7 @@ export interface IFriend {
 }
 
 export const defaultConfig: IConfig = {
-  version: 1,
+  version: 2,
   discord: {
     enabled: false,
     manually: false,

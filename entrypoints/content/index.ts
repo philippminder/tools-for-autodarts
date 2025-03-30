@@ -1,9 +1,10 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
 import App from "./App.vue";
+import { migrationConfig } from "./migration-config";
 import FriendsList from "@/entrypoints/content/FriendsList.vue";
 import { waitForElement } from "@/utils";
-import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus } from "@/utils/storage";
+import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus, defaultConfig } from "@/utils/storage";
 import { isiOS } from "@/utils/helpers";
 import Migration from "@/components/Migration.vue";
 
@@ -71,11 +72,6 @@ export default defineContentScript({
       ui.mount();
     }
 
-    const config = await AutodartsToolsConfig.getValue();
-    if (config.friendsList.enabled) {
-      await initFriendsList(ctx).catch(console.error);
-    }
-
     try {
       const storage = await browser.storage.local.get("config");
       if (storage.config) {
@@ -83,6 +79,20 @@ export default defineContentScript({
       }
     } catch (error) {
       console.error("Failed to check for migration data:", error);
+    }
+
+    const config = await AutodartsToolsConfig.getValue();
+
+    try {
+      if (config && config.version !== defaultConfig.version) {
+        await migrationConfig().catch(console.error);
+      }
+    } catch (error) {
+      console.error("Failed to check for migration data:", error);
+    }
+
+    if (config && config.friendsList.enabled) {
+      await initFriendsList(ctx).catch(console.error);
     }
   },
 });
