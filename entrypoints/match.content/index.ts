@@ -14,17 +14,18 @@ import { winnerAnimation, winnerAnimationOnRemove } from "./winner-animation";
 import { ring } from "./ring";
 import { soundFx, soundFxOnRemove } from "./sound-fx";
 import { caller, callerOnRemove } from "./caller";
+import Zoom from "./Zoom.vue";
+import Animations from "./Animations.vue";
+import StreamingMode from "./StreamingMode.vue";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
   AutodartsToolsConfig,
   AutodartsToolsUrlStatus,
 } from "@/utils/storage";
 
-import StreamingMode from "@/entrypoints/match.content/StreamingMode.vue";
 import { fetchWithAuth, isSafari, isiOS } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
-import Animations from "@/entrypoints/match.content/Animations.vue";
 
 let matchInitialized = false;
 let activeMatchObserver: MutationObserver;
@@ -34,6 +35,7 @@ const tools = {
   streamingMode: null as any,
   takeout: null as any,
   animations: null as any,
+  zoom: null as any,
 };
 
 export default defineContentScript({
@@ -180,6 +182,10 @@ async function initMatch(ctx, url: string) {
   if (config.soundFx.enabled) {
     await initScript(soundFx, url).catch(console.error);
   }
+
+  if (config.zoom.enabled) {
+    await initZoom(ctx).catch(console.error);
+  }
 }
 
 function clearMatch() {
@@ -190,7 +196,7 @@ function clearMatch() {
   tools.streamingMode?.remove();
   tools.takeout?.remove();
   tools.animations?.remove();
-
+  tools.zoom?.remove();
   colorChangeOnRemove();
   hideMenuInMatchOnRemove();
   automaticFullscreenOnRemove();
@@ -322,4 +328,28 @@ async function initAnimations(ctx) {
   });
 
   tools.animations.mount();
+}
+
+async function initZoom(ctx) {
+  await waitForElement("#root > div > div:nth-of-type(2)");
+  tools.zoom = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-zoom",
+    position: "inline",
+    anchor: "#root > div > div:nth-of-type(2)",
+    onMount: (container: any) => {
+      console.log("Autodarts Tools: Zoom initialized");
+      const app = createApp(Zoom);
+      app.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return app;
+    },
+    onRemove: (app: any) => {
+      app?.unmount();
+      console.log("Autodarts Tools: Zoom removed");
+    },
+  });
+
+  tools.zoom.mount();
 }

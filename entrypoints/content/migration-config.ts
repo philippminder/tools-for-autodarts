@@ -24,6 +24,15 @@ async function migrateConfig(currentConfigVersion: number) {
           };
         }
         break;
+      case 2:
+        // Migration from version 2 to version 3
+        config.version = 3;
+        if (!config.zoom || !config.zoom.position) {
+          config.zoom = {
+            ...defaultConfig.zoom,
+          };
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);

@@ -128,6 +128,10 @@ export interface IConfig {
     friends: IFriend[];
     recentPlayers: IPlayer[];
   };
+  zoom: {
+    enabled: boolean;
+    position: "bottom-right" | "bottom-left" | "center";
+  };
 }
 
 export interface ISound {
@@ -398,6 +402,10 @@ export const defaultConfig: IConfig = {
     enabled: false,
     friends: [],
     recentPlayers: [],
+  },
+  zoom: {
+    enabled: false,
+    position: "bottom-right",
   },
   animations: {
     enabled: false,
