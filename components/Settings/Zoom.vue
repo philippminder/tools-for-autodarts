@@ -62,10 +62,10 @@
         <div>
           <h3 class="mb-1 flex items-center font-bold uppercase">
             Darts Zoom
-            <span class="icon-[material-symbols--search] ml-2 size-5" />
+            <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
           <p class="w-2/3 text-white/70">
-            Shows a zoomed view of your dart throws in the bottom corner of the screen.
+            Shows a zoomed view of your dart throws in the bottom corner of the screen or in the center of the screen.
           </p>
         </div>
         <div class="flex">
@@ -91,7 +91,7 @@ import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
 const config = ref<IConfig>();
-const imageUrl = browser.runtime.getURL("/images/darts-zoom.png");
+const imageUrl = browser.runtime.getURL("/images/zoom.png");
 
 // Computed property for zoom level with mapping between 1-6 and the actual zoom value
 const zoomLevel = computed({

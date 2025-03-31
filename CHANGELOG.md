@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.7] - 2025-04-10
+
+### Added
+- Added Darts Zoom feature that displays magnified views of dart throws
+  - Configurable position (bottom-right, bottom-left, or center)
+  - Adjustable zoom level
+  - Visual indicator showing exact dart landing position
+- Enhanced match visualization with zoomed dart views for better gameplay analysis
+
 ## [2.0.6] - 2025-04-03
 
 ### Added
