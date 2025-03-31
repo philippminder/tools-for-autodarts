@@ -132,6 +132,7 @@ export interface IConfig {
     enabled: boolean;
     position: "bottom-right" | "bottom-left" | "center";
     level: number;
+    mode: "live" | "image";
   };
 }
 
@@ -408,6 +409,7 @@ export const defaultConfig: IConfig = {
     enabled: false,
     position: "bottom-right",
     level: 3,
+    mode: "live",
   },
   animations: {
     enabled: false,

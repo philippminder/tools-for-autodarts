@@ -7,7 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Added Darts Zoom feature that displays magnified views of dart throws
   - Configurable position (bottom-right, bottom-left, or center)
-  - Adjustable zoom level
+  - View mode toggle between live camera feed and static board image
+  - Adjustable zoom level (1x-6x)
   - Visual indicator showing exact dart landing position
 - Enhanced match visualization with zoomed dart views for better gameplay analysis
 

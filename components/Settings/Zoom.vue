@@ -17,15 +17,33 @@
               <h4 class="mb-2 font-semibold">
                 Position
               </h4>
-              <AppRadioGroup
-                v-model="config.zoom.position"
-                class="grid max-w-sm grid-cols-3"
-                :options="[
-                  { label: 'Bottom Right', value: 'bottom-right' },
-                  { label: 'Bottom Left', value: 'bottom-left' },
-                  { label: 'Center', value: 'center' },
-                ]"
-              />
+              <div class="flex">
+                <AppRadioGroup
+                  v-model="config.zoom.position"
+                  class="grid max-w-sm grid-cols-3"
+                  :options="[
+                    { label: 'Bottom Right', value: 'bottom-right' },
+                    { label: 'Bottom Left', value: 'bottom-left' },
+                    { label: 'Center', value: 'center' },
+                  ]"
+                />
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <h4 class="mb-2 font-semibold">
+                View Mode
+              </h4>
+              <div class="flex">
+                <AppRadioGroup
+                  v-model="config.zoom.mode"
+                  class="grid max-w-sm grid-cols-2"
+                  :options="[
+                    { label: 'Live', value: 'live' },
+                    { label: 'Image', value: 'image' },
+                  ]"
+                />
+              </div>
             </div>
 
             <div class="mt-6">

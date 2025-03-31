@@ -1,8 +1,14 @@
 <template>
+  <div class="pointer-events-none fixed bottom-4 right-4 opacity-0">
+    <img
+      :src="defaultBoardImage"
+      class="size-80 object-cover"
+    >
+  </div>
   <div
     v-if="boardImages.length > 0 && throws > 0 && position !== 'center'"
     :class="twMerge(
-      'fixed bottom-4 mx-auto flex max-w-[1366px] justify-end',
+      'pointer-events-none fixed bottom-4 mx-auto flex max-w-[1366px] justify-end',
       position === 'bottom-right' ? 'right-4' : 'left-4',
     )"
     :style="{
@@ -11,7 +17,7 @@
   >
     <div class="flex flex-col space-y-2 px-4">
       <div
-        v-for="(image, index) in boardImages.filter(image => image !== '')"
+        v-for="(image, index) in filteredBoardImages"
         :key="`zoom-${index}`"
         :style="{ height: `${zoomContainerHeight}px` }"
         class="flex items-center justify-center overflow-hidden rounded-lg border border-[var(--chakra-colors-whiteAlpha-900)] transition-opacity duration-500"
@@ -23,7 +29,7 @@
           class="relative size-[25rem] overflow-hidden bg-[#080808]"
         >
           <img
-            :src="image"
+            :src="image || (config?.zoom?.mode === 'image' ? defaultBoardImage : '')"
             class="size-full object-cover"
             :style="{
               transform: `scale(${zoomLevel}) translate(calc(-${(throwCoordinates[index]?.x * (1000 / 3) + 500) / 10}% + 50%), calc(-${(-throwCoordinates[index]?.y * (1000 / 3) + 500) / 10}% + 50%))`,
@@ -47,6 +53,7 @@ import type { IThrow } from "@/utils/websocket-helpers";
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { waitForElement } from "@/utils";
 
+const defaultBoardImage = browser.runtime.getURL("/images/board.png");
 const boardImages = ref<string[]>([
   "",
   "",
@@ -63,6 +70,16 @@ const position = ref<"bottom-right" | "bottom-left" | "center">("bottom-right");
 const zoomDiv1 = ref<HTMLElement | null>(null);
 const zoomDiv2 = ref<HTMLElement | null>(null);
 const zoomDiv3 = ref<HTMLElement | null>(null);
+
+const config = ref<any>(null);
+
+const filteredBoardImages = computed(() => {
+  if (config.value?.zoom?.mode === "image") {
+    return boardImages.value.slice(0, throws.value);
+  }
+
+  return boardImages.value.filter(image => image !== "");
+});
 
 function checkNavigationWidth() {
   const navigationElement = document.querySelector("#root .navigation");
@@ -125,9 +142,8 @@ function updateZoomDivs() {
     div.style.overflow = "hidden";
     div.style.height = "7rem";
 
-    // TOOD HERE
     const image = boardImages.value[index];
-    if (!image) return;
+    if (!image && config.value?.zoom?.mode !== "image") return;
 
     // Get the width of the div element to use as a base for sizing
     const divWidth = div.offsetWidth || 350;
@@ -145,7 +161,7 @@ function updateZoomDivs() {
 
     // Create and configure the image
     const imgElement = document.createElement("img");
-    imgElement.src = image;
+    imgElement.src = image || (config.value?.zoom?.mode === "image" ? defaultBoardImage : "");
     imgElement.style.width = `${divWidth}px`;
     imgElement.style.height = `${divWidth}px`;
     imgElement.style.objectFit = "cover";
@@ -166,8 +182,8 @@ function updateZoomDivs() {
     dotMarker.style.position = "absolute";
     dotMarker.style.left = "50%";
     dotMarker.style.top = "50%";
-    dotMarker.style.width = "8px"; // size-2 = 8px
-    dotMarker.style.height = "8px";
+    dotMarker.style.width = "12px";
+    dotMarker.style.height = "12px";
     dotMarker.style.transform = "translate(-50%, -50%)";
     dotMarker.style.borderRadius = "50%";
     dotMarker.style.border = "1px solid white";
@@ -202,27 +218,31 @@ function resetZoomDivs() {
 onMounted(async () => {
   console.log("Autodarts Tools: Animations mounted");
 
-  const config = await AutodartsToolsConfig.getValue();
-  if (config.zoom.position === "center") initCenterZoom();
-  zoomLevel.value = config.zoom.level;
-  position.value = config.zoom.position;
+  config.value = await AutodartsToolsConfig.getValue();
+  if (config.value.zoom.position === "center") initCenterZoom();
+  zoomLevel.value = config.value.zoom.level;
+  position.value = config.value.zoom.position;
 
   await AutodartsToolsBoardImages.setValue({
     images: [],
   });
 
-  AutodartsToolsBoardImages.watch((_boardImages: IBoardImages) => {
-    const lastImage = _boardImages.images[_boardImages.images.length - 1];
-    if (lastImage && throws.value > 0) boardImages.value[throws.value - 1] = lastImage;
+  if (config.value.zoom.mode === "live") {
+    AutodartsToolsBoardImages.watch((_boardImages: IBoardImages) => {
+      const lastImage = _boardImages.images[_boardImages.images.length - 1];
+      if (lastImage && throws.value > 0) boardImages.value[throws.value - 1] = lastImage;
 
-    // Update zoom divs when boardImages change and position is center
-    if (position.value === "center") {
-      updateZoomDivs();
-    }
-  });
+      // Update zoom divs when boardImages change and position is center
+      if (position.value === "center") {
+        updateZoomDivs();
+      }
+    });
+  }
 
   // Also update the AutodartsToolsGameData.watch to call updateZoomDivs
   AutodartsToolsGameData.watch(async (_gameData: IGameData, _previousGameData: IGameData) => {
+    if (!_gameData.match?.turns?.length) return;
+
     const currentThrows = _gameData.match?.turns[0]?.throws.length ?? 0;
     throws.value = currentThrows;
     throwCoordinates.value = _gameData.match?.turns[0]?.throws.map((_throw: IThrow) => ({ x: _throw.coords?.x ?? 0, y: _throw.coords?.y ?? 0 })) ?? [];
@@ -236,7 +256,7 @@ onMounted(async () => {
         "",
       ];
 
-      if (config.zoom.position === "center") {
+      if (config.value.zoom.position === "center") {
         resetZoomDivs();
       }
 
@@ -255,11 +275,14 @@ onMounted(async () => {
     }
 
     // if there are more throws than images, insert transparent image for missing throws
-    const throwsLength = _gameData.match?.turns?.[0]?.throws?.length || 0;
-    if (throwsLength > boardImages.value.length) {
-      const missingImagesCount = throwsLength - boardImages.value.length;
-      const transparentImagePlaceholders = Array(missingImagesCount).fill("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
-      boardImages.value = [ ...transparentImagePlaceholders, ...boardImages.value ];
+    if (config.value.zoom.mode === "live") {
+      const throwsLength = _gameData.match?.turns?.[0]?.throws?.length || 0;
+
+      if (throwsLength > boardImages.value.length) {
+        const missingImagesCount = throwsLength - boardImages.value.length;
+        const transparentImagePlaceholders = Array(missingImagesCount).fill(config.value?.zoom?.mode === "image" ? defaultBoardImage : "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+        boardImages.value = [ ...transparentImagePlaceholders, ...boardImages.value ];
+      }
     }
 
     // Update zoom divs when throw coordinates change and position is center
