@@ -2,27 +2,31 @@
   <div
     v-if="boardImages.length > 0 && throws > 0"
     :class="twMerge(
-      'fixed bottom-4 right-4 mx-auto flex max-w-[1366px] justify-end',
+      'fixed bottom-4 mx-auto flex max-w-[1366px] justify-end',
+      position === 'bottom-right' ? 'right-4' : 'left-4',
     )"
     :style="{
       left: `${leftPosition}px`,
     }"
   >
-    <div class="flex flex-col space-y-2">
+    <div class="flex flex-col space-y-2 px-4">
       <div
-        v-for="(item, index) in filteredBoardImages"
-        :key="`zoom-${index}-${item.image}-${item.coords?.x}-${item.coords?.y}`"
+        v-for="(image, index) in boardImages.filter(image => image !== '')"
+        :key="`zoom-${index}`"
         :style="{ height: `${zoomContainerHeight}px` }"
-        class="flex items-center justify-center overflow-hidden rounded-lg border-2 border-[var(--chakra-colors-whiteAlpha-900)]"
+        class="flex items-center justify-center overflow-hidden rounded-lg border border-[var(--chakra-colors-whiteAlpha-900)] transition-opacity duration-500"
+        :class="[
+          index === throws - 1 ? 'animate-fade-in' : '',
+        ]"
       >
         <div
           class="relative size-[25rem] overflow-hidden bg-[#080808]"
         >
           <img
-            :src="item.image"
+            :src="image"
             class="size-full object-cover"
             :style="{
-              transform: `scale(${zoomLevel}) translate(calc(-${(item.coords?.x * (1000 / 3) + 500) / 10}% + 50%), calc(-${(-item.coords?.y * (1000 / 3) + 500) / 10}% + 50%))`,
+              transform: `scale(${zoomLevel}) translate(calc(-${(throwCoordinates[index]?.x * (1000 / 3) + 500) / 10}% + 50%), calc(-${(-throwCoordinates[index]?.y * (1000 / 3) + 500) / 10}% + 50%))`,
               transformOrigin: 'center',
             }"
           >
@@ -40,27 +44,19 @@ import { AutodartsToolsBoardImages } from "@/utils/board-image-storage";
 import type { IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import type { IThrow } from "@/utils/websocket-helpers";
+import { AutodartsToolsConfig } from "@/utils/storage";
 
-const boardImages = ref<string[]>([]);
+const boardImages = ref<string[]>([
+  "",
+  "",
+  "",
+]);
 const throws = ref<number>(0);
 const throwCoordinates = ref<{ x: number; y: number }[]>([]);
 const leftPosition = ref<number>(0);
-const zoomLevel = ref<number>(2);
+const zoomLevel = ref<number>(1.5);
 const zoomContainerHeight = ref<number>(128); // Default fallback height
-
-const filteredBoardImages = computed(() => {
-  const slicedImages = boardImages.value.slice(0, throws.value).reverse();
-  return slicedImages
-    .map((image, index) => ({
-      image,
-      coords: throwCoordinates.value[index],
-    }))
-    .filter(item =>
-      item.image
-      && item.coords
-      && item.image !== "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-    );
-});
+const position = ref<"bottom-right" | "bottom-left" | "center">("bottom-right");
 
 function checkNavigationWidth() {
   const navigationElement = document.querySelector("#root .navigation");
@@ -111,22 +107,32 @@ let resizeObserver: ResizeObserver | null = null;
 onMounted(async () => {
   console.log("Autodarts Tools: Animations mounted");
 
+  const config = await AutodartsToolsConfig.getValue();
+  zoomLevel.value = config.zoom.level;
+  position.value = config.zoom.position;
+
   await AutodartsToolsBoardImages.setValue({
     images: [],
   });
 
   AutodartsToolsBoardImages.watch((_boardImages: IBoardImages) => {
-    boardImages.value = _boardImages.images.reverse();
+    const lastImage = _boardImages.images[_boardImages.images.length - 1];
+    if (lastImage && throws.value > 0) boardImages.value[throws.value - 1] = lastImage;
   });
 
   AutodartsToolsGameData.watch(async (_gameData: IGameData, _previousGameData: IGameData) => {
-    throws.value = _gameData.match?.turns[0]?.throws.length ?? 0;
+    const currentThrows = _gameData.match?.turns[0]?.throws.length ?? 0;
+    throws.value = currentThrows;
     throwCoordinates.value = _gameData.match?.turns[0]?.throws.map((_throw: IThrow) => ({ x: _throw.coords?.x ?? 0, y: _throw.coords?.y ?? 0 })) ?? [];
 
     if (_gameData.match?.player !== _previousGameData.match?.player) {
       throws.value = 0;
       throwCoordinates.value = [];
-      boardImages.value = [];
+      boardImages.value = [
+        "",
+        "",
+        "",
+      ];
 
       await AutodartsToolsBoardImages.setValue({
         images: [],
@@ -174,3 +180,14 @@ onUnmounted(() => {
   }
 });
 </script>
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+</style>

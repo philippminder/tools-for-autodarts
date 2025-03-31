@@ -131,6 +131,7 @@ export interface IConfig {
   zoom: {
     enabled: boolean;
     position: "bottom-right" | "bottom-left" | "center";
+    level: number;
   };
 }
 
@@ -406,6 +407,7 @@ export const defaultConfig: IConfig = {
   zoom: {
     enabled: false,
     position: "bottom-right",
+    level: 3,
   },
   animations: {
     enabled: false,

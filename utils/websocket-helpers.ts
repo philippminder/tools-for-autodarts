@@ -257,7 +257,7 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
       const boardImages = await AutodartsToolsBoardImages.getValue();
 
       boardImages.images.push(data as string);
-      while (boardImages.images.length > 3) {
+      while (boardImages.images.length > 6) {
         boardImages.images.shift();
       }
       AutodartsToolsBoardImages.setValue(boardImages);

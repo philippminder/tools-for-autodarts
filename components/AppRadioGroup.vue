@@ -12,7 +12,7 @@
       :key="index"
       :disabled="option.disabled"
       :class="twMerge(
-        'flex h-10 items-center justify-center px-4 font-semibold text-[var(--chakra-colors-whiteAlpha-900)] transition-colors',
+        'flex h-10 items-center justify-center whitespace-nowrap px-4 font-semibold text-[var(--chakra-colors-whiteAlpha-900)] transition-colors',
         buttonSize === 'sm' ? 'h-8 px-3 text-sm' : buttonSize === 'lg' ? 'h-12 px-5' : 'h-10 px-4',
         modelValue === option.value
           ? 'bg-[var(--chakra-colors-whiteAlpha-300)]'
