@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.7] - 2025-04-10
+## [2.0.8] - 2025-04-10
 
 ### Added
 - Added Darts Zoom feature that displays magnified views of dart throws
