@@ -171,6 +171,7 @@ export interface IX01Settings extends IMatchSettings {
 }
 
 export interface IMatch {
+  body?: any;
   id: string;
   activated?: -1 | 0 | 1 | 2;
   createdAt: string;
@@ -213,6 +214,8 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
     }
     case "autodarts.matches": {
       data = data as IMatch;
+      if (data.body) return;
+
       const id = window.location.href.match(/matches\/([0-9a-f-]+)/)?.[1];
       const playersBoard = data.players?.find(player => player.boardId === window.location.href.match(/boards\/([0-9a-f-]+)/)?.[1]);
       if ((id !== data.id && !playersBoard) && (data as IMatch).activated === undefined) return;
