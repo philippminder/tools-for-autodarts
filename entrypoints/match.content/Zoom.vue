@@ -108,8 +108,8 @@ function updateZoomHeight() {
   const container = getShowAnimationsContainer();
   if (container) {
     const containerHeight = container.offsetHeight;
-    // Divide by 3 and reduce by 2rem (32px)
-    zoomContainerHeight.value = Math.floor(containerHeight / 3) - 32;
+    // Divide by 3, reduce by 2rem (32px), and cap at 10rem (160px)
+    zoomContainerHeight.value = Math.min(Math.floor(containerHeight / 3) - 32, 160);
   }
 }
 
