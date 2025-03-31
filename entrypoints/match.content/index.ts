@@ -332,10 +332,14 @@ async function initAnimations(ctx) {
 
 async function initZoom(ctx) {
   await waitForElement("#root > div > div:nth-of-type(2)");
+  const config = await AutodartsToolsConfig.getValue();
+
+  const selector = (config.zoom.position === "bottom-right" || config.zoom.position === "bottom-left") ? "#root > div > div:nth-of-type(2)" : "#root > div > div:nth-of-type(1)";
+
   tools.zoom = await createShadowRootUi(ctx, {
     name: "autodarts-tools-zoom",
     position: "inline",
-    anchor: "#root > div > div:nth-of-type(2)",
+    anchor: selector,
     onMount: (container: any) => {
       console.log("Autodarts Tools: Zoom initialized");
       const app = createApp(Zoom);
