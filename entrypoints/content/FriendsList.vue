@@ -427,6 +427,28 @@ function timeoutInvitation() {
   showInvitation.value = false;
 }
 
+// Handle keyboard shortcuts for invitations
+function handleKeyboardShortcuts(event: KeyboardEvent) {
+  // Only handle shortcuts when an invitation is showing
+  if (!showInvitation.value) return;
+
+  if (event.key === "y" || event.key === "Y") {
+    acceptInvitation();
+  } else if (event.key === "n" || event.key === "N") {
+    declineInvitation();
+  }
+}
+
+// Setup keyboard shortcut listeners
+function setupKeyboardShortcuts() {
+  window.addEventListener("keydown", handleKeyboardShortcuts);
+}
+
+// Remove keyboard shortcut listeners
+function cleanupKeyboardShortcuts() {
+  window.removeEventListener("keydown", handleKeyboardShortcuts);
+}
+
 // Send invitation response to server
 function sendInvitationResponse(accepted: boolean) {
   try {
@@ -558,6 +580,9 @@ onMounted(async () => {
     // Check friends status every 30 seconds
     friendsStatusInterval.value = window.setInterval(checkFriendsStatus, 30000);
   }
+
+  // Setup keyboard shortcuts
+  setupKeyboardShortcuts();
 });
 
 onBeforeUnmount(() => {
@@ -587,6 +612,9 @@ onBeforeUnmount(() => {
     clearInterval(friendsStatusInterval.value);
     friendsStatusInterval.value = null;
   }
+
+  // Cleanup keyboard shortcuts
+  cleanupKeyboardShortcuts();
 });
 
 function getLobbyId() {

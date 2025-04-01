@@ -18,6 +18,9 @@
 
         <p class="mb-4 text-base text-white/80">
           {{ message }}
+          <span class="mt-2 block text-sm text-white/60">
+            Press <strong>Y</strong> to accept or <strong>N</strong> to decline
+          </span>
         </p>
 
         <div class="mb-4 flex justify-end space-x-3">
