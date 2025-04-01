@@ -143,7 +143,7 @@ async function applyWinnerAnimation(gameData: any): Promise<void> {
   }
 
   try {
-    const winnerPlayerCard = await waitForElement(".ad-ext-player-winner");
+    const winnerPlayerCard = document.querySelector(".ad-ext-player-winner");
     const winnerScoreEl = winnerPlayerCard?.querySelector(".ad-ext-player-score");
     if (!winnerScoreEl) return;
 
