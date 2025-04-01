@@ -247,7 +247,7 @@ onMounted(async () => {
     throws.value = currentThrows;
     throwCoordinates.value = _gameData.match?.turns[0]?.throws.map((_throw: IThrow) => ({ x: _throw.coords?.x ?? 0, y: _throw.coords?.y ?? 0 })) ?? [];
 
-    if (_gameData.match?.player !== _previousGameData.match?.player) {
+    if (_gameData.match?.player !== _previousGameData.match?.player || !_gameData.match.turns[0]?.throws.length) {
       throws.value = 0;
       throwCoordinates.value = [];
       boardImages.value = [

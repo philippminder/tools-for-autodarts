@@ -2,7 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.8] - 2025-04-10
+
+### Fixed
+
+## [2.0.9] - 2025-04-1
+
+### Fixed
+- Fixed team lobby issue where the host player was continuously removed, preventing them from rejoining after removal
+- Fixed an error in Firefox when adding friends or updating recent players list which caused the list not getting saved
+- Improved serialization of player objects to prevent reactive objects from being passed to browser messaging
+
+## [2.0.8] - 2025-04-1
 
 ### Added
 - Added Darts Zoom feature that displays magnified views of dart throws
@@ -12,7 +22,7 @@ All notable changes to this project will be documented in this file.
   - Visual indicator showing exact dart landing position
 - Enhanced match visualization with zoomed dart views for better gameplay analysis
 
-## [2.0.6] - 2025-04-03
+## [2.0.6] - 2025-04-01
 
 ### Added
 - Implemented Lobby Invitation System for easier game coordination
@@ -97,30 +107,4 @@ All notable changes to this project will be documented in this file.
   - `bot`: Plays when the player is a CPU/bot player
   - Support for player name sounds with spaces or underscores (e.g., `player_name` or `player name`)
 - Enhanced ambient sound system with new triggers:
-  - `ambient_gameon`: Plays at game start
-  - `ambient_next_player`: Plays during player transitions
-  - `ambient_bot`: Plays for CPU/bot players
-  - Player-specific ambient sounds using format: `ambient_playername` or `ambient_player_name`
-
-### Changed
-- Enhanced sound management system:
-  - Improved sound playback logic to differentiate between human and bot players
-  - Added intelligent fallback mechanisms for player name sounds
-  - Refined sound trigger handling for misses and special events
-- Improved StreamingMode component:
-  - Removed obsolete saveSettings function in favor of automatic settings updates
-  - Enhanced coordinates and scoreboard settings with better x/y property handling
-  - Improved initialization logic for configuration values
-- Updated project version to 62 and marketing version to 2.0.2
-
-### Fixed
-- Enhanced sound fallback logic to only trigger for valid miss prefixes (numbers 1-20)
-- Improved settings management in streaming mode (Issue #70)
-- Fixed "Add" button visibility control in multiple components (Issue #72)
-- Enhanced initialization logic for component settings
-
-### Documentation
-- Updated README.md with comprehensive sound trigger documentation
-- Added detailed documentation for new player transition and bot player features
-
-For changes prior to version 2.0.2, please refer to the git history. 
+  - `

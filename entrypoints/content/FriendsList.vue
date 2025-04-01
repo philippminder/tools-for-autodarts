@@ -264,11 +264,13 @@ async function sendFriendsToServer() {
 
   console.log("Sending friends to server:", config.value.friendsList.friends);
 
+  console.log(toRaw(config.value.friendsList.friends));
+
   try {
     await browser.runtime.sendMessage({
       type: "update-friends",
       userId: userId.value,
-      friends: config.value.friendsList.friends,
+      friends: JSON.parse(JSON.stringify(toRaw(config.value.friendsList.friends))),
     });
   } catch (error) {
     console.error("Error sending friends data:", error);
@@ -501,9 +503,17 @@ onMounted(async () => {
   gameDataWatcherUnwatch = AutodartsToolsGameData.watch((_gameData: IGameData) => {
     gameData.value = _gameData;
     if (!config.value) return;
+    // Deep clone to remove reactivity from player objects
+    const currentPlayers = gameData.value?.match?.players
+      ? JSON.parse(JSON.stringify(gameData.value.match.players))
+      : [];
+    const existingRecentPlayers = config.value.friendsList.recentPlayers
+      ? JSON.parse(JSON.stringify(config.value.friendsList.recentPlayers))
+      : [];
+
     config.value.friendsList.recentPlayers = Array.from(
       new Map(
-        [ ...(gameData.value?.match?.players || []), ...(config.value.friendsList.recentPlayers || []) ]
+        [ ...currentPlayers, ...existingRecentPlayers ]
           .filter(player => !player.name.includes("Bot Level "))
           .map(player => [ player.userId || player.name, player ]),
       ).values(),
