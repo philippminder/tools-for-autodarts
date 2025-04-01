@@ -25,13 +25,11 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
 
-    // Remove socketId from user data on disconnect
+    // Complete cleanup - fully remove user data on disconnect
     for (const userId in userFriendsStore) {
       if (userFriendsStore[userId]?.socketId === socket.id) {
-        const userData = userFriendsStore[userId];
-        if (userData) {
-          userData.socketId = undefined;
-        }
+        console.log(`Removing user data for ${userId} on disconnect`);
+        delete userFriendsStore[userId];
         break;
       }
     }
@@ -51,11 +49,14 @@ io.on("connection", (socket) => {
       return;
     }
 
-    console.log(`Received friends data for user ${userId} with ${friends.length} friends`);
+    // Limit friends array size to prevent memory issues
+    const limitedFriends = friends.slice(0, 1000); // Reasonable limit
+
+    console.log(`Received friends data for user ${userId} with ${limitedFriends.length} friends`);
 
     // Store the friends data with the socket ID
     userFriendsStore[userId] = {
-      friends,
+      friends: limitedFriends,
       timestamp: timestamp || Date.now(),
       online: true,
       socketId: socket.id,
@@ -230,20 +231,22 @@ io.on("connection", (socket) => {
 // Check for inactive users every minute
 setInterval(() => {
   const now = Date.now();
-  const inactiveThreshold = 2 * 60 * 1000; // 2 minutes
+  const inactiveThreshold = 3 * 60 * 1000; // 3 minutes (increased and aligned with cleanup)
 
   Object.keys(userFriendsStore).forEach((userId) => {
     const user = userFriendsStore[userId];
     if (user && now - user.timestamp > inactiveThreshold) {
       user.online = false;
+      // Also remove if inactive for too long to align with cleanup logic
+      delete userFriendsStore[userId];
     }
   });
 }, 60000);
 
-// Clean up stale records every 10 seconds
+// Clean up stale records every 60 seconds (increased from 10)
 setInterval(() => {
   const now = Date.now();
-  const staleThreshold = 60 * 1000; // 60 seconds
+  const staleThreshold = 3 * 60 * 1000; // 3 minutes (aligned with inactive threshold)
 
   Object.keys(userFriendsStore).forEach((userId) => {
     const user = userFriendsStore[userId];
@@ -252,7 +255,7 @@ setInterval(() => {
       delete userFriendsStore[userId];
     }
   });
-}, 10000);
+}, 60000); // Increased to 60 seconds to reduce CPU load
 
 const PORT = process.env.PORT || 4455;
 httpServer.listen(PORT, () => {
