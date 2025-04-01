@@ -191,7 +191,7 @@ async function initMatch(ctx, url: string) {
 function clearMatch() {
   console.log("Autodarts Tools: Clearing match");
 
-  activeMatchObserver?.disconnect();
+  if (!window.location.href.includes("boards")) activeMatchObserver?.disconnect();
 
   tools.streamingMode?.remove();
   tools.takeout?.remove();

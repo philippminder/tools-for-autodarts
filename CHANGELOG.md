@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+## [2.0.10] - 2025-04-2
+
+### Fixed
+- Fixed a bug where match features did not apply after the first match when following a board
+
 ## [2.0.9] - 2025-04-1
 
 ### Fixed
