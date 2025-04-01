@@ -4,9 +4,13 @@ import type { ILobbyStatus } from "@/utils/storage";
 import type { ILobbies } from "@/utils/websocket-helpers";
 
 let lobbyDataWatcherUnwatch: any;
+// Track whether the host has been removed already
+let hostAlreadyRemoved = false;
 
 export async function teamLobby() {
   console.log("Autodarts Tools: Team Lobby - Starting");
+  // Reset the tracking flag when starting a new lobby session
+  hostAlreadyRemoved = false;
 
   try {
     const lobbyData = await AutodartsToolsLobbyData.getValue();
@@ -29,22 +33,31 @@ async function processTeamLobby(lobbyStatus: ILobbyStatus) {
   await waitForElement(".ad-ext-player-name");
   const username = lobbyStatus.host?.name;
 
-  // Find all tr elements that might contain player information
-  const rows = [ ...document.querySelectorAll("tr") ];
+  // Only attempt to remove the host if they haven't been removed yet
+  if (!hostAlreadyRemoved) {
+    // Find all tr elements that might contain player information
+    const rows = [ ...document.querySelectorAll("tr") ];
 
-  // Process each row
-  for (const row of rows) {
-    // Skip rows containing "via" text
-    if (row.textContent?.includes("via")) {
-      continue;
-    }
+    // Process each row
+    for (const row of rows) {
+      // Skip rows containing "via" text
+      if (row.textContent?.includes("via")) {
+        continue;
+      }
 
-    // Check if this row contains the host username
-    const playerNameElement = row.querySelector(".ad-ext-player-name > p");
-    if (playerNameElement?.textContent?.trim()?.toLowerCase() === username?.toLowerCase()) {
-      // Find and click the remove button
-      const removeBtn = row.querySelector("button:last-of-type") as HTMLButtonElement;
-      removeBtn?.click();
+      // Check if this row contains the host username
+      const playerNameElement = row.querySelector(".ad-ext-player-name > p");
+      if (playerNameElement?.textContent?.trim()?.toLowerCase() === username?.toLowerCase()) {
+        // Find and click the remove button
+        const removeBtn = row.querySelector("button:last-of-type") as HTMLButtonElement;
+        if (removeBtn) {
+          removeBtn.click();
+          // Set the flag to true after removing the host
+          hostAlreadyRemoved = true;
+          console.log("Autodarts Tools: Team Lobby - Host removed once");
+          break; // Exit the loop once removed
+        }
+      }
     }
   }
 
@@ -60,4 +73,6 @@ async function processTeamLobby(lobbyStatus: ILobbyStatus) {
 
 export async function teamLobbyOnRemove() {
   lobbyDataWatcherUnwatch?.();
+  // Reset the flag when the lobby is removed
+  hostAlreadyRemoved = false;
 }
