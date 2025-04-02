@@ -1,0 +1,75 @@
+# Vue File Structure Guidelines
+
+This document outlines the recommended structure for Vue component files to maintain consistency across the project.
+
+## Component Structure Order
+
+Components should follow this specific ordering for better readability and maintenance:
+
+1. **Imports** - External libraries and project components
+2. **Global Constants** - Constants defined at file level (e.g., `const FADE_DURATION = 300`)
+3. **Refs** - Reactive references (`ref()`, `shallowRef()`, etc.)
+4. **Data Fetching** - API calls and loading states
+5. **Computed Variables** - Derived reactive state
+6. **Lifecycle Hooks** - In chronological order:
+   - `onBeforeMount()`
+   - `onMounted()`
+   - `onBeforeUnmount()`
+   - `onUnmounted()`
+7. **Functions** - Component methods and handlers
+
+## Example
+
+```vue
+<script setup>
+// 1. Imports
+import { ref, computed, onMounted } from 'vue'
+import SomeComponent from '@/components/SomeComponent.vue'
+
+// 2. Global Constants
+const FADE_DURATION = 300
+
+// 3. Refs
+const count = ref(0)
+const items = ref([])
+
+// 4. Data Fetching
+const loading = ref(false)
+const fetchData = async () => {
+  loading.value = true
+  try {
+    const response = await fetch('/api/items')
+    items.value = await response.json()
+  } finally {
+    loading.value = false
+  }
+}
+
+// 5. Computed Variables
+const doubleCount = computed(() => count.value * 2)
+
+// 6. Lifecycle Hooks
+onBeforeMount(() => {
+  console.log('Component is about to mount')
+})
+
+onMounted(() => {
+  fetchData()
+})
+
+onBeforeUnmount(() => {
+  console.log('Component is about to unmount')
+})
+
+onUnmounted(() => {
+  console.log('Component has been unmounted')
+})
+
+// 7. Functions
+function increment() {
+  count.value++
+}
+</script>
+```
+
+Following this structure helps maintain consistency across the codebase and makes it easier for team members to navigate and understand component implementations. 

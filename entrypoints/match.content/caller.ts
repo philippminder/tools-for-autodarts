@@ -368,7 +368,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     // Only play gameon if it's not already in queue
     if (!isSoundInQueue("gameon")) playSound("gameon");
     const playerName = gameData.match.players?.[gameData.match.player]?.name;
-    const isBot = gameData.match.players?.[gameData.match.player]?.cpuPPR !== null;
+    const isBot = !!gameData.match.players?.[gameData.match.player]?.cpuPPR;
     if (isBot) {
       playSound("bot");
     } else if (playerName) {
@@ -400,7 +400,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
     // Get player name and play sound with player name as trigger
     const currentPlayer = gameData.match.players?.[gameData.match.player];
     const playerName = currentPlayer?.name;
-    const isBot = currentPlayer?.cpuPPR !== null;
+    const isBot = !!currentPlayer?.cpuPPR;
 
     if (isBot) {
       console.log("Autodarts Tools: Bot player detected");
@@ -472,7 +472,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       }
       const winnerPlayer = gameData.match.players?.find(player => player.index === gameData.match?.winner);
       const winnerPlayerName = winnerPlayer?.name;
-      const isBot = winnerPlayer?.cpuPPR !== null;
+      const isBot = !!winnerPlayer?.cpuPPR;
 
       if (isBot) {
         playSound("bot");
@@ -499,7 +499,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
       }
       const winnerPlayer = gameData.match.players?.find(player => player.index === gameData.match?.winner);
       const winnerPlayerName = winnerPlayer?.name;
-      const isBot = winnerPlayer?.cpuPPR !== null;
+      const isBot = !!winnerPlayer?.cpuPPR;
 
       if (isBot) {
         playSound("bot");
