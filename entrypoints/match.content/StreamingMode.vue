@@ -82,7 +82,7 @@
       v-if="config.streamingMode.board"
       :key="`coords-${coordsElementScale}`"
       ref="coordsElement"
-      class="absolute size-[35vw] origin-top-left overflow-hidden rounded-full"
+      class="absolute size-[35vw] origin-bottom-right overflow-hidden rounded-full"
       :style="{
         transform: `scale(${coordsElementScale})`,
         left: `${coordsElementX}px`,
@@ -95,13 +95,14 @@
       v-if="gameData?.match?.players?.length"
       ref="scoreBoardElement"
       :class="twMerge(
-        'fixed origin-top-left border-2 border-black bg-gray-800 text-2xl',
+        'fixed origin-bottom-right border-2 border-black bg-gray-800 text-2xl',
         (scoreBoardElementX === 0 && scoreBoardElementY === 0) && 'bottom-8 right-24',
       )"
       :style="{
         transform: `scale(${scoreBoardScale})`,
         left: (scoreBoardElementX === 0 && scoreBoardElementY === 0) ? undefined : `${scoreBoardElementX}px`,
-        top: (scoreBoardElementX === 0 && scoreBoardElementY === 0) ? undefined : `${scoreBoardElementY}px`,
+        top: (scoreBoardElementX === 0 && scoreBoardElementY === 0) ? undefined
+          : `${scoreBoardElementY - Math.max(0, (gameData?.match?.players?.length - 2) * 68)}px`,
       }"
     >
       <div

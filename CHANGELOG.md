@@ -2,8 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.11] - 2025-04-2
 
 ### Fixed
+- Fixed Streaming Mode scoreboard position by automatically adjusting Y position when more than 2 players are in the game
 
 ## [2.0.10] - 2025-04-1
 
@@ -116,4 +118,3 @@ All notable changes to this project will be documented in this file.
   - `bot`: Plays when the player is a CPU/bot player
   - Support for player name sounds with spaces or underscores (e.g., `player_name` or `player name`)
 - Enhanced ambient sound system with new triggers:
-  - `
