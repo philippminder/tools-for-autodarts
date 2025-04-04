@@ -2,7 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.11] - 2025-04-2
+## [2.0.11] - 2025-04-4
+
+### Added
+- Added Quick Correction feature that allows easy correction of misrecognized dart throws
+  - Intuitive grid-based interface showing dart board segments
+  - Numpad keyboard shortcuts for fast corrections
+  - Color-coded buttons matching dart board segments
+  - Direct selection for MISS, 25, or BULL throws
+  - Smart positioning relative to the thrown dart
 
 ### Fixed
 - Fixed Streaming Mode scoreboard position by automatically adjusting Y position when more than 2 players are in the game

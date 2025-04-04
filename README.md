@@ -78,6 +78,11 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **External Boards Support**: Easily follow games on external boards
 - **Fancy Gameshot Animation**: Celebratory animation when a player wins
 - **Animations**: Display custom animations for special events like 180s, bulls, busts, and leg wins during gameplay
+- **Quick Correction**: Easily fix misrecognized dart throws with an intuitive interface
+  - Grid-based correction panel showing all board segments
+  - Numpad keyboard shortcuts for fast corrections
+  - Color-coded buttons matching dart board segments
+  - Keyboard shortcuts for accessing throws (/, *, -) and making corrections
 
 ### 🔊 Audio Features
 - **Caller**: Voice announcements for scores, checkouts, and each dart thrown during gameplay

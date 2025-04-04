@@ -229,8 +229,120 @@ const currentGridIndex = ref<number>(-1);
 watch(open, (newVal) => {
   if (!newVal) {
     deactivateThrow();
+  } else {
+    // Add keyboard event listener when the modal opens
+    window.addEventListener("keydown", handleKeyDown);
   }
 });
+
+onUnmounted(() => {
+  // Clean up keyboard event listener
+  window.removeEventListener("keydown", handleKeyDown);
+});
+
+// Function to handle numpad key presses
+function handleKeyDown(event: KeyboardEvent) {
+  console.log("handleKeyDown", event.key);
+
+  if (!open.value) return;
+
+  // Close correction on '+' or Escape
+  if (event.key === "+" || event.key === "NumpadAdd" || event.key === "Escape") {
+    open.value = false;
+    event.preventDefault();
+    return;
+  }
+
+  // Map numpad keys to grid positions
+  switch (event.key) {
+    // Top row
+    case "7":
+    case "Numpad7":
+      if (currentGrid.value[0] && currentGrid.value[0][0]) {
+        applyCorrection(currentGrid.value[0][0]);
+      }
+      event.preventDefault();
+      break;
+    case "8":
+    case "Numpad8":
+      if (currentGrid.value[0] && currentGrid.value[0][1]) {
+        applyCorrection(currentGrid.value[0][1]);
+      }
+      event.preventDefault();
+      break;
+    case "9":
+    case "Numpad9":
+      if (currentGrid.value[0] && currentGrid.value[0][2]) {
+        applyCorrection(currentGrid.value[0][2]);
+      }
+      event.preventDefault();
+      break;
+
+    // Middle row
+    case "4":
+    case "Numpad4":
+      if (currentGrid.value[1] && currentGrid.value[1][0]) {
+        applyCorrection(currentGrid.value[1][0]);
+      }
+      event.preventDefault();
+      break;
+    case "5":
+    case "Numpad5":
+      if (currentGrid.value[1] && currentGrid.value[1][1]) {
+        applyCorrection(currentGrid.value[1][1]);
+      }
+      event.preventDefault();
+      break;
+    case "6":
+    case "Numpad6":
+      if (currentGrid.value[1] && currentGrid.value[1][2]) {
+        applyCorrection(currentGrid.value[1][2]);
+      }
+      event.preventDefault();
+      break;
+
+    // Bottom row
+    case "1":
+    case "Numpad1":
+      if (currentGrid.value[2] && currentGrid.value[2][0]) {
+        applyCorrection(currentGrid.value[2][0]);
+      }
+      event.preventDefault();
+      break;
+    case "2":
+    case "Numpad2":
+      if (currentGrid.value[2] && currentGrid.value[2][1]) {
+        applyCorrection(currentGrid.value[2][1]);
+      }
+      event.preventDefault();
+      break;
+    case "3":
+    case "Numpad3":
+      if (currentGrid.value[2] && currentGrid.value[2][2]) {
+        applyCorrection(currentGrid.value[2][2]);
+      }
+      event.preventDefault();
+      break;
+
+    // Special buttons
+    case "0":
+    case "Numpad0":
+      applyCorrection("MISS");
+      event.preventDefault();
+      break;
+    case ".":
+    case ",":
+    case "NumpadDecimal":
+      applyCorrection("25");
+      event.preventDefault();
+      break;
+    case "Enter":
+    case "NumpadEnter":
+      applyCorrection("BULL");
+      event.preventDefault();
+      break;
+  }
+}
 
 // Function to get the color for a specific cell
 function getCellColor(cell: string, rowIndex: number, cellIndex: number): string {
@@ -271,6 +383,29 @@ onMounted(async () => {
   [ throw1.value, throw2.value, throw3.value ].forEach((throwEl) => {
     if (throwEl) {
       throwEl.addEventListener("click", () => openCorrection(throwEl));
+    }
+  });
+
+  // Add global keyboard listener for throw selection
+  window.addEventListener("keydown", (event) => {
+    if (open.value) return; // Don't trigger if correction panel is already open
+
+    switch (event.key) {
+      case "/":
+      case "NumpadDivide":
+        if (throw1.value) throw1.value.click();
+        event.preventDefault();
+        break;
+      case "*":
+      case "NumpadMultiply":
+        if (throw2.value) throw2.value.click();
+        event.preventDefault();
+        break;
+      case "-":
+      case "NumpadSubtract":
+        if (throw3.value) throw3.value.click();
+        event.preventDefault();
+        break;
     }
   });
 });
