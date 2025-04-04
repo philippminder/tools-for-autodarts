@@ -180,6 +180,9 @@
 
             <!-- Eighth row of feature cards -->
             <Zoom @toggle="openSettingsModal('zoom')" @setting-change="updateConfig" class="feature-card" data-feature-index="21" />
+
+            <!-- Ninth row of feature cards -->
+            <QuickCorrection @setting-change="updateConfig" class="feature-card" data-feature-index="22" />
           </div>
 
           <!-- Feature cards grid for Boards tab -->
@@ -189,8 +192,8 @@
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
             <!-- First row of feature cards -->
-            <ExternalBoards @setting-change="updateConfig" class="feature-card" data-feature-index="22" />
-            <div class="feature-card" data-feature-index="23">
+            <ExternalBoards @setting-change="updateConfig" class="feature-card" data-feature-index="23" />
+            <div class="feature-card" data-feature-index="24">
             <!-- Placeholder for future feature -->
             </div>
           </div>
@@ -217,12 +220,12 @@
             </div>
 
             <!-- First row of feature cards -->
-            <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="24" />
-            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="25" />
+            <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="25" />
+            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="26" />
 
             <!-- Second row of feature cards -->
-            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="26" />
-            <div class="feature-card" data-feature-index="27">
+            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="27" />
+            <div class="feature-card" data-feature-index="28">
             <!-- Placeholder for future feature -->
             </div>
           </div>
@@ -258,6 +261,7 @@ import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
 import FriendsList from "./Settings/FriendsList.vue";
 import Zoom from "./Settings/Zoom.vue";
+import QuickCorrection from "./Settings/QuickCorrection.vue";
 import type { IConfig, ISound } from "@/utils/storage";
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
 import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCallerSoundsFromIndexedDB, getAllSoundFxFromIndexedDB, isIndexedDBAvailable, saveSoundFxToIndexedDB, saveSoundToIndexedDB } from "@/utils/helpers";
@@ -303,6 +307,7 @@ const featureGroups = [
       { id: "ring", title: "Ring Settings", component: Ring, hasSettings: true },
       { id: "automatic-fullscreen", title: "Automatic Fullscreen Settings", component: AutomaticFullscreen, hasSettings: false },
       { id: "zoom", title: "Darts Zoom Settings", component: Zoom, hasSettings: true },
+      { id: "quick-correction", title: "Quick Correction Settings", component: QuickCorrection, hasSettings: false },
     ],
     settingIds: [ "colors", "next-player-on-takeout-stuck", "automatic-next-leg", "streaming-mode", "larger-legs-sets", "larger-player-names", "larger-player-match-data", "ring", "automatic-fullscreen", "zoom" ],
   },

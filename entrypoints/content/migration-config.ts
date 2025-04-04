@@ -33,6 +33,15 @@ async function migrateConfig(currentConfigVersion: number) {
           };
         }
         break;
+      case 3:
+        // Migration from version 3 to version 4
+        config.version = 4;
+        if (!config.quickCorrection) {
+          config.quickCorrection = {
+            ...defaultConfig.quickCorrection,
+          };
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);

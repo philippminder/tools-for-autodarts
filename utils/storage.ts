@@ -134,6 +134,9 @@ export interface IConfig {
     level: number;
     mode: "live" | "image";
   };
+  quickCorrection: {
+    enabled: boolean;
+  };
 }
 
 export interface ISound {
@@ -296,7 +299,7 @@ export interface IFriend {
 }
 
 export const defaultConfig: IConfig = {
-  version: 2,
+  version: 4,
   discord: {
     enabled: false,
     manually: false,
@@ -410,6 +413,9 @@ export const defaultConfig: IConfig = {
     position: "bottom-right",
     level: 3,
     mode: "live",
+  },
+  quickCorrection: {
+    enabled: false,
   },
   animations: {
     enabled: false,

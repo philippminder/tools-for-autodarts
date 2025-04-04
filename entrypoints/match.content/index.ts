@@ -17,6 +17,7 @@ import { caller, callerOnRemove } from "./caller";
 import Zoom from "./Zoom.vue";
 import Animations from "./Animations.vue";
 import StreamingMode from "./StreamingMode.vue";
+import QuickCorrection from "./QuickCorrection.vue";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
   AutodartsToolsConfig,
@@ -36,6 +37,7 @@ const tools = {
   takeout: null as any,
   animations: null as any,
   zoom: null as any,
+  quickCorrection: null as any,
 };
 
 export default defineContentScript({
@@ -186,6 +188,10 @@ async function initMatch(ctx, url: string) {
   if (config.zoom.enabled) {
     await initZoom(ctx).catch(console.error);
   }
+
+  if (config.quickCorrection.enabled) {
+    await initQuickCorrection(ctx).catch(console.error);
+  }
 }
 
 function clearMatch() {
@@ -197,6 +203,7 @@ function clearMatch() {
   tools.takeout?.remove();
   tools.animations?.remove();
   tools.zoom?.remove();
+  tools.quickCorrection?.remove();
   colorChangeOnRemove();
   hideMenuInMatchOnRemove();
   automaticFullscreenOnRemove();
@@ -356,4 +363,28 @@ async function initZoom(ctx) {
   });
 
   tools.zoom.mount();
+}
+
+async function initQuickCorrection(ctx) {
+  await waitForElement("#root > div > div:nth-of-type(2)");
+  tools.quickCorrection = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-quick-correction",
+    position: "inline",
+    anchor: "#root > div > div:nth-of-type(2)",
+    onMount: (container: any) => {
+      console.log("Autodarts Tools: Quick Correction initialized");
+      const app = createApp(QuickCorrection);
+      app.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return app;
+    },
+    onRemove: (app: any) => {
+      app?.unmount();
+      console.log("Autodarts Tools: Quick Correction removed");
+    },
+  });
+
+  tools.quickCorrection.mount();
 }
