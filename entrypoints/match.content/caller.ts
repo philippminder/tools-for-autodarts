@@ -53,7 +53,7 @@ export async function caller() {
         }
 
         debounceTimer = window.setTimeout(() => {
-          processGameData(gameData, oldGameData);
+          processGameData(gameData, oldGameData, true);
           debounceTimer = null;
         }, DEBOUNCE_DELAY);
       });
@@ -346,7 +346,7 @@ function isSoundInQueue(trigger: string): boolean {
  * Process game data to trigger sounds based on game events
  */
 let lastScore: number = 0;
-async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
+async function processGameData(gameData: IGameData, oldGameData: IGameData, fromWebSocket: boolean = false): Promise<void> {
   if (!gameData.match || !gameData.match.turns?.length) return;
 
   const editMode: boolean = gameData.match.activated !== undefined && gameData.match.activated >= 0;
@@ -364,9 +364,10 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
   }
 
   // Play gameon sound if it's the first round and variant is not Bull-off
-  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0) {
+  if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0 && gameData.match.variant !== "Bull-off") {
     // Only play gameon if it's not already in queue
-    if (!isSoundInQueue("gameon")) playSound("gameon");
+
+    if (!isSoundInQueue("gameon") && !fromWebSocket) playSound("gameon");
     const playerName = gameData.match.players?.[gameData.match.player]?.name;
     const isBot = !!gameData.match.players?.[gameData.match.player]?.cpuPPR;
     if (isBot) {

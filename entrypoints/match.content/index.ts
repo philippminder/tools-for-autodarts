@@ -1,5 +1,6 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
+
 import { colorChange, onRemove as colorChangeOnRemove } from "./color-change";
 import Takeout from "./Takeout.vue";
 import { nextPlayerOnTakeOutStuck, nextPlayerOnTakeOutStuckOnRemove } from "./next-player-on-take-out-stuck";
@@ -18,12 +19,12 @@ import Zoom from "./Zoom.vue";
 import Animations from "./Animations.vue";
 import StreamingMode from "./StreamingMode.vue";
 import QuickCorrection from "./QuickCorrection.vue";
+
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
   AutodartsToolsConfig,
   AutodartsToolsUrlStatus,
 } from "@/utils/storage";
-
 import { fetchWithAuth, isSafari, isiOS } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
@@ -173,10 +174,6 @@ async function initMatch(ctx, url: string) {
     await initAnimations(ctx).catch(console.error);
   }
 
-  if (config.ring.enabled) {
-    await initScript(ring, url).catch(console.error);
-  }
-
   if (config.caller.enabled) {
     await initScript(caller, url).catch(console.error);
   }
@@ -187,6 +184,10 @@ async function initMatch(ctx, url: string) {
 
   if (config.zoom.enabled) {
     await initZoom(ctx).catch(console.error);
+  }
+
+  if (config.ring.enabled) {
+    await initScript(ring, url).catch(console.error);
   }
 
   if (config.quickCorrection.enabled) {

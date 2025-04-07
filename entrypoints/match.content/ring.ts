@@ -1,4 +1,4 @@
-import { addStyles } from "@/utils";
+import { addStyles, waitForElement, waitForElementWithTextContent } from "@/utils";
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 
@@ -43,18 +43,9 @@ function getRingSizes(size: number): {
  * Applies the ring styles to the dartboard
  */
 async function applyRingStyles() {
-  // Wait for the UI to be ready (max 5 seconds)
-  const startTime = Date.now();
-  while (Date.now() - startTime < 5000) {
-    const buttons = document.getElementById("ad-ext-turn")?.nextElementSibling?.querySelector("div[role=\"group\"]")?.querySelectorAll("button");
-    if (buttons?.length === 3) break;
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
-  // Verify UI is ready
-  if (document.getElementById("ad-ext-turn")?.nextElementSibling?.querySelector("div[role=\"group\"]")?.querySelectorAll("button").length !== 3) {
-    return;
-  }
+  const button1 = await waitForElementWithTextContent("button", "1");
+  await waitForElementWithTextContent("button", "2");
+  await waitForElementWithTextContent("button", "3");
 
   // Get configuration
   const config = await AutodartsToolsConfig.getValue();
@@ -62,10 +53,8 @@ async function applyRingStyles() {
   const ringColorEnabled = config.ring.colorEnabled;
   const ringColor = config.ring.color;
 
-  const gameMode = document.querySelector("#ad-ext-game-variant")?.textContent;
-
   // Get board view container
-  const boardViewContainer = gameMode === "Cricket" ? document.getElementById("ad-ext-turn")?.nextElementSibling?.children[1]?.querySelector(".showAnimations")?.parentElement?.parentElement : document.getElementById("ad-ext-turn")?.nextElementSibling;
+  const boardViewContainer = button1?.parentElement?.parentElement?.parentElement;
   if (!boardViewContainer) return;
 
   // Set up container and numbers element
@@ -76,18 +65,23 @@ async function applyRingStyles() {
   if (!boardViewNumbersElement) {
     boardViewNumbersElement = document.createElement("div");
     boardViewNumbersElement.classList.add("adt-boardview-numbers");
-    boardViewContainer.children[0].appendChild(boardViewNumbersElement);
+    boardViewContainer?.appendChild(boardViewNumbersElement);
   } else {
     // Clear existing ring if it exists
     boardViewNumbersElement.innerHTML = "";
   }
 
+  await waitForElement("svg[viewBox=\"0 0 1000 1000\"]");
+
   // Get image holder and elements
-  const imageHolder = boardViewContainer.children[0].children[2].children[0];
+  const imageHolder = boardViewContainer.querySelector("svg[viewBox=\"0 0 1000 1000\"]")?.parentElement;
+  console.log(imageHolder);
+
+  if (!imageHolder) return;
   imageHolder.classList.add("adt-boardview-image");
 
   const ringImage = imageHolder.querySelector("image");
-  const ringSVG = imageHolder.querySelector("svg");
+  const ringSVG = await waitForElement("svg[viewBox=\"0 0 1000 1000\"]");
 
   // Apply size settings
   const { imageCircleSize, svgCircleSize, adjustmentValue } = getRingSizes(ringSize);
