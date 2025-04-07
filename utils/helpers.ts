@@ -1,6 +1,8 @@
 import { type DBSchema, type IDBPDatabase, openDB } from "idb";
-import { GameMode } from "@/utils/game-data-storage";
+
 import type { IConfig, ISound } from "@/utils/storage";
+
+import { GameMode } from "@/utils/game-data-storage";
 
 export const isX01 = () => document.getElementById("ad-ext-game-variant")?.textContent === GameMode.X01;
 export const isBullOff = () => document.getElementById("ad-ext-game-variant")?.textContent === "Bull-off";
@@ -512,6 +514,15 @@ export async function backgroundFetch(url: string, options: RequestInit = {}): P
       options,
     });
 
+    // Check if response is undefined (communication issue)
+    if (response === undefined) {
+      console.error("Background fetch failed: No response from background script");
+      return {
+        ok: false,
+        error: "No response from background script. This may be due to a messaging issue.",
+      };
+    }
+
     // If response suggests using chunked download for large files
     if (response.ok && response.tooLarge && response.suggestChunked) {
       console.log("File too large for regular backgroundFetch, using chunkedBackgroundFetch instead");
@@ -551,6 +562,15 @@ export async function chunkedBackgroundFetch(url: string, options: RequestInit =
       chunked: true,
       action: "start",
     });
+
+    // Check if startResponse is undefined (communication issue)
+    if (startResponse === undefined) {
+      console.error("Chunked background fetch failed: No response from background script");
+      return {
+        ok: false,
+        error: "No response from background script. This may be due to a messaging issue.",
+      };
+    }
 
     if (!startResponse.ok) {
       return {

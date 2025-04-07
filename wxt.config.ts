@@ -14,6 +14,7 @@ export default defineConfig({
   webExt: {
     startUrls: [ "https://play.autodarts.io/" ],
   },
+  modules: [ "@wxt-dev/webextension-polyfill" ],
   imports: {
     presets: [ "vue" ],
     addons: {
@@ -32,11 +33,11 @@ export default defineConfig({
     permissions: [
       "storage",
       // "background",
-      // "*://discord.com/api/webhooks/*",
     ],
     background: {
       service_worker: "background.js",
       type: "module",
+      persistent: false,
     },
     name: "Tools for Autodarts",
     description: "Tools for Autodarts enhances the gaming experience on autodarts.io",
