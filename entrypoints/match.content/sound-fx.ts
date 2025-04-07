@@ -430,6 +430,36 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData, from
 
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0) {
+    const playerName = currentPlayer?.name;
+
+    if (isBot) {
+      console.log("Autodarts Tools: Bot player detected");
+      playSound("ambient_bot");
+    } else if (playerName) {
+      console.log("Autodarts Tools: Player starting game", playerName);
+      // Try to play the player name (both regular and underscore version)
+      const playerNameLower = playerName.toLowerCase();
+      const playerNameWithUnderscores = playerNameLower.replace(/\s+/g, "_");
+      const hasPlayerNameSound = config.soundFx.sounds?.some(sound =>
+        sound.enabled && sound.triggers && (
+          sound.triggers.includes(`ambient_${playerNameLower}`)
+          || sound.triggers.includes(`ambient_${playerNameWithUnderscores}`)
+          || sound.triggers.includes(playerNameLower)
+          || sound.triggers.includes(playerNameWithUnderscores)
+        ),
+      );
+
+      if (hasPlayerNameSound) {
+        console.log(`Autodarts Tools: Found player name sound for "${playerNameLower}" or "${playerNameWithUnderscores}"`);
+        // Try both versions of the name with ambient_ prefix
+        playSound(`ambient_${playerNameLower}`);
+        if (playerNameWithUnderscores !== playerNameLower) {
+          playSound(`ambient_${playerNameWithUnderscores}`);
+        }
+      }
+    }
+
+    // Play gameon after player name/bot
     if (!isSoundInQueue("gameon") && !fromWebSocket) playSound("ambient_gameon");
   } else if (oldGameData?.match?.player !== undefined
     && gameData.match.player !== undefined

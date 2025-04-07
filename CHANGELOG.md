@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
   - "Opponents" option only shows zoom view when opponents are throwing
 
 ### Changed
+- Improved sound order in Caller and Sound FX to play player name/bot sounds before "game on" announcement
 - Updated wxt package to 0.20
 - Enhanced Audio Unlock Mechanism and Updated Silent Audio Format
 - Refactored Game Data Processing and Updated Ring Styles Logic

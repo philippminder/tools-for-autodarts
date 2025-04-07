@@ -366,9 +366,6 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData, from
 
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0 && gameData.match.variant !== "Bull-off") {
-    // Only play gameon if it's not already in queue
-
-    if (!isSoundInQueue("gameon") && !fromWebSocket) playSound("gameon");
     const playerName = gameData.match.players?.[gameData.match.player]?.name;
     const isBot = !!gameData.match.players?.[gameData.match.player]?.cpuPPR;
     if (isBot) {
@@ -395,6 +392,9 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData, from
         }
       }
     }
+
+    // Play gameon after player name/bot (moved from beginning of block)
+    if (!isSoundInQueue("gameon") && !fromWebSocket) playSound("gameon");
   } else if (oldGameData?.match?.player !== undefined
     && gameData.match.player !== undefined
     && oldGameData.match.player !== gameData.match.player

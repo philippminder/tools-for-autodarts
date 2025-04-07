@@ -16,7 +16,7 @@
       type === 'danger' && 'border border-solid border-[var(--chakra-colors-borderRed)] bg-[var(--chakra-colors-glassRed)] text-[var(--chakra-colors-white)] enabled:hover:bg-[rgba(255,0,0,0.3)] enabled:active:bg-[rgba(255,0,0,0.3)]',
 
       // Default size (md)
-      size === 'md' && 'h-[var(--chakra-sizes-10)] min-w-[var(--chakra-sizes-10)] pe-[var(--chakra-space-4)] ps-[var(--chakra-space-4)] text-[var(--chakra-fontSizes-md)]',
+      size === 'md' && 'h-[var(--chakra-sizes-10)] min-w-[var(--chakra-sizes-10)] pe-[var(--chakra-space-4)] ps-[var(--chakra-space-4)]',
 
       // Small size
       size === 'sm' && 'h-8 max-h-8 min-w-8 pe-[var(--chakra-space-3)] ps-[var(--chakra-space-3)] text-[14px]',
@@ -25,8 +25,8 @@
       size === 'xs' && 'h-6 max-h-6 min-w-6 pe-[var(--chakra-space-2)] ps-[var(--chakra-space-2)] text-[14px]',
 
       // Large sizes
-      size === 'lg' && 'h-[var(--chakra-sizes-12)] min-w-[var(--chakra-sizes-12)] pe-[var(--chakra-space-6)] ps-[var(--chakra-space-6)] text-[var(--chakra-fontSizes-lg)]',
-      size === 'xl' && 'h-[var(--chakra-sizes-16)] min-w-[var(--chakra-sizes-16)] pe-[var(--chakra-space-8)] ps-[var(--chakra-space-8)] text-[var(--chakra-fontSizes-xl)]',
+      size === 'lg' && 'h-[var(--chakra-sizes-12)] min-w-[var(--chakra-sizes-12)] pe-[var(--chakra-space-6)] ps-[var(--chakra-space-6)]',
+      size === 'xl' && 'h-[var(--chakra-sizes-16)] min-w-[var(--chakra-sizes-16)] pe-[var(--chakra-space-8)] ps-[var(--chakra-space-8)]',
 
       'transition-colors',
       !auto && 'w-full',
@@ -62,10 +62,6 @@
 import { twMerge } from "tailwind-merge";
 import _ from "lodash";
 
-defineOptions({
-  inheritAttrs: false,
-});
-
 const props = withDefaults(defineProps<{
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   loading?: boolean;
@@ -80,6 +76,10 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits([ "click" ]);
+
+defineOptions({
+  inheritAttrs: false,
+});
 
 function handleClick() {
   if (!props.disabled && !props.loading) {
