@@ -1,6 +1,7 @@
+import type { IBoard } from "@/utils/board-data-storage";
+
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { waitForElementWithTextContent } from "@/utils";
-import type { IBoard } from "@/utils/board-data-storage";
 import { AutodartsToolsBoardData } from "@/utils/board-data-storage";
 
 let boardDataWatcherUnwatch: any;
@@ -43,8 +44,25 @@ export async function nextPlayerOnTakeOutStuck() {
       if (takeOutTimout) clearInterval(takeOutTimout);
     }
 
+    // Make sure event listeners are properly registered and maintained in fullscreen mode
     if (!hasEventListener("click", remove)) {
       document.addEventListener("click", remove);
+    }
+
+    // Handle fullscreen changes
+    function handleFullscreenChange() {
+      if (document.fullscreenElement) {
+        console.log("Autodarts Tools: Fullscreen mode detected, ensuring next player on takeout stuck still works");
+        // Re-register click event if needed in fullscreen
+        if (!hasEventListener("click", remove)) {
+          document.addEventListener("click", remove);
+        }
+      }
+    }
+
+    // Add fullscreen change handler if not already present
+    if (!hasEventListener("fullscreenchange", handleFullscreenChange)) {
+      document.addEventListener("fullscreenchange", handleFullscreenChange);
     }
 
     if (boardDataWatcherUnwatch) return;
@@ -56,8 +74,21 @@ export async function nextPlayerOnTakeOutStuck() {
       if (takeOutTimout) clearInterval(takeOutTimout);
 
       if (boardData.status === "Takeout in progress") {
-        const nextBtn = await waitForElementWithTextContent("button", "Next", 1000);
-        if (!nextBtn) return;
+        // Use a more robust selector that works in both normal and fullscreen modes
+        // Increase timeout to allow more time for DOM to settle in fullscreen mode
+        let nextBtn = await waitForElementWithTextContent("button", "Next", 2000);
+        if (!nextBtn) {
+          console.warn("Autodarts Tools: Next button not found, retrying with different approach");
+          // Try another approach if the button wasn't found
+          const buttons = document.querySelectorAll("button");
+          for (const btn of buttons) {
+            if (btn.textContent?.trim() === "Next") {
+              nextBtn = btn as HTMLElement;
+              break;
+            }
+          }
+          if (!nextBtn) return;
+        }
 
         let startSec = config.nextPlayerOnTakeOutStuck.sec;
 
@@ -77,6 +108,7 @@ export async function nextPlayerOnTakeOutStuck() {
               clearInterval(takeOutTimout);
             }
             if (nextBtn instanceof HTMLElement) {
+              console.log("Autodarts Tools: Auto-clicking Next button");
               nextBtn.click();
             }
             const element = document.getElementById("ad-ext_next-leg-text");
@@ -89,12 +121,30 @@ export async function nextPlayerOnTakeOutStuck() {
       }
     });
   } catch (e) {
-    console.error("Autodarts Tools: Next player ion takeout stuck - Error: ", e);
+    console.error("Autodarts Tools: Next player on takeout stuck - Error: ", e);
   }
 }
 
 export function nextPlayerOnTakeOutStuckOnRemove() {
   if (boardDataWatcherUnwatch) {
     boardDataWatcherUnwatch();
+  }
+
+  // Clean up fullscreen event listener
+  const fullscreenHandler = eventListenersMap.get("fullscreenchange")?.find(
+    callback => callback.name === "handleFullscreenChange",
+  );
+
+  if (fullscreenHandler) {
+    document.removeEventListener("fullscreenchange", fullscreenHandler);
+  }
+
+  // Clean up click handler
+  const clickHandler = eventListenersMap.get("click")?.find(
+    callback => callback.name === "remove",
+  );
+
+  if (clickHandler) {
+    document.removeEventListener("click", clickHandler);
   }
 }

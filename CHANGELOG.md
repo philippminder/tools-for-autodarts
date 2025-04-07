@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2025-04-08
+
+### Fixed
+- Fixed issue where next-player-on-take-out-stuck feature wasn't working in fullscreen mode
+- Added fullscreen event detection to ensure proper feature functionality in all screen modes
+
 ## [2.1.0] - 2025-04-07
 
 ### Added
