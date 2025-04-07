@@ -131,6 +131,7 @@ export interface IConfig {
     position: "bottom-right" | "bottom-left" | "center";
     level: number;
     mode: "live" | "image";
+    zoomOn: "everyone" | "opponents";
   };
   quickCorrection: {
     enabled: boolean;
@@ -297,7 +298,7 @@ export interface IFriend {
 }
 
 export const defaultConfig: IConfig = {
-  version: 4,
+  version: 5,
   discord: {
     enabled: false,
     manually: false,
@@ -411,6 +412,7 @@ export const defaultConfig: IConfig = {
     position: "bottom-right",
     level: 3,
     mode: "live",
+    zoomOn: "everyone",
   },
   quickCorrection: {
     enabled: false,

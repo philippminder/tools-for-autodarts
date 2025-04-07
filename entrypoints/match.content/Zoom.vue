@@ -6,7 +6,7 @@
     >
   </div>
   <div
-    v-if="boardImages.length > 0 && throws > 0 && position !== 'center'"
+    v-if="boardImages.length > 0 && throws > 0 && position !== 'center' && shouldShowZoom"
     :class="twMerge(
       'pointer-events-none fixed bottom-4 mx-auto flex max-w-[1366px] justify-end',
       position === 'bottom-right' ? 'right-4' : 'left-4',
@@ -45,13 +45,16 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
+
 import type { IBoardImages } from "@/utils/board-image-storage";
-import { AutodartsToolsBoardImages } from "@/utils/board-image-storage";
 import type { IGameData } from "@/utils/game-data-storage";
-import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import type { IThrow } from "@/utils/websocket-helpers";
+
+import { AutodartsToolsBoardImages } from "@/utils/board-image-storage";
+import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { waitForElement } from "@/utils";
+import { getUserIdFromToken } from "@/utils/helpers";
 
 const defaultBoardImage = browser.runtime.getURL("/images/board.png");
 const boardImages = ref<string[]>([
@@ -65,6 +68,8 @@ const leftPosition = ref<number>(0);
 const zoomLevel = ref<number>(1.5);
 const zoomContainerHeight = ref<number>(128); // Default fallback height
 const position = ref<"bottom-right" | "bottom-left" | "center">("bottom-right");
+const currentUserId = ref<string | null>(null);
+const isOpponentPlaying = ref<boolean>(false);
 
 // Store divs for access from other functions
 const zoomDiv1 = ref<HTMLElement | null>(null);
@@ -81,6 +86,22 @@ const filteredBoardImages = computed(() => {
   return boardImages.value.filter(image => image !== "");
 });
 
+const shouldShowZoom = computed(() => {
+  if (!config.value?.zoom) return true;
+
+  const zoomOn = config.value.zoom.zoomOn || "everyone";
+
+  if (zoomOn === "everyone") {
+    // Show zoom for every dart
+    return true;
+  } else if (zoomOn === "opponents") {
+    // Only show zoom for opponent throws
+    return isOpponentPlaying.value;
+  }
+
+  return true;
+});
+
 function checkNavigationWidth() {
   const navigationElement = document.querySelector("#root .navigation");
   if (navigationElement) {
@@ -90,6 +111,18 @@ function checkNavigationWidth() {
     } else {
       leftPosition.value = 0;
     }
+  }
+}
+
+// Check if current player is an opponent
+async function updatePlayerStatus(gameData: IGameData) {
+  if (!currentUserId.value) {
+    currentUserId.value = await getUserIdFromToken();
+  }
+
+  if (gameData.match?.players?.length && currentUserId.value) {
+    // If the current player's ID is different from the user's ID, it's an opponent
+    isOpponentPlaying.value = gameData.match.players[gameData.match.player].userId !== currentUserId.value;
   }
 }
 
@@ -136,6 +169,7 @@ function updateZoomDivs() {
     // DONT USE TAILWIND CSS HERE - USE DEFAULT CSS STYLES
     if (!div) return;
     if (throws.value - 1 < index) return;
+    if (!shouldShowZoom.value) return;
 
     // Clear the div first
     div.innerHTML = "";
@@ -223,6 +257,9 @@ onMounted(async () => {
   zoomLevel.value = config.value.zoom.level;
   position.value = config.value.zoom.position;
 
+  // Get user ID on mount
+  currentUserId.value = await getUserIdFromToken();
+
   await AutodartsToolsBoardImages.setValue({
     images: [],
   });
@@ -242,6 +279,9 @@ onMounted(async () => {
   // Also update the AutodartsToolsGameData.watch to call updateZoomDivs
   AutodartsToolsGameData.watch(async (_gameData: IGameData, _previousGameData: IGameData) => {
     if (!_gameData.match?.turns?.length) return;
+
+    // Update player status to check if current player is opponent
+    await updatePlayerStatus(_gameData);
 
     const currentThrows = _gameData.match?.turns[0]?.throws.length ?? 0;
     throws.value = currentThrows;
@@ -263,6 +303,9 @@ onMounted(async () => {
       await AutodartsToolsBoardImages.setValue({
         images: [],
       });
+
+      // Update player status when player changes
+      await updatePlayerStatus(_gameData);
 
       // Update heights when player changes as the container might have changed
       setTimeout(() => {

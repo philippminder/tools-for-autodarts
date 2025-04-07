@@ -42,6 +42,13 @@ async function migrateConfig(currentConfigVersion: number) {
           };
         }
         break;
+      case 4:
+        // Migration from version 4 to version 5
+        config.version = 5;
+        if (config.zoom && !config.zoom.zoomOn) {
+          config.zoom.zoomOn = "everyone";
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);

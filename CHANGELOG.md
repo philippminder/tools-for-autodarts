@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2025-04-07
+
+### Added
+- Added "Zoom On" filter for the Darts Zoom feature that allows controlling which throws to display:
+  - "Everyone" option shows zoom view for all players
+  - "Opponents" option only shows zoom view when opponents are throwing
+
+### Changed
+- Updated wxt package to 0.20
+- Enhanced Audio Unlock Mechanism and Updated Silent Audio Format
+- Refactored Game Data Processing and Updated Ring Styles Logic
+
+### Fixed
+- Fixed selection of segments in QuickCorrection feature
+
 ## [2.0.11] - 2025-04-4
 
 ### Added
@@ -117,12 +132,3 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fixed issue with redundant sound triggers during gameplay (Issue #78)
 - Fixed UI issue with Automatic Fullscreen component (Issue #77)
-
-## [2.0.2] - 2025-03-25
-
-### Added
-- New sound triggers for player transitions and bot players:
-  - `next_player`: Plays when switching to the next player (fallback if no player name sound exists)
-  - `bot`: Plays when the player is a CPU/bot player
-  - Support for player name sounds with spaces or underscores (e.g., `player_name` or `player name`)
-- Enhanced ambient sound system with new triggers:
