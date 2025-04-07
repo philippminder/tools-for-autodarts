@@ -227,35 +227,30 @@ const currentGrid = ref<string[][]>([]);
 const currentGridIndex = ref<number>(-1);
 
 watch(open, (newVal) => {
-  if (!newVal) {
-    deactivateThrow();
-  } else {
-    // Add keyboard event listener when the modal opens
+  if (newVal) {
     window.addEventListener("keydown", handleKeyDown);
+  } else {
+    window.removeEventListener("keydown", handleKeyDown);
   }
 });
 
 onUnmounted(() => {
-  // Clean up keyboard event listener
   window.removeEventListener("keydown", handleKeyDown);
 });
 
-// Function to handle numpad key presses
 function handleKeyDown(event: KeyboardEvent) {
   console.log("handleKeyDown", event.key);
 
   if (!open.value) return;
 
-  // Close correction on '+' or Escape
   if (event.key === "+" || event.key === "NumpadAdd" || event.key === "Escape") {
+    deactivateThrow(true);
     open.value = false;
     event.preventDefault();
     return;
   }
 
-  // Map numpad keys to grid positions
   switch (event.key) {
-    // Top row
     case "7":
     case "Numpad7":
       if (currentGrid.value[0] && currentGrid.value[0][0]) {
@@ -278,7 +273,6 @@ function handleKeyDown(event: KeyboardEvent) {
       event.preventDefault();
       break;
 
-    // Middle row
     case "4":
     case "Numpad4":
       if (currentGrid.value[1] && currentGrid.value[1][0]) {
@@ -301,7 +295,6 @@ function handleKeyDown(event: KeyboardEvent) {
       event.preventDefault();
       break;
 
-    // Bottom row
     case "1":
     case "Numpad1":
       if (currentGrid.value[2] && currentGrid.value[2][0]) {
@@ -324,7 +317,6 @@ function handleKeyDown(event: KeyboardEvent) {
       event.preventDefault();
       break;
 
-    // Special buttons
     case "0":
     case "Numpad0":
       applyCorrection("MISS");
@@ -344,17 +336,14 @@ function handleKeyDown(event: KeyboardEvent) {
   }
 }
 
-// Function to get the color for a specific cell
 function getCellColor(cell: string, rowIndex: number, cellIndex: number): string {
   if (currentGridIndex.value >= 0 && currentGridIndex.value < COLORS.length) {
-    // Use the index to get the corresponding color array
     const colorRow = rowIndex % 3;
     const colorCol = cellIndex % 3;
     const colorIndex = colorRow * 3 + colorCol;
     return COLORS[currentGridIndex.value][colorIndex];
   }
 
-  // Fallback colors based on cell type
   if (cell === "MISS") return "#202120";
   if (cell === "25") return "#FFFCE6";
   if (cell === "BULL") return "#EE5351";
@@ -366,8 +355,8 @@ function getCellColor(cell: string, rowIndex: number, cellIndex: number): string
   return "#202120";
 }
 
-// Detect clicks outside the correction container
 onClickOutside(correctionRef, () => {
+  deactivateThrow(false);
   open.value = false;
 });
 
@@ -379,16 +368,14 @@ onMounted(async () => {
   throw2.value = throwsContainer.querySelector("div:nth-of-type(3)");
   throw3.value = throwsContainer.querySelector("div:nth-of-type(4)");
 
-  // Add click event listeners to throw elements
   [ throw1.value, throw2.value, throw3.value ].forEach((throwEl) => {
     if (throwEl) {
       throwEl.addEventListener("click", () => openCorrection(throwEl));
     }
   });
 
-  // Add global keyboard listener for throw selection
   window.addEventListener("keydown", (event) => {
-    if (open.value) return; // Don't trigger if correction panel is already open
+    if (open.value) return;
 
     switch (event.key) {
       case "/":
@@ -411,30 +398,24 @@ onMounted(async () => {
 });
 
 function openCorrection(throwElement?: HTMLElement) {
-  // check if throwElement has class "ad-ext-turn-throw" - if yes, return
   if (!throwElement?.classList.contains("ad-ext-turn-throw")) return;
 
   if (throwElement) {
     const rect = throwElement.getBoundingClientRect();
     correctionContainerWidth.value = rect.width;
 
-    // Calculate the full width of the correction container (including the additional 7rem and margins)
-    const marginSize = 16; // 1rem = 16px, m-4 means 1rem margin on all sides
-    const fullWidth = correctionContainerWidth.value + 7 * 16 + marginSize; // Add left and right margins
+    const marginSize = 16;
+    const fullWidth = correctionContainerWidth.value + 7 * 16 + marginSize;
 
-    // Calculate the initial position (centered under the throw element)
     let initialX = rect.left;
 
-    // Check for window boundaries
     const windowWidth = window.innerWidth;
 
-    // Ensure left boundary isn't crossed (accounting for the translateX(-3.5rem) and left margin)
-    const leftBoundary = (3.5 * 16) - marginSize; // 3.5rem in pixels minus the left margin
+    const leftBoundary = (3.5 * 16) - marginSize;
     if (initialX < leftBoundary) {
       initialX = leftBoundary;
     }
 
-    // Ensure right boundary isn't crossed (accounting for right margin)
     const rightEdge = initialX + fullWidth - (3.5 * 16);
     if (rightEdge > windowWidth) {
       initialX = windowWidth - fullWidth + (3.5 * 16);
@@ -444,10 +425,8 @@ function openCorrection(throwElement?: HTMLElement) {
     const height = throwElement.clientHeight;
     correctionContainerY.value = rect.top + height;
 
-    // Get the inner text from the throwElement
     const throwText = throwElement.innerText.trim();
 
-    // Find which array in FIELDS contains this text
     findGridForThrow(throwText);
   }
 
@@ -458,21 +437,48 @@ function findGridForThrow(throwText: string) {
   currentGrid.value = [];
   currentGridIndex.value = -1;
 
-  for (let i = 0; i < FIELDS.length; i++) {
-    if (FIELDS[i].includes(throwText)) {
-      // Found the matching array, restructure it into a 3x3 grid
-      currentGrid.value = [
-        FIELDS[i].slice(0, 3),
-        FIELDS[i].slice(3, 6),
-        FIELDS[i].slice(6, 9),
-      ];
-      currentGridIndex.value = i;
-      break;
+  if (throwText.startsWith("S")) {
+    for (let i = 0; i < FIELDS.length; i++) {
+      if (FIELDS[i][1] === throwText) {
+        currentGrid.value = [
+          FIELDS[i].slice(0, 3),
+          FIELDS[i].slice(3, 6),
+          FIELDS[i].slice(6, 9),
+        ];
+        currentGridIndex.value = i;
+        break;
+      }
+    }
+  } else if (throwText.startsWith("D")) {
+    for (let i = 0; i < FIELDS.length; i++) {
+      if (FIELDS[i][4] === throwText) {
+        currentGrid.value = [
+          FIELDS[i].slice(0, 3),
+          FIELDS[i].slice(3, 6),
+          FIELDS[i].slice(6, 9),
+        ];
+        currentGridIndex.value = i;
+        break;
+      }
+    }
+  } else if (throwText.startsWith("T")) {
+    for (let i = 0; i < FIELDS.length; i++) {
+      if (FIELDS[i][7] === throwText) {
+        currentGrid.value = [
+          FIELDS[i].slice(0, 3),
+          FIELDS[i].slice(3, 6),
+          FIELDS[i].slice(6, 9),
+        ];
+        currentGridIndex.value = i;
+        break;
+      }
     }
   }
 }
 
-async function deactivateThrow() {
+async function deactivateThrow(submit: boolean = true) {
+  if (!submit) return;
+
   const gameData = await AutodartsToolsGameData.getValue();
   const matchId = gameData.match?.id;
 
@@ -481,7 +487,6 @@ async function deactivateThrow() {
     return;
   }
 
-  // Deactivate the current throw
   try {
     await browser.runtime.sendMessage({
       type: "fetch",
@@ -513,14 +518,12 @@ async function applyCorrection(value: string) {
 
   console.log(`Applying correction: ${value}`);
 
-  // Get coordinates from CORRECTIONS object
   const coords = CORRECTIONS[value];
   if (!coords && value !== "MISS") {
     console.error(`No coordinates found for value: ${value}`);
     return;
   }
 
-  // Construct the payload
   let payload;
 
   if (value === "MISS") {
@@ -545,11 +548,9 @@ async function applyCorrection(value: string) {
     };
   }
 
-  // Get auth token
   const authToken = await getAuthToken();
 
   try {
-    // Send the correction through the background script with PATCH method
     const response = await browser.runtime.sendMessage({
       type: "fetch",
       url: `https://api.autodarts.io/gs/v0/matches/${matchId}/throws`,
@@ -568,11 +569,8 @@ async function applyCorrection(value: string) {
     } else {
       console.error("Failed to apply correction:", response.statusText || response.error);
 
-      // Fallback method if authorization has expired
       console.log("Attempting fallback method...");
-      // TODO: Implement a reset mechanism if needed
 
-      // Try again after a short delay
       setTimeout(async () => {
         const retryResponse = await browser.runtime.sendMessage({
           type: "fetch",
@@ -581,7 +579,7 @@ async function applyCorrection(value: string) {
             method: "PATCH",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": await getAuthToken(), // Get fresh token
+              "Authorization": await getAuthToken(),
             },
             body: JSON.stringify(payload),
           },
@@ -599,6 +597,7 @@ async function applyCorrection(value: string) {
   }
 
   open.value = false;
+  deactivateThrow(true);
 }
 </script>
 

@@ -1,6 +1,6 @@
-import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
-import type { Runtime } from "wxt/browser";
+
+import type { Socket } from "socket.io-client";
 
 console.log("Background script loading...");
 
@@ -21,7 +21,7 @@ export default defineBackground({
     //   : "http://localhost:4455";
     const SOCKET_SERVER_URL = "https://adt-socket.tobias-thiele.de";
     let connectionStatus = "disconnected";
-    let ports: Runtime.Port[] = [];
+    let ports: Browser.runtime.Port[] = [];
 
     // Handle port connections from content scripts
     browser.runtime.onConnect.addListener((port) => {

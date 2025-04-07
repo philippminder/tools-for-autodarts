@@ -1,7 +1,6 @@
 /**
  * WebSocket capture script to be injected into the main world
  */
-import { defineUnlistedScript } from "wxt/sandbox";
 
 export default defineUnlistedScript(() => {
   console.log("[WebSocket Capture] Starting initialization");

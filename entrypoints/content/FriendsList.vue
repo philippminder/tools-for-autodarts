@@ -151,9 +151,12 @@
 
 <script setup lang="ts">
 import { isEqual, merge } from "lodash";
-import type { Runtime } from "wxt/browser";
 import { twMerge } from "tailwind-merge";
 import { watchIgnorable } from "@vueuse/core";
+
+import type { IConfig, IFriend, IPlayerInfo } from "@/utils/storage";
+import type { IGameData } from "@/utils/game-data-storage";
+
 import AppButton from "@/components/AppButton.vue";
 import AppSlide from "@/components/AppSlide.vue";
 import AppToggle from "@/components/AppToggle.vue";
@@ -161,8 +164,6 @@ import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppInvite from "@/components/AppInvite.vue";
 import FriendItem from "@/components/FriendItem.vue";
 import AppNotification from "@/components/AppNotification.vue";
-import type { IConfig, IFriend, IPlayerInfo } from "@/utils/storage";
-import type { IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus, defaultConfig } from "@/utils/storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { generateAvatar, getUserIdFromToken } from "@/utils/helpers";
@@ -201,7 +202,7 @@ const pendingInvitation = ref<{
   fromName: "",
   lobbyUrl: "",
 });
-let port: Runtime.Port | null = null;
+let port: Browser.runtime.Port | null = null;
 
 // Add notification state
 const notificationState = ref({

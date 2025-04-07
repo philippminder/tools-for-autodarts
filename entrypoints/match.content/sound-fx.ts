@@ -42,6 +42,7 @@ export async function soundFx() {
 
   try {
     config = await AutodartsToolsConfig.getValue();
+    const gameData = await AutodartsToolsGameData.getValue();
     console.log("Autodarts Tools: Config loaded", config?.soundFx?.sounds?.length || 0, "sounds available");
 
     // Initialize audio player for Safari compatibility
@@ -58,10 +59,12 @@ export async function soundFx() {
         }
 
         debounceTimer = window.setTimeout(() => {
-          processGameData(gameData, oldGameData);
+          processGameData(gameData, oldGameData, true);
           debounceTimer = null;
         }, DEBOUNCE_DELAY);
       });
+
+      processGameData(gameData, gameData);
     }
   } catch (error) {
     console.error("Autodarts Tools: soundFx initialization error", error);
@@ -405,7 +408,7 @@ function removeInteractionNotification(): void {
 /**
  * Process game data to trigger sounds based on game events
  */
-async function processGameData(gameData: IGameData, oldGameData: IGameData): Promise<void> {
+async function processGameData(gameData: IGameData, oldGameData: IGameData, fromWebSocket: boolean = false): Promise<void> {
   if (!gameData.match || !gameData.match.turns?.length) return;
 
   const editMode: boolean = gameData.match.activated !== undefined && gameData.match.activated >= 0;
@@ -422,7 +425,7 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData): Pro
 
   // Play gameon sound if it's the first round and variant is not Bull-off
   if (gameData.match.round === 1 && gameData.match.turns[0].throws.length === 0 && gameData.match.player === 0) {
-    playSound("ambient_gameon");
+    if (!isSoundInQueue("gameon") && !fromWebSocket) playSound("ambient_gameon");
   } else if (oldGameData?.match?.player !== undefined
     && gameData.match.player !== undefined
     && oldGameData.match.player !== gameData.match.player
@@ -1691,4 +1694,21 @@ function stopAllSounds(): void {
   // Reset playing flags
   isPlaying = false;
   isPlaying2 = false;
+}
+
+// Helper function to check if a sound trigger is already in queue
+function isSoundInQueue(trigger: string): boolean {
+  // Find all sounds that match the trigger from config
+  const matchingSounds = config.soundFx.sounds?.filter(sound =>
+    sound.enabled && sound.triggers && sound.triggers.includes(trigger),
+  ) || [];
+
+  // Check if any of the matching sounds are in the queue
+  return soundQueue.some(queuedSound =>
+    matchingSounds.some(matchingSound =>
+      queuedSound.url === matchingSound.url
+      && queuedSound.base64 === matchingSound.base64
+      && queuedSound.soundId === matchingSound.soundId,
+    ),
+  );
 }

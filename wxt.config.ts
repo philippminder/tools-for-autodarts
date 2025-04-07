@@ -1,4 +1,5 @@
 import { URL, fileURLToPath } from "node:url";
+
 import { defineConfig } from "wxt";
 import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
@@ -7,7 +8,10 @@ import RadixVueResolver from "radix-vue/resolver";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
-  runner: {
+  // runner: { // Deprecated in v0.20
+  //   startUrls: [ "https://play.autodarts.io/" ],
+  // },
+  webExt: {
     startUrls: [ "https://play.autodarts.io/" ],
   },
   imports: {
@@ -73,9 +77,6 @@ export default defineConfig({
         "src": fileURLToPath(new URL("./", import.meta.url)),
       },
     },
-    ssr: {
-      noExternal: [ "webextension-polyfill" ],
-    },
     plugins: [
       vue(),
 
@@ -86,12 +87,14 @@ export default defineConfig({
           "vue/macros",
           "@vueuse/core",
           {
-            wxt: [
+            "#imports": [
               "browser",
               "defineBackground",
               "defineContentScript",
               "createShadowRootUi",
-              "createIntegratedUi",
+              "defineUnlistedScript",
+              "storage",
+              "injectScript",
               "defineUnlistedScript",
             ],
           },
@@ -107,5 +110,12 @@ export default defineConfig({
         ],
       }),
     ],
+    build: {
+      terserOptions: {
+        compress: {
+          pure_funcs: [ "console.log", "console.debug" ],
+        },
+      },
+    },
   }),
 });

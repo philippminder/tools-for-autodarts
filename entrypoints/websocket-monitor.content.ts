@@ -1,7 +1,6 @@
 /**
  * Content script that injects the WebSocket capture script
  */
-import { injectScript } from "wxt/client";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
 
 export default defineContentScript({

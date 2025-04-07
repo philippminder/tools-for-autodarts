@@ -1,5 +1,3 @@
-import type { WxtStorageItem } from "wxt/storage";
-import { storage } from "wxt/storage";
 import type { IMatch } from "./websocket-helpers";
 
 export enum GameMode {

@@ -1,6 +1,3 @@
-import type { WxtStorageItem } from "wxt/storage";
-import { storage } from "wxt/storage";
-
 export interface IBoardImages {
   images: string[];
 }

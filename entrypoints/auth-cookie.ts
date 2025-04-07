@@ -1,7 +1,6 @@
 /**
  * Unlisted script to access the Authorization cookie
  */
-import { defineUnlistedScript } from "wxt/sandbox";
 
 export default defineUnlistedScript(() => {
   console.log("[Auth Cookie] Starting initialization");

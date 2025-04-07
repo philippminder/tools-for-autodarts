@@ -1,7 +1,7 @@
 {
   "name": "autodarts-tools",
   "description": "Autodarts Tools enhances the gaming experience on autodarts.io",
-  "version": "2.0.12",
+  "version": "2.1.0",
   "type": "module",
   "author": {
     "name": "Tobias Thiele",
@@ -65,7 +65,7 @@
     "unplugin-vue-components": "^0.27.0",
     "vue-eslint-parser": "^9.4.3",
     "vue-tsc": "^2.0.24",
-    "wxt": "^0.19.29",
+    "wxt": "^0.20.0",
     "zx": "^7.2.3"
   },
   "packageManager": "yarn@1.22.22+sha256.c17d3797fb9a9115bf375e31bfd30058cac6bc9c3b8807a3d8cb2094794b51ca"

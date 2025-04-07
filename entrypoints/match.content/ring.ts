@@ -75,8 +75,6 @@ async function applyRingStyles() {
 
   // Get image holder and elements
   const imageHolder = boardViewContainer.querySelector("svg[viewBox=\"0 0 1000 1000\"]")?.parentElement;
-  console.log(imageHolder);
-
   if (!imageHolder) return;
   imageHolder.classList.add("adt-boardview-image");
 

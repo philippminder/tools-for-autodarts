@@ -1,5 +1,3 @@
-import type { WxtStorageItem } from "wxt/storage";
-import { storage } from "wxt/storage";
 import type { BoardStatus } from "@/utils/types";
 import type { IPlayer } from "@/utils/websocket-helpers";
 
