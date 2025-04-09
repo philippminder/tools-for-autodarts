@@ -11,83 +11,165 @@ export default defineBackground({
       completed: boolean;
     }>();
 
-    // Processing logic for browser.runtime.onMessage
-    browser.runtime.onMessage.addListener((message, sender) => {
-      // Handle file download-related messages
-      if (message.type === "download-file") {
-        // Download file handler logic
-        const { fileData, mimeType, fileName } = message;
+    // Handle messages from content scripts
+    browser.runtime.onMessage.addListener(async (message, sender) => {
+      console.log("Background: Received message", message.type, "from", sender?.tab?.url || "unknown");
 
-        // Create a Blob from the file data and download it
-        const blob = new Blob([ fileData ], { type: mimeType });
-        const url = URL.createObjectURL(blob);
+      // Handle fetch requests with chunked download support
+      if (message.type === "fetch") {
+        try {
+          // Extract the URL and options from the message
+          const { url, options = {} } = message;
+          console.log("Background fetch:", url);
 
-        browser.downloads.download({
-          url,
-          filename: fileName,
-          saveAs: true,
-        }).then(() => {
-          URL.revokeObjectURL(url);
-        }).catch((error) => {
-          console.error("Error downloading file:", error);
-        });
+          // For chunked downloads of large files (like ZIP)
+          if (message.chunked) {
+            // Handle chunk requests
+            if (message.action === "start") {
+              // Start a new chunked download
+              return fetch(url, options).then(async (response) => {
+                if (!response.ok) {
+                  return {
+                    ok: false,
+                    status: response.status,
+                    statusText: response.statusText,
+                  };
+                }
 
-        return Promise.resolve({ success: true });
-      }
+                // Generate download ID
+                const downloadId = Math.random().toString(36).substring(2);
 
-      // Handle chunked file downloads
-      if (message.type === "download-chunked-start") {
-        const { downloadId, mimeType } = message;
-        downloadChunks.set(downloadId, {
-          chunks: [],
-          mimeType,
-          completed: false,
-        });
-        return Promise.resolve({ success: true });
-      }
+                // Get content type
+                const contentType = response.headers.get("Content-Type") || "application/octet-stream";
 
-      if (message.type === "download-chunked-part") {
-        const { downloadId, chunk, index } = message;
-        const download = downloadChunks.get(downloadId);
+                // Get blob data
+                const blob = await response.blob();
 
-        if (download) {
-          download.chunks[index] = chunk;
-          return Promise.resolve({ success: true });
+                // Convert to base64
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+
+                // Store the chunks when the file is loaded
+                return new Promise<{
+                  ok: boolean;
+                  downloadId: string;
+                  totalChunks: number;
+                  mimeType: string;
+                }>((resolve) => {
+                  reader.onload = () => {
+                    const base64data = reader.result as string;
+
+                    // Get base64 data only (remove the data:mimetype;base64, prefix)
+                    const base64Content = base64data.split(",")[1];
+
+                    // Split into chunks (2MB chunks to be safe)
+                    const chunkSize = 2 * 1024 * 1024; // 2MB
+                    const chunks: string[] = [];
+
+                    for (let i = 0; i < base64Content.length; i += chunkSize) {
+                      chunks.push(base64Content.slice(i, i + chunkSize));
+                    }
+
+                    // Store chunks in map
+                    downloadChunks.set(downloadId, {
+                      chunks,
+                      mimeType: contentType,
+                      completed: false,
+                    });
+
+                    resolve({
+                      ok: true,
+                      downloadId,
+                      totalChunks: chunks.length,
+                      mimeType: contentType,
+                    });
+                  };
+                });
+              });
+            } else if (message.action === "getChunk") {
+              // Return a specific chunk from a download
+              const { downloadId, chunkIndex } = message;
+              const download = downloadChunks.get(downloadId);
+
+              if (!download) {
+                return {
+                  ok: false,
+                  error: "Download not found",
+                };
+              }
+
+              // Return the requested chunk
+              return {
+                ok: true,
+                chunk: download.chunks[chunkIndex],
+                isLast: chunkIndex === download.chunks.length - 1,
+              };
+            } else if (message.action === "complete") {
+              // Clean up completed download
+              const { downloadId } = message;
+
+              if (downloadChunks.has(downloadId)) {
+                downloadChunks.delete(downloadId);
+              }
+
+              return { ok: true };
+            }
+          }
+
+          // For regular (non-chunked) fetches
+          return fetch(url, options)
+            .then(async (response) => {
+              if (response.ok) {
+                // If the response size is too large (>10MB), suggest chunked download
+                const contentLength = response.headers.get("Content-Length");
+                if (contentLength && Number.parseInt(contentLength, 10) > 10 * 1024 * 1024) {
+                  return {
+                    ok: true,
+                    tooLarge: true,
+                    suggestChunked: true,
+                  };
+                }
+
+                const blob = await response.blob();
+                // Convert blob to base64 to pass back to the content script
+                const reader = new FileReader();
+                return new Promise((resolve, reject) => {
+                  reader.onload = () => {
+                    const base64data = reader.result;
+                    resolve({
+                      ok: true,
+                      status: response.status,
+                      data: base64data,
+                    });
+                  };
+                  reader.onerror = () => reject(reader.error);
+                  reader.readAsDataURL(blob);
+                });
+              } else {
+                return {
+                  ok: false,
+                  status: response.status,
+                  statusText: response.statusText,
+                };
+              }
+            })
+            .catch((error) => {
+              console.error("Error in background fetch:", error);
+              return {
+                ok: false,
+                error: error instanceof Error ? error.message : String(error),
+              };
+            });
+        } catch (error) {
+          console.error("Error in background fetch:", error);
+          return {
+            ok: false,
+            error: error instanceof Error ? error.message : String(error),
+          };
         }
-
-        return Promise.resolve({ success: false, error: "Download not found" });
       }
 
-      if (message.type === "download-chunked-complete") {
-        const { downloadId, fileName } = message;
-        const download = downloadChunks.get(downloadId);
-
-        if (download) {
-          download.completed = true;
-
-          // Combine all chunks and download the file
-          const fileData = download.chunks.join("");
-          const blob = new Blob([ fileData ], { type: download.mimeType });
-          const url = URL.createObjectURL(blob);
-
-          browser.downloads.download({
-            url,
-            filename: fileName,
-            saveAs: true,
-          }).then(() => {
-            URL.revokeObjectURL(url);
-            downloadChunks.delete(downloadId);
-          }).catch((error) => {
-            console.error("Error downloading file:", error);
-          });
-
-          return Promise.resolve({ success: true });
-        }
-
-        return Promise.resolve({ success: false, error: "Download not found" });
-      }
-
-      return undefined;
+      return true; // Keep the message channel open for async responses
     });
   },
 });

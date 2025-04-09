@@ -35,11 +35,21 @@ export async function hideMenuInMatch() {
   if (!menuBarUL) return console.error("Autodarts Tools: No menu bar ul found");
   menuBarUL.insertBefore(menuHideBtn, menuBarUL.children[menuBarUL.children.length - 1]);
 
-  menuHideBtn.addEventListener("click", () => {
-    menuActive = !menuActive;
-    menuHideBtn.toggleAttribute("data-active", menuActive);
-    menu.style.display = menuActive ? "" : "none";
-  });
+  // Toggle menu function
+  const toggleMenu = (forceState?: boolean) => {
+    const shouldShowMenu = forceState !== undefined ? forceState : !menuActive;
+
+    if (shouldShowMenu !== menuActive) {
+      menuActive = shouldShowMenu;
+      menuHideBtn.toggleAttribute("data-active", menuActive);
+      menu.style.display = menuActive ? "" : "none";
+    }
+  };
+
+  menuHideBtn.addEventListener("click", () => toggleMenu());
+
+  // Initial state - hide menu
+  toggleMenu(false);
 }
 
 export async function hideMenuInMatchOnRemove() {

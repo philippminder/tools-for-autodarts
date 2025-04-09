@@ -94,7 +94,7 @@ export default defineContentScript({
           if (!gameDataWatcher) {
             gameDataWatcher = AutodartsToolsGameData.watch(async (value, oldValue) => {
               if (oldValue?.match?.variant === "Bull-off" && value?.match?.variant !== "Bull-off") {
-                clearMatch();
+                clearMatch(true);
                 await new Promise(resolve => setTimeout(resolve, 500));
                 return initMatch(ctx, url);
               }
@@ -195,7 +195,7 @@ async function initMatch(ctx, url: string) {
   }
 }
 
-function clearMatch() {
+function clearMatch(fromBullOff: boolean = false) {
   console.log("Autodarts Tools: Clearing match");
 
   if (!window.location.href.includes("boards")) activeMatchObserver?.disconnect();
@@ -206,8 +206,8 @@ function clearMatch() {
   tools.zoom?.remove();
   tools.quickCorrection?.remove();
   colorChangeOnRemove();
-  hideMenuInMatchOnRemove();
-  automaticFullscreenOnRemove();
+  if (!fromBullOff) hideMenuInMatchOnRemove();
+  if (!fromBullOff) automaticFullscreenOnRemove();
   winnerAnimationOnRemove();
   callerOnRemove();
   soundFxOnRemove();

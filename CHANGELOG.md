@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.0] - 2025-04-09
+## [2.1.3] - 2025-04-09
 
 ### Added
 - Added "Zoom On" filter for the Darts Zoom feature that allows controlling which throws to display:
