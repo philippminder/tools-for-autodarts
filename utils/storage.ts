@@ -1,5 +1,4 @@
 import type { BoardStatus } from "@/utils/types";
-import type { IPlayer } from "@/utils/websocket-helpers";
 
 export interface IConfig {
   version: number;
@@ -120,11 +119,6 @@ export interface IConfig {
   soundFx: {
     enabled: boolean;
     sounds: ISound[];
-  };
-  friendsList: {
-    enabled: boolean;
-    friends: IFriend[];
-    recentPlayers: IPlayer[];
   };
   zoom: {
     enabled: boolean;
@@ -291,12 +285,6 @@ export interface ILobbyStatus {
 
 export type TBoardStatus = BoardStatus | undefined;
 
-export interface IFriend {
-  userId?: string;
-  name: string;
-  avatarUrl: string;
-}
-
 export const defaultConfig: IConfig = {
   version: 5,
   discord: {
@@ -401,11 +389,6 @@ export const defaultConfig: IConfig = {
     size: 2,
     colorEnabled: true,
     color: "#000000",
-  },
-  friendsList: {
-    enabled: false,
-    friends: [],
-    recentPlayers: [],
   },
   zoom: {
     enabled: false,

@@ -1,15 +1,15 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
+
 import App from "./App.vue";
 import { migrationConfig } from "./migration-config";
-import FriendsList from "@/entrypoints/content/FriendsList.vue";
+
 import { waitForElement } from "@/utils";
 import { AutodartsToolsConfig, AutodartsToolsGlobalStatus, AutodartsToolsUrlStatus, defaultConfig } from "@/utils/storage";
 import { isiOS } from "@/utils/helpers";
 import Migration from "@/components/Migration.vue";
 
 let migrationModalUI: any;
-let friendsListUI: any;
 
 export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
@@ -90,10 +90,6 @@ export default defineContentScript({
     } catch (error) {
       console.error("Failed to check for migration data:", error);
     }
-
-    if (config && config.friendsList.enabled) {
-      await initFriendsList(ctx).catch(console.error);
-    }
   },
 });
 
@@ -117,28 +113,4 @@ async function initMigrationModal(ctx) {
     },
   });
   migrationModalUI.mount();
-}
-
-async function initFriendsList(ctx) {
-  await waitForElement("#root > div > div:nth-of-type(2)", 15000);
-  friendsListUI = await createShadowRootUi(ctx, {
-    name: "autodarts-tools-friends-list",
-    position: "inline",
-    anchor: "#root > div > div:nth-of-type(2)",
-    onMount: (container: any) => {
-      console.log("Autodarts Tools: Friends list initialized");
-      const app = createApp(FriendsList);
-      app.mount(container);
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        container.classList.add("dark");
-      }
-      return app;
-    },
-    onRemove: (app: any) => {
-      app?.unmount();
-      console.log("Autodarts Tools: Friends list removed");
-    },
-  });
-
-  friendsListUI.mount();
 }

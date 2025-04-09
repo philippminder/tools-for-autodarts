@@ -3,7 +3,7 @@
     v-if="enabled && config"
     class="fixed inset-0 z-[200] font-sans"
   >
-    <div v-if="settings" class="absolute inset-0 z-10 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+    <div v-if="settings" class="absolute inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <OnClickOutside
         @trigger="handleToggleSettings"
         class="gradient-bg relative w-full max-w-sm overflow-hidden rounded-md border border-white/10 p-6 shadow-lg"
@@ -87,6 +87,8 @@
         transform: `scale(${coordsElementScale})`,
         left: `${coordsElementX}px`,
         top: `${coordsElementY}px`,
+        cursor: isCoordsDragging ? 'grabbing' : 'grab',
+        zIndex: isCoordsDragging ? 100 : 10,
       }"
     >
       <div v-html="coords" />
@@ -103,6 +105,8 @@
         left: (scoreBoardElementX === 0 && scoreBoardElementY === 0) ? undefined : `${scoreBoardElementX}px`,
         top: (scoreBoardElementX === 0 && scoreBoardElementY === 0) ? undefined
           : `${scoreBoardElementY - Math.max(0, (gameData?.match?.players?.length - 2) * 68)}px`,
+        cursor: isScoreBoardDragging ? 'grabbing' : 'grab',
+        zIndex: isScoreBoardDragging ? 100 : 10,
       }"
     >
       <div
@@ -219,18 +223,20 @@
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack } from "radix-vue";
-import type { Ref } from "vue";
 import { OnClickOutside } from "@vueuse/components";
+
+import type { Ref } from "vue";
+import type {
+  IConfig,
+} from "@/utils/storage";
+import type { IGameData } from "@/utils/game-data-storage";
+
 import { waitForElement } from "@/utils";
 import {
   AutodartsToolsConfig,
   AutodartsToolsStreamingModeStatus,
 } from "@/utils/storage";
-import type {
-  IConfig,
-} from "@/utils/storage";
 import AppButton from "@/components/AppButton.vue";
-import type { IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 
 const enabled = ref(false);
@@ -238,17 +244,15 @@ const settings = ref(false);
 
 const coordsElement = ref<HTMLElement | null>(null);
 const coordsElementScale = ref(1);
-const {
-  x: coordsElementX,
-  y: coordsElementY,
-} = useDraggable(coordsElement);
+const coordsElementX = ref(0);
+const coordsElementY = ref(0);
+const isCoordsDragging = ref(false);
 
 const scoreBoardElement = ref<HTMLElement | null>(null);
 const scoreBoardScale = ref(1);
-const {
-  x: scoreBoardElementX,
-  y: scoreBoardElementY,
-} = useDraggable(scoreBoardElement);
+const scoreBoardElementX = ref(0);
+const scoreBoardElementY = ref(0);
+const isScoreBoardDragging = ref(false);
 
 const game = reactive<{
   title: string;
@@ -266,6 +270,93 @@ const streamingModeButton: Ref<HTMLAnchorElement | null> = ref(null);
 
 const showAvg = computed(() => config.value?.streamingMode.avg);
 
+// Custom drag handlers
+function initDraggable() {
+  let startX = 0;
+  let startY = 0;
+  let startElementX = 0;
+  let startElementY = 0;
+
+  // Function declarations
+  const onCoordsMouseMove = (e: MouseEvent) => {
+    if (isCoordsDragging.value) {
+      const dx = (e.clientX - startX) / coordsElementScale.value;
+      const dy = (e.clientY - startY) / coordsElementScale.value;
+      coordsElementX.value = startElementX + dx;
+      coordsElementY.value = startElementY + dy;
+    }
+  };
+
+  const onCoordsMouseUp = () => {
+    isCoordsDragging.value = false;
+    document.removeEventListener("mousemove", onCoordsMouseMove);
+    document.removeEventListener("mouseup", onCoordsMouseUp);
+  };
+
+  const onScoreBoardMouseMove = (e: MouseEvent) => {
+    if (isScoreBoardDragging.value) {
+      const dx = (e.clientX - startX) / scoreBoardScale.value;
+      const dy = (e.clientY - startY) / scoreBoardScale.value;
+      scoreBoardElementX.value = startElementX + dx;
+      scoreBoardElementY.value = startElementY + dy;
+    }
+  };
+
+  const onScoreBoardMouseUp = () => {
+    isScoreBoardDragging.value = false;
+    document.removeEventListener("mousemove", onScoreBoardMouseMove);
+    document.removeEventListener("mouseup", onScoreBoardMouseUp);
+  };
+
+  // Coords element drag handlers
+  const onCoordsMouseDown = (e: MouseEvent) => {
+    isCoordsDragging.value = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startElementX = coordsElementX.value;
+    startElementY = coordsElementY.value;
+    document.addEventListener("mousemove", onCoordsMouseMove);
+    document.addEventListener("mouseup", onCoordsMouseUp);
+  };
+
+  // Scoreboard element drag handlers
+  const onScoreBoardMouseDown = (e: MouseEvent) => {
+    isScoreBoardDragging.value = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startElementX = scoreBoardElementX.value;
+    startElementY = scoreBoardElementY.value;
+    document.addEventListener("mousemove", onScoreBoardMouseMove);
+    document.addEventListener("mouseup", onScoreBoardMouseUp);
+  };
+
+  // Add event listeners
+  if (coordsElement.value) {
+    coordsElement.value.addEventListener("mousedown", onCoordsMouseDown);
+  }
+
+  if (scoreBoardElement.value) {
+    scoreBoardElement.value.addEventListener("mousedown", onScoreBoardMouseDown);
+  }
+
+  // Return cleanup function
+  return () => {
+    if (coordsElement.value) {
+      coordsElement.value.removeEventListener("mousedown", onCoordsMouseDown);
+    }
+
+    if (scoreBoardElement.value) {
+      scoreBoardElement.value.removeEventListener("mousedown", onScoreBoardMouseDown);
+    }
+
+    document.removeEventListener("mousemove", onCoordsMouseMove);
+    document.removeEventListener("mouseup", onCoordsMouseUp);
+    document.removeEventListener("mousemove", onScoreBoardMouseMove);
+    document.removeEventListener("mouseup", onScoreBoardMouseUp);
+  };
+}
+
+// Set up drag functionality when elements are mounted
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   gameData.value = await AutodartsToolsGameData.getValue();
@@ -283,6 +374,7 @@ onMounted(async () => {
 
     await initStreamModeButton();
 
+    // Load saved positions and scales
     coordsElementScale.value = config.value?.streamingMode.coordsSettings?.scale || 1;
     scoreBoardScale.value = config.value?.streamingMode.scoreBoardSettings?.scale || 1;
     coordsElementX.value = config.value?.streamingMode.coordsSettings?.x || 0;
@@ -291,9 +383,21 @@ onMounted(async () => {
     scoreBoardElementY.value = config.value?.streamingMode.scoreBoardSettings?.y || 0;
 
     enabled.value = await AutodartsToolsStreamingModeStatus.getValue() || false;
+
+    // Initialize draggable elements after the DOM is updated
+    nextTick(() => {
+      initDraggable();
+    });
   } catch (e) {
     console.error("Autodarts Tools: Streaming Mode - initialization error", e);
   }
+});
+
+// Watch for reference changes and re-initialize dragging
+watch([ coordsElement, scoreBoardElement ], () => {
+  nextTick(() => {
+    initDraggable();
+  });
 });
 
 watch([ coordsElementScale, scoreBoardScale, coordsElementX, coordsElementY, scoreBoardElementX, scoreBoardElementY ], async () => {

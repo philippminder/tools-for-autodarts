@@ -142,7 +142,6 @@
 
             <!-- Third row of feature cards -->
             <TeamLobby @setting-change="updateConfig" class="feature-card" data-feature-index="5" />
-            <FriendsList @setting-change="updateConfig" class="feature-card" data-feature-index="6" />
           </div>
 
           <!-- Feature cards grid for Matches tab -->
@@ -237,6 +236,7 @@
 
 <script setup lang="ts">
 import { useDebounceFn, useStorage } from "@vueuse/core";
+
 import DiscordWebhooks from "./Settings/DiscordWebhooks.vue";
 import AutoStart from "./Settings/AutoStart.vue";
 import RecentLocalPlayers from "./Settings/RecentLocalPlayers.vue";
@@ -259,10 +259,11 @@ import Animations from "./Settings/Animations.vue";
 import Caller from "./Settings/Caller.vue";
 import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
-import FriendsList from "./Settings/FriendsList.vue";
 import Zoom from "./Settings/Zoom.vue";
 import QuickCorrection from "./Settings/QuickCorrection.vue";
+
 import type { IConfig, ISound } from "@/utils/storage";
+
 import { AutodartsToolsConfig, defaultConfig } from "@/utils/storage";
 import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, getAllCallerSoundsFromIndexedDB, getAllSoundFxFromIndexedDB, isIndexedDBAvailable, saveSoundFxToIndexedDB, saveSoundToIndexedDB } from "@/utils/helpers";
 import AppButton from "@/components/AppButton.vue";

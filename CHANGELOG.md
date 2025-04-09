@@ -2,27 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.1] - 2025-04-08
-
-### Fixed
-- Fixed issue where next-player-on-take-out-stuck feature wasn't working in fullscreen mode
-- Added fullscreen event detection to ensure proper feature functionality in all screen modes
-
 ## [2.1.0] - 2025-04-07
 
 ### Added
 - Added "Zoom On" filter for the Darts Zoom feature that allows controlling which throws to display:
   - "Everyone" option shows zoom view for all players
   - "Opponents" option only shows zoom view when opponents are throwing
+- Added reset positions button to the Streaming Mode settings to allow users to reset board and scoreboard positions and scales
 
 ### Changed
 - Improved sound order in Caller and Sound FX to play player name/bot sounds before "game on" announcement
 - Updated wxt package to 0.20
 - Enhanced Audio Unlock Mechanism and Updated Silent Audio Format
 - Refactored Game Data Processing and Updated Ring Styles Logic
+- Updated button styling and icon for the reset positions functionality in Streaming Mode
+
+### Removed
+- Removed Friends List feature as there is now an official friends list feature available
 
 ### Fixed
 - Fixed selection of segments in QuickCorrection feature
+- Fixed issue where next-player-on-take-out-stuck feature wasn't working in fullscreen mode
+- Added fullscreen event detection to ensure proper feature functionality in all screen modes
 
 ## [2.0.11] - 2025-04-4
 

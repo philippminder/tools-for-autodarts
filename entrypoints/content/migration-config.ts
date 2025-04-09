@@ -18,11 +18,7 @@ async function migrateConfig(currentConfigVersion: number) {
       case 1:
         // Migration from version 1 to version 2
         config.version = 2;
-        if (!config.friendsList) {
-          config.friendsList = {
-            ...defaultConfig.friendsList,
-          };
-        }
+        // friendsList removed
         break;
       case 2:
         // Migration from version 2 to version 3

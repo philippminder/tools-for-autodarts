@@ -135,6 +135,19 @@
                   class="w-full rounded-md border border-white/10 bg-transparent px-3 py-2 outline-none placeholder:opacity-50"
                 >
               </div>
+
+              <!-- Reset Positions Button -->
+              <div class="mt-6 grid grid-cols-[auto_1fr] items-center gap-4">
+                <AppButton
+                  @click="handleResetPositions"
+                  type="danger"
+                  class="whitespace-nowrap"
+                >
+                  <span class="icon-[pixelarticons--reload] mr-2" />
+                  <span>Reset Positions</span>
+                </AppButton>
+                <p>Reset the board and scoreboard positions and scales to default</p>
+              </div>
             </div>
           </div>
         </div>
@@ -178,6 +191,7 @@
 import AppButton from "../AppButton.vue";
 import AppToggle from "../AppToggle.vue";
 import AppRadioGroup from "../AppRadioGroup.vue";
+
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
@@ -246,5 +260,25 @@ function handleStreamingModeBackgroundReset() {
   if (config.value) {
     config.value.streamingMode.image = "";
   }
+}
+
+async function handleResetPositions() {
+  if (!config.value) return;
+
+  // Reset coordinates and scoreboard positions and scales to default values
+  config.value.streamingMode.coordsSettings = {
+    scale: 1,
+    x: 0,
+    y: 0,
+  };
+
+  config.value.streamingMode.scoreBoardSettings = {
+    scale: 1,
+    x: 0,
+    y: 0,
+  };
+
+  // Save the updated config
+  await AutodartsToolsConfig.setValue(toRaw(config.value));
 }
 </script>
