@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.4] - 2025-04-16
+
+### Changed
+- Enhanced Discord webhooks with live update support when enabled
+
+### Fixed
+- Fixed keyboard shortcut conflicts in QuickCorrection feature to only prevent default behavior for numpad keys
+- Fixed Automatic Next Leg feature to properly advance game progression
+- Adjusted Caller and Sound FX features to prevent playing sounds from old matches
+
 ## [2.1.3] - 2025-04-09
 
 ### Added

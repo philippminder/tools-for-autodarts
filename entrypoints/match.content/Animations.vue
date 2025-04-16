@@ -23,8 +23,10 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
-import { AutodartsToolsConfig } from "@/utils/storage";
+
 import type { IGameData } from "@/utils/game-data-storage";
+
+import { AutodartsToolsConfig } from "@/utils/storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 
 // Constants

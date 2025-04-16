@@ -114,7 +114,22 @@ async function sendWebhook() {
     const lobbyLinkElement = await waitForElement("#root input") as HTMLInputElement;
     const lobbyLink = lobbyLinkElement.value.split("#")[0];
 
-    const config = await AutodartsToolsConfig.getValue();
+    let config = await AutodartsToolsConfig.getValue();
+    await AutodartsToolsConfig.setValue({
+      ...config,
+      discord: {
+        ...config.discord,
+        autoStartAfterTimer: {
+          enabled: config.discord.autoStartAfterTimer?.enabled ?? false,
+          minutes: config.discord.autoStartAfterTimer?.minutes ?? 5,
+          stream: config.discord.autoStartAfterTimer?.stream ?? false,
+          matchId: lobbyLink,
+          messageId: config.discord.autoStartAfterTimer?.messageId ?? "",
+        },
+      },
+    });
+    config = await AutodartsToolsConfig.getValue();
+
     const lobbyData = await AutodartsToolsLobbyData.getValue();
 
     if (!lobbyLink) return;
@@ -273,7 +288,7 @@ function startAutoStartTimer(minutes: number) {
             console.log("Autodarts Tools: Discord Webhooks - Updating Discord message");
 
             // Get the current config
-            const config = await AutodartsToolsConfig.getValue();
+            let config = await AutodartsToolsConfig.getValue();
 
             // Edit the message to indicate the game has started
             // Prepare fields for the updated embed
@@ -314,6 +329,25 @@ function startAutoStartTimer(minutes: number) {
                 ],
               }),
             });
+
+            const messageData = await response.json();
+            const messageId = messageData.id;
+
+            config = await AutodartsToolsConfig.getValue();
+            await AutodartsToolsConfig.setValue({
+              ...config,
+              discord: {
+                ...config.discord,
+                autoStartAfterTimer: {
+                  enabled: config.discord.autoStartAfterTimer?.enabled ?? false,
+                  minutes: config.discord.autoStartAfterTimer?.minutes ?? 5,
+                  stream: config.discord.autoStartAfterTimer?.stream ?? false,
+                  matchId: config.discord.autoStartAfterTimer?.matchId ?? "",
+                  messageId,
+                },
+              },
+            });
+            config = await AutodartsToolsConfig.getValue();
 
             console.log("Autodarts Tools: Discord Webhook - Message updated:", await response.json());
           } catch (error) {

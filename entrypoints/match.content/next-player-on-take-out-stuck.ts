@@ -34,12 +34,11 @@ export async function nextPlayerOnTakeOutStuck() {
     console.warn("Autodarts Tools: Next player on take out stuck - TEST THIS WITH LIVE BOARD");
 
     const config = await AutodartsToolsConfig.getValue();
-    if (!config || !config.nextPlayerOnTakeOutStuck || !config.nextPlayerOnTakeOutStuck.enabled) return;
 
     let takeOutTimout: NodeJS.Timeout;
 
     function remove() {
-      const element = document.getElementById("ad-ext_next-leg-text");
+      const element = document.getElementById("ad-ext_next-text");
       element?.remove();
       if (takeOutTimout) clearInterval(takeOutTimout);
     }
@@ -65,10 +64,10 @@ export async function nextPlayerOnTakeOutStuck() {
       document.addEventListener("fullscreenchange", handleFullscreenChange);
     }
 
-    if (boardDataWatcherUnwatch) return;
+    boardDataWatcherUnwatch?.();
 
     boardDataWatcherUnwatch = AutodartsToolsBoardData.watch(async (boardData: IBoard) => {
-      const nextBtnTextEl = document.getElementById("ad-ext_next-leg-text");
+      const nextBtnTextEl = document.getElementById("ad-ext_next-text");
       nextBtnTextEl?.remove();
 
       if (takeOutTimout) clearInterval(takeOutTimout);
@@ -93,7 +92,7 @@ export async function nextPlayerOnTakeOutStuck() {
         let startSec = config.nextPlayerOnTakeOutStuck.sec;
 
         const nextBtnTextEl = document.createElement("span");
-        nextBtnTextEl.id = "ad-ext_next-leg-text";
+        nextBtnTextEl.id = "ad-ext_next-text";
         nextBtnTextEl.style.whiteSpace = "pre";
         nextBtnTextEl.textContent = ` (${startSec})`;
         nextBtn.appendChild(nextBtnTextEl);
@@ -111,7 +110,7 @@ export async function nextPlayerOnTakeOutStuck() {
               console.log("Autodarts Tools: Auto-clicking Next button");
               nextBtn.click();
             }
-            const element = document.getElementById("ad-ext_next-leg-text");
+            const element = document.getElementById("ad-ext_next-text");
             element?.remove();
           }
         }, 1000);

@@ -1,7 +1,13 @@
 import type { IConfig } from "@/utils/storage";
-import { AutodartsToolsBoardStatus, AutodartsToolsConfig } from "@/utils/storage";
-import { BoardStatus } from "@/utils/types";
-import { waitForElement } from "@/utils";
+import type { IGameData } from "@/utils/game-data-storage";
+
+import { AutodartsToolsConfig } from "@/utils/storage";
+import { waitForElement, waitForElementWithTextContent } from "@/utils";
+
+let gameDataWatcherUnwatch: any;
+let boardDataWatcherUnwatch: any;
+
+let gameData: IGameData;
 
 export async function automaticNextLeg() {
   console.warn("Autodarts Tools: Automatic Next Leg - TEST THIS WITH LIVE BOARD");
@@ -9,33 +15,40 @@ export async function automaticNextLeg() {
   await waitForElement("#ad-ext-turn");
   try {
     const config: IConfig = await AutodartsToolsConfig.getValue();
-    if (!config.automaticNextLeg.enabled) return;
 
-    const boardStatus = await AutodartsToolsBoardStatus.getValue();
-    if (boardStatus !== BoardStatus.THROW) return;
+    gameDataWatcherUnwatch = AutodartsToolsGameData.watch(async (_gameData: IGameData, _oldGameData: IGameData) => {
+      gameData = _gameData;
+    });
 
-    const buttons = [ ...document.querySelectorAll(".chakra-button") as NodeList ];
-    const nextLegBtn = buttons.find(button => (button as HTMLElement).innerText === "Next Leg");
-    if (!nextLegBtn) return;
+    boardDataWatcherUnwatch = AutodartsToolsBoardData.watch(async (_boardData: IBoard, _oldBoardData: IBoard) => {
+      if (_boardData.event === "Takeout finished" && (gameData.match?.gameWinner ?? -1) >= 0) {
+        const nextLegBtn = await waitForElementWithTextContent("button", "Next Leg");
+        if (!nextLegBtn) return;
+        let startSec = config.automaticNextLeg.sec;
 
-    let startSec = config.automaticNextLeg.sec;
+        const nextLegBtnTextEl = document.createElement("span");
+        nextLegBtnTextEl.id = "ad-ext_next-leg-text";
+        nextLegBtnTextEl.style.whiteSpace = "pre";
+        nextLegBtnTextEl.textContent = ` (${startSec})`;
+        nextLegBtn.appendChild(nextLegBtnTextEl);
 
-    const nextLegBtnTextEl = document.createElement("span");
-    nextLegBtnTextEl.id = "ad-ext_next-leg-text";
-    nextLegBtnTextEl.style.whiteSpace = "pre";
-    nextLegBtnTextEl.textContent = ` (${startSec})`;
-    nextLegBtn.appendChild(nextLegBtnTextEl);
+        const nextLegInterval = setInterval(() => {
+          startSec--;
+          nextLegBtnTextEl.textContent = ` (${startSec})`;
 
-    const nextLegInterval = setInterval(() => {
-      startSec--;
-      nextLegBtnTextEl.textContent = ` (${startSec})`;
-
-      if (startSec <= 0) {
-        clearInterval(nextLegInterval);
-        (nextLegBtn as HTMLElement).click();
+          if (startSec <= 0) {
+            clearInterval(nextLegInterval);
+            (nextLegBtn as HTMLElement).click();
+          }
+        }, 1000);
       }
-    }, 1000);
+    });
   } catch (e) {
     console.error("Autodarts Tools: Automatic Next Leg - Error: ", e);
   }
+}
+
+export function automaticNextLegOnRemove() {
+  gameDataWatcherUnwatch?.();
+  boardDataWatcherUnwatch?.();
 }

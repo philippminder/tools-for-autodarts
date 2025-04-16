@@ -1,5 +1,6 @@
-import { addStyles, waitForElement } from "@/utils";
 import type { IConfig } from "@/utils/storage";
+
+import { addStyles, waitForElement } from "@/utils";
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { AutodartsToolsGameData, GameMode } from "@/utils/game-data-storage";
 
@@ -136,9 +137,10 @@ export async function removeWinnerAnimationOnEdit(): Promise<void> {
  */
 async function applyWinnerAnimation(gameData: any): Promise<void> {
   if (!gameData?.match) return;
+  console.log("TEST");
 
   // If match is activated (>= 0), call removeWinnerAnimationOnEdit
-  if ((gameData.match.activated !== undefined && gameData.match.activated >= 0) || gameData.match.winner === -1) {
+  if ((gameData.match.activated !== undefined && gameData.match.activated >= 0) || (gameData.match.winner === -1 && gameData.match.gameWinner === -1)) {
     return await removeWinnerAnimationOnEdit();
   }
 
@@ -212,6 +214,8 @@ async function applyWinnerAnimation(gameData: any): Promise<void> {
  * Sets up and displays the winner animation
  */
 export async function winnerAnimation(): Promise<void> {
+  console.log("Autodarts Tools: Winner Animation - Initializing");
+
   addStyles(WINNER_ANIMATION_STYLES, "winner-animation");
   await waitForElement("#ad-ext-turn");
 

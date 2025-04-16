@@ -4,7 +4,7 @@ import { createApp } from "vue";
 import { colorChange, onRemove as colorChangeOnRemove } from "./color-change";
 import Takeout from "./Takeout.vue";
 import { nextPlayerOnTakeOutStuck, nextPlayerOnTakeOutStuckOnRemove } from "./next-player-on-take-out-stuck";
-import { automaticNextLeg } from "./automatic-next-leg";
+import { automaticNextLeg, automaticNextLegOnRemove } from "./automatic-next-leg";
 import { smallerScores } from "./smaller-scores";
 import { hideMenuInMatch, hideMenuInMatchOnRemove } from "./hide-menu-in-match";
 import { automaticFullscreen, automaticFullscreenOnRemove } from "./automatic-fullscreen";
@@ -19,6 +19,7 @@ import Zoom from "./Zoom.vue";
 import Animations from "./Animations.vue";
 import StreamingMode from "./StreamingMode.vue";
 import QuickCorrection from "./QuickCorrection.vue";
+import { discordStream, discordStreamOnRemove } from "./discord-stream";
 
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
@@ -89,14 +90,14 @@ export default defineContentScript({
 
         if (activeMatch) {
           console.log("Autodarts Tools: Match found, initializing match");
-          initMatch(ctx, url).catch(console.error);
+          initMatch(ctx, url, matchId).catch(console.error);
 
           if (!gameDataWatcher) {
             gameDataWatcher = AutodartsToolsGameData.watch(async (value, oldValue) => {
               if (oldValue?.match?.variant === "Bull-off" && value?.match?.variant !== "Bull-off") {
                 clearMatch(true);
                 await new Promise(resolve => setTimeout(resolve, 500));
-                return initMatch(ctx, url);
+                return initMatch(ctx, url, matchId);
               }
             });
           }
@@ -112,11 +113,19 @@ export default defineContentScript({
   },
 });
 
-async function initMatch(ctx, url: string) {
+async function initMatch(ctx, url: string, matchId?: string) {
   if (matchInitialized) return;
   matchInitialized = true;
 
   const config = await AutodartsToolsConfig.getValue();
+
+  if (config.hideMenuInMatch.enabled) {
+    await initScript(hideMenuInMatch, url).catch(console.error);
+  }
+
+  if (config.automaticFullscreen.enabled) {
+    await initScript(automaticFullscreen, url).catch(console.error);
+  }
 
   if (config.streamingMode.enabled) {
     await initStreamingMode(ctx).catch(console.error);
@@ -142,14 +151,6 @@ async function initMatch(ctx, url: string) {
     await initScript(smallerScores, url).catch(console.error);
   }
 
-  if (config.hideMenuInMatch.enabled) {
-    await initScript(hideMenuInMatch, url).catch(console.error);
-  }
-
-  if (config.automaticFullscreen.enabled) {
-    await initScript(automaticFullscreen, url).catch(console.error);
-  }
-
   if (config.largerLegsSets.enabled) {
     await initScript(largerLegsSets, url).catch(console.error);
   }
@@ -170,18 +171,6 @@ async function initMatch(ctx, url: string) {
     await initScript(ring, url).catch(console.error);
   }
 
-  if (config.animations.enabled) {
-    await initAnimations(ctx).catch(console.error);
-  }
-
-  if (config.caller.enabled) {
-    await initScript(caller, url).catch(console.error);
-  }
-
-  if (config.soundFx.enabled) {
-    await initScript(soundFx, url).catch(console.error);
-  }
-
   if (config.zoom.enabled) {
     await initZoom(ctx).catch(console.error);
   }
@@ -192,6 +181,26 @@ async function initMatch(ctx, url: string) {
 
   if (config.quickCorrection.enabled) {
     await initQuickCorrection(ctx).catch(console.error);
+  }
+
+  if (matchId && config.discord.autoStartAfterTimer?.stream) {
+    if (config.discord.autoStartAfterTimer?.matchId === matchId || config.discord.autoStartAfterTimer?.matchId?.includes(matchId)) await initScript(discordStream, url).catch(console.error);
+  }
+
+  // *********************** YOU CAN ADD HERE ***********************
+
+  // ****************************************************************
+
+  if (config.animations.enabled) {
+    await initAnimations(ctx).catch(console.error);
+  }
+
+  if (config.caller.enabled) {
+    await initScript(caller, url).catch(console.error);
+  }
+
+  if (config.soundFx.enabled) {
+    await initScript(soundFx, url).catch(console.error);
   }
 }
 
@@ -212,7 +221,8 @@ function clearMatch(fromBullOff: boolean = false) {
   callerOnRemove();
   soundFxOnRemove();
   nextPlayerOnTakeOutStuckOnRemove();
-
+  discordStreamOnRemove();
+  automaticNextLegOnRemove();
   matchInitialized = false;
 }
 
@@ -253,7 +263,7 @@ function startActiveMatchObserver(ctx) {
 
       if (!matchInitialized && matchId) {
         console.log("Autodarts Tools Observer: Match found, initializing match because activeMatch is true");
-        initMatch(ctx, url).catch(console.error);
+        initMatch(ctx, url, matchId).catch(console.error);
       }
     }
   });

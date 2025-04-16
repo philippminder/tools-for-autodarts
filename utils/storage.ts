@@ -9,6 +9,9 @@ export interface IConfig {
     autoStartAfterTimer?: {
       enabled: boolean;
       minutes: number;
+      stream: boolean;
+      matchId: string;
+      messageId: string;
     };
   };
   autoStart: {
@@ -286,7 +289,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 5,
+  version: 7,
   discord: {
     enabled: false,
     manually: false,
@@ -294,6 +297,9 @@ export const defaultConfig: IConfig = {
     autoStartAfterTimer: {
       enabled: false,
       minutes: 5,
+      stream: false,
+      matchId: "",
+      messageId: "",
     },
   },
   autoStart: {

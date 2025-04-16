@@ -45,6 +45,19 @@ async function migrateConfig(currentConfigVersion: number) {
           config.zoom.zoomOn = "everyone";
         }
         break;
+      case 5:
+        // Migration from version 5 to version 6
+        config.version = 6;
+        break;
+      case 6:
+        // Migration from version 6 to version 7
+        config.version = 7;
+        if (config.discord && config.discord.autoStartAfterTimer && !config.discord.autoStartAfterTimer.stream) {
+          config.discord.autoStartAfterTimer.stream = false;
+          config.discord.autoStartAfterTimer.messageId = "";
+          config.discord.autoStartAfterTimer.matchId = "";
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);

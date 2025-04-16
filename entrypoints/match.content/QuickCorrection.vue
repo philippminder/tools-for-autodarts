@@ -239,14 +239,17 @@ onUnmounted(() => {
 });
 
 function handleKeyDown(event: KeyboardEvent) {
-  console.log("handleKeyDown", event.key);
-
   if (!open.value) return;
+
+  // Check if it's a numpad key
+  const isNumpadKey = event.key.startsWith("Numpad") || event.code.startsWith("Numpad");
 
   if (event.key === "+" || event.key === "NumpadAdd" || event.key === "Escape") {
     deactivateThrow(true);
     open.value = false;
-    event.preventDefault();
+    if (event.key === "NumpadAdd" || isNumpadKey) {
+      event.preventDefault();
+    }
     return;
   }
 
@@ -256,21 +259,27 @@ function handleKeyDown(event: KeyboardEvent) {
       if (currentGrid.value[0] && currentGrid.value[0][0]) {
         applyCorrection(currentGrid.value[0][0]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad7" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case "8":
     case "Numpad8":
       if (currentGrid.value[0] && currentGrid.value[0][1]) {
         applyCorrection(currentGrid.value[0][1]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad8" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case "9":
     case "Numpad9":
       if (currentGrid.value[0] && currentGrid.value[0][2]) {
         applyCorrection(currentGrid.value[0][2]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad9" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
 
     case "4":
@@ -278,21 +287,27 @@ function handleKeyDown(event: KeyboardEvent) {
       if (currentGrid.value[1] && currentGrid.value[1][0]) {
         applyCorrection(currentGrid.value[1][0]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad4" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case "5":
     case "Numpad5":
       if (currentGrid.value[1] && currentGrid.value[1][1]) {
         applyCorrection(currentGrid.value[1][1]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad5" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case "6":
     case "Numpad6":
       if (currentGrid.value[1] && currentGrid.value[1][2]) {
         applyCorrection(currentGrid.value[1][2]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad6" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
 
     case "1":
@@ -300,38 +315,50 @@ function handleKeyDown(event: KeyboardEvent) {
       if (currentGrid.value[2] && currentGrid.value[2][0]) {
         applyCorrection(currentGrid.value[2][0]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad1" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case "2":
     case "Numpad2":
       if (currentGrid.value[2] && currentGrid.value[2][1]) {
         applyCorrection(currentGrid.value[2][1]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad2" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case "3":
     case "Numpad3":
       if (currentGrid.value[2] && currentGrid.value[2][2]) {
         applyCorrection(currentGrid.value[2][2]);
       }
-      event.preventDefault();
+      if (event.key === "Numpad3" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
 
     case "0":
     case "Numpad0":
       applyCorrection("MISS");
-      event.preventDefault();
+      if (event.key === "Numpad0" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case ".":
     case ",":
     case "NumpadDecimal":
       applyCorrection("25");
-      event.preventDefault();
+      if (event.key === "NumpadDecimal" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
     case "Enter":
     case "NumpadEnter":
       applyCorrection("BULL");
-      event.preventDefault();
+      if (event.key === "NumpadEnter" || isNumpadKey) {
+        event.preventDefault();
+      }
       break;
   }
 }
@@ -493,6 +520,8 @@ async function deactivateThrow(submit: boolean = true) {
       url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
       options: {
         method: "POST",
+        credentials: "include",
+        mode: "cors",
         headers: {
           "Content-Type": "application/json",
           "Authorization": await getAuthToken(),
@@ -556,6 +585,8 @@ async function applyCorrection(value: string) {
       url: `https://api.autodarts.io/gs/v0/matches/${matchId}/throws`,
       options: {
         method: "PATCH",
+        credentials: "include",
+        mode: "cors",
         headers: {
           "Content-Type": "application/json",
           "Authorization": authToken,
@@ -567,7 +598,7 @@ async function applyCorrection(value: string) {
     if (response.ok) {
       console.log("Correction applied successfully");
     } else {
-      console.error("Failed to apply correction:", response.statusText || response.error);
+      console.error("Failed to apply correction:", response.statusText || response.error || response);
 
       console.log("Attempting fallback method...");
 
@@ -577,6 +608,8 @@ async function applyCorrection(value: string) {
           url: `https://api.autodarts.io/gs/v0/matches/${matchId}/throws`,
           options: {
             method: "PATCH",
+            credentials: "include",
+            mode: "cors",
             headers: {
               "Content-Type": "application/json",
               "Authorization": await getAuthToken(),
@@ -588,7 +621,7 @@ async function applyCorrection(value: string) {
         if (retryResponse.ok) {
           console.log("Correction applied successfully on retry");
         } else {
-          console.error("Failed to apply correction on retry:", retryResponse.statusText || retryResponse.error);
+          console.error("Failed to apply correction on retry:", retryResponse.statusText || retryResponse.error || retryResponse);
         }
       }, 2000);
     }

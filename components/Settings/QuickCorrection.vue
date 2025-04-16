@@ -16,6 +16,9 @@
             <div class="mt-4 space-y-4">
               <!-- No additional settings needed for this feature -->
               <p>This feature allows you to quickly correct darts during matches.</p>
+              <p class="text-yellow-400">
+                <strong>Note:</strong> This feature will not work in Safari due to security restrictions.
+              </p>
             </div>
           </div>
         </div>
@@ -35,7 +38,10 @@
             Quick Correction
           </h3>
           <p class="w-2/3 text-white/70">
-            Adds a quick correction button to dart throws, allowing you to easily fix incorrectly recognized darts.
+            Adds a quick correction to dart throws, allowing you to fix incorrectly recognized darts.
+          </p>
+          <p class="mt-1 w-2/3 text-sm text-yellow-400">
+            Not compatible with Safari browsers for now.
           </p>
         </div>
         <div class="flex">
@@ -54,6 +60,7 @@
 
 <script setup lang="ts">
 import AppToggle from "../AppToggle.vue";
+
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);

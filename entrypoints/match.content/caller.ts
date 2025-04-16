@@ -58,7 +58,12 @@ export async function caller() {
         }, DEBOUNCE_DELAY);
       });
 
-      processGameData(gameData, gameData);
+      const url = window.location.href;
+      const matchId = url.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)?.[0];
+
+      if (gameData.match?.id === matchId) {
+        processGameData(gameData, gameData);
+      }
     }
   } catch (error) {
     console.error("Autodarts Tools: caller initialization error", error);

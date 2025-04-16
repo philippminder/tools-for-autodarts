@@ -60,6 +60,18 @@
               <p class="mt-2 text-sm text-white/60">
                 Automatically starts the game after the specified time once the Discord webhook is sent.
               </p>
+              <template v-if="config.discord.autoStartAfterTimer.enabled">
+                <div class="mt-4 flex">
+                  <AppToggle
+                    v-model="config.discord.autoStartAfterTimer.stream"
+                    label="Enable streaming mode when timer starts"
+                    :disabled="!config.discord.autoStartAfterTimer.enabled"
+                  />
+                </div>
+                <p class="mt-2 text-sm text-white/60">
+                  Streams the game results to the Discord.
+                </p>
+              </template>
             </div>
           </div>
         </div>
@@ -101,9 +113,11 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
+
 import AppRadioGroup from "../AppRadioGroup.vue";
 import AppInput from "../AppInput.vue";
 import AppToggle from "../AppToggle.vue";
+
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
@@ -129,6 +143,7 @@ onMounted(async () => {
     config.value.discord.autoStartAfterTimer = {
       enabled: false,
       minutes: 5,
+      stream: false,
     };
   }
 });
