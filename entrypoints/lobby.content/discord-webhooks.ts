@@ -13,12 +13,17 @@ let webhookMessageId: string | null = null;
 let webhookUrl: string | null = null;
 // Store a copy of the lobby settings for later use
 let storedLobbyFields: Array<{ name: string; value: string; inline: boolean }> = [];
+// Flag to prevent duplicate message updates
+let messageUpdated = false;
 
 export async function discordWebhooks() {
   console.log("Autodarts Tools: Discord Webhooks - Starting");
 
   const config = await AutodartsToolsConfig.getValue();
   const lobbyData = await AutodartsToolsLobbyData.getValue();
+
+  // Set up listener for manual start button clicks
+  setupStartButtonListener();
 
   if (config.discord.manually) {
     const lobbyBoardSelectElement = await waitForElement("#root select") as HTMLSelectElement;
@@ -107,6 +112,144 @@ export async function discordWebhooks() {
   } else {
     await sendWebhook();
   }
+}
+
+// Function to set up a mutation observer to watch for the Start Game button
+function setupStartButtonListener() {
+  // Create a MutationObserver to watch for button additions to the DOM
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      if (mutation.type === "childList") {
+        const startButtons = Array.from(document.querySelectorAll("button")).filter(
+          button => button.textContent?.trim().toLowerCase() === "start game",
+        );
+
+        if (startButtons.length > 0) {
+          startButtons.forEach((button) => {
+            // Only add listener if it doesn't already have one
+            if (!button.hasAttribute("data-autodarts-tools-listener")) {
+              button.setAttribute("data-autodarts-tools-listener", "true");
+              button.addEventListener("click", handleManualGameStart);
+              console.log("Autodarts Tools: Discord Webhooks - Added listener to Start Game button");
+            }
+          });
+        }
+      }
+    }
+  });
+
+  // Start observing the document body for changes
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Check for existing buttons
+  const existingStartButtons = Array.from(document.querySelectorAll("button")).filter(
+    button => button.textContent?.trim().toLowerCase() === "start game",
+  );
+
+  if (existingStartButtons.length > 0) {
+    existingStartButtons.forEach((button) => {
+      if (!button.hasAttribute("data-autodarts-tools-listener")) {
+        button.setAttribute("data-autodarts-tools-listener", "true");
+        button.addEventListener("click", handleManualGameStart);
+        console.log("Autodarts Tools: Discord Webhooks - Added listener to existing Start Game button");
+      }
+    });
+  }
+}
+
+// Function to handle manual game start
+async function handleManualGameStart() {
+  console.log("Autodarts Tools: Discord Webhooks - Manual start detected");
+
+  // Prevent duplicate message updates
+  if (messageUpdated) {
+    return;
+  }
+
+  // Clear the auto-start timer if it's running
+  if (autoStartTimer !== null) {
+    clearTimeout(autoStartTimer);
+    autoStartTimer = null;
+  }
+
+  // Update Discord message if we have the necessary data
+  if (webhookMessageId && webhookUrl) {
+    try {
+      await updateDiscordMessage("manual");
+      messageUpdated = true;
+    } catch (error) {
+      console.error("Autodarts Tools: Discord Webhooks - Error updating Discord message on manual start:", error);
+    }
+  }
+}
+
+// Function to update the Discord message and save config
+async function updateDiscordMessage(trigger: "timer" | "manual") {
+  if (!webhookMessageId || !webhookUrl) return;
+
+  console.log(`Autodarts Tools: Discord Webhooks - Updating Discord message (trigger: ${trigger})`);
+
+  // Get the current config
+  const config = await AutodartsToolsConfig.getValue();
+
+  // Prepare fields for the updated embed
+  let updatedFields: Array<{ name: string; value: string; inline: boolean }> = [];
+  if (config.discord.autoStartAfterTimer?.enabled) {
+    // Add game type and player fields if available
+    updatedFields = [
+      ...storedLobbyFields,
+      {
+        name: "\u200B",
+        value: "\u200B",
+        inline: false,
+      },
+      {
+        name: "",
+        value: "🎮 Game has started!",
+        inline: false,
+      },
+    ];
+  }
+
+  const response = await fetch(`${webhookUrl}/messages/${webhookMessageId}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      content: "🎯 **NEW GAME ON AUTODARTS** 🎯\n\n_ _",
+      embeds: [
+        {
+          title: "Settings",
+          color: 15158332, // Red tone (decimal for #E74C3C)
+          fields: updatedFields,
+          image: {
+            url: "https://i.imgur.com/lnkebyw.png",
+          },
+        },
+      ],
+    }),
+  });
+
+  const messageData = await response.json();
+  const messageId = messageData.id;
+
+  // Save the messageId to config
+  await AutodartsToolsConfig.setValue({
+    ...config,
+    discord: {
+      ...config.discord,
+      autoStartAfterTimer: {
+        enabled: config.discord.autoStartAfterTimer?.enabled ?? false,
+        minutes: config.discord.autoStartAfterTimer?.minutes ?? 5,
+        stream: config.discord.autoStartAfterTimer?.stream ?? false,
+        matchId: config.discord.autoStartAfterTimer?.matchId ?? "",
+        messageId,
+      },
+    },
+  });
+
+  console.log("Autodarts Tools: Discord Webhook - Message updated, messageId saved:", messageId);
 }
 
 async function sendWebhook() {
@@ -209,6 +352,9 @@ async function sendWebhook() {
       });
     }
 
+    // Reset message updated flag before sending new webhook
+    messageUpdated = false;
+
     const response = await fetch(`${config.discord.url}?wait=true`, {
       method: "POST",
       headers: {
@@ -283,73 +429,9 @@ function startAutoStartTimer(minutes: number) {
         startButtons[0].click();
 
         // Edit the Discord message if we have the necessary data
-        if (webhookMessageId && webhookUrl) {
+        if (webhookMessageId && webhookUrl && !messageUpdated) {
           try {
-            console.log("Autodarts Tools: Discord Webhooks - Updating Discord message");
-
-            // Get the current config
-            let config = await AutodartsToolsConfig.getValue();
-
-            // Edit the message to indicate the game has started
-            // Prepare fields for the updated embed
-            let updatedFields: Array<{ name: string; value: string; inline: boolean }> = [];
-            if (config.discord.autoStartAfterTimer?.enabled) {
-              // Add game type and player fields if available
-              updatedFields = [
-                ...storedLobbyFields,
-                {
-                  name: "\u200B",
-                  value: "\u200B",
-                  inline: false,
-                },
-                {
-                  name: "",
-                  value: "🎮 Game has started!",
-                  inline: false,
-                },
-              ];
-            }
-
-            const response = await fetch(`${webhookUrl}/messages/${webhookMessageId}`, {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                content: "🎯 **NEW GAME ON AUTODARTS** 🎯\n\n_ _",
-                embeds: [
-                  {
-                    title: "Settings",
-                    color: 15158332, // Red tone (decimal for #E74C3C)
-                    fields: updatedFields,
-                    image: {
-                      url: "https://i.imgur.com/lnkebyw.png",
-                    },
-                  },
-                ],
-              }),
-            });
-
-            const messageData = await response.json();
-            const messageId = messageData.id;
-
-            config = await AutodartsToolsConfig.getValue();
-            await AutodartsToolsConfig.setValue({
-              ...config,
-              discord: {
-                ...config.discord,
-                autoStartAfterTimer: {
-                  enabled: config.discord.autoStartAfterTimer?.enabled ?? false,
-                  minutes: config.discord.autoStartAfterTimer?.minutes ?? 5,
-                  stream: config.discord.autoStartAfterTimer?.stream ?? false,
-                  matchId: config.discord.autoStartAfterTimer?.matchId ?? "",
-                  messageId,
-                },
-              },
-            });
-            config = await AutodartsToolsConfig.getValue();
-
-            console.log("Autodarts Tools: Discord Webhook - Message updated:", await response.json());
+            await updateDiscordMessage("timer");
           } catch (error) {
             console.error("Autodarts Tools: Discord Webhooks - Error updating Discord message:", error);
           }
