@@ -31,7 +31,7 @@ export async function hideMenuInMatch() {
   menuHideBtn.appendChild(menuHideBtnSVG);
 
   // find first ul in menuBar and add the menuHideBtn to the menuBar
-  const menuBarUL = gameData.match?.variant === "Bull-off" ? menuBar.querySelector("div:nth-of-type(3) > div") : menuBar.querySelector("ul");
+  const menuBarUL = gameData.match?.variant === "Bull-off" ? document.querySelector("#ad-ext-game-variant")?.parentElement?.parentElement?.querySelector("div:last-of-type") || menuBar.querySelector("div:nth-of-type(3) > div") : menuBar.querySelector("ul");
   if (!menuBarUL) return console.error("Autodarts Tools: No menu bar ul found");
   menuBarUL.insertBefore(menuHideBtn, menuBarUL.children[menuBarUL.children.length - 1]);
 

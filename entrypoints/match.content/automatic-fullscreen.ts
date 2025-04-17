@@ -35,8 +35,9 @@ export async function automaticFullscreen() {
     fullscreenBtnSVG = fullscreenBtn.querySelector("svg") as SVGElement;
   }
 
-  // find first ul in menuBar and add the fullscreenBtn to the menuBar
-  const menuBarUL = gameData.match?.variant === "Bull-off" ? menuBar.querySelector("div:nth-of-type(3) > div") : menuBar.querySelector("ul");
+  console.log(menuBar);
+
+  const menuBarUL = gameData.match?.variant === "Bull-off" ? document.querySelector("#ad-ext-game-variant")?.parentElement?.parentElement?.querySelector("div:last-of-type") || menuBar.querySelector("div:nth-of-type(3) > div") : menuBar.querySelector("ul");
   if (!menuBarUL) return console.error("Autodarts Tools: No menu bar ul found");
   menuBarUL.insertBefore(fullscreenBtn, menuBarUL.children[menuBarUL.children.length - 1]);
 

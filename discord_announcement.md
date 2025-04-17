@@ -1,24 +1,14 @@
-# :dart: Tools for Autodarts v2.1.3 Released! :dart:
+# :dart: Tools for Autodarts v2.1.7 Released! :dart:
 
-### :mag: Enhanced Darts Zoom Feature
-- **New "Zoom On" Filter**: Control which throws to display (Everyone or Opponents only)
-- **Customizable Viewing Experience**: Focus on specific players' throws for better analysis
-
-### :cinema: Streaming Mode Improvements
-- **Reset Positions Button**: Easily reset board and scoreboard positions and scales
-- **Updated Styling**: Improved button styling and icon for better user experience
-
-### :sound: Enhanced Audio System
-- **Improved Sound Order**: Player name/bot sounds now play before "game on" announcement
-- **Enhanced Audio Mechanism**: Better audio handling and updated silent audio format
-
-### :x: Removed Features
-- **Friends List**: Removed as there is now an official friends list feature available
+### :arrows_counterclockwise: Discord Integration Enhancement
+- **Live Update Support**: Discord webhooks now feature powerful live update capabilities for real-time notifications
 
 ### :wrench: Fixed Issues
-- **Quick Correction Improvements**: Fixed selection of segments for more accurate corrections
-- **Fullscreen Mode Fixes**: Solved issues with features not working in fullscreen mode
-- **Enhanced Event Detection**: Added fullscreen event detection for consistent functionality
+- **Quick Correction Improvements**: Fixed keyboard shortcut handling to work seamlessly with numpad keys
+- **Game Progression Fix**: Enhanced the Automatic **Next Leg** feature to ensure proper game progression with no interruptions
+- **Sound Playback Improvements**: 
+  - Optimized Caller and Sound FX features to intelligently handle match transitions
+  - Resolved issues with features and sounds maintaining full functionality between consecutive matches
 
 Please report any bugs in
 :flag_de: https://discord.com/channels/802528604067201055/1255293632110530612/1255293632110530612

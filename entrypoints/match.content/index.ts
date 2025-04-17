@@ -96,7 +96,7 @@ export default defineContentScript({
             gameDataWatcher = AutodartsToolsGameData.watch(async (value, oldValue) => {
               if (oldValue?.match?.variant === "Bull-off" && value?.match?.variant !== "Bull-off") {
                 clearMatch(true);
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 2000));
                 return initMatch(ctx, url, matchId);
               }
             });
@@ -116,6 +116,8 @@ export default defineContentScript({
 async function initMatch(ctx, url: string, matchId?: string) {
   if (matchInitialized) return;
   matchInitialized = true;
+
+  console.log("Autodarts Tools: Initializing match");
 
   const config = await AutodartsToolsConfig.getValue();
 

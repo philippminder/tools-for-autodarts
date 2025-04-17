@@ -9,7 +9,7 @@ export async function discordStream() {
   console.log("Autodarts Tools: Discord Stream - Starting");
 
   gameDataWatcherUnwatch = AutodartsToolsGameData.watch((_gameData: IGameData, _oldGameData: IGameData) => {
-    if (
+    if ( 
       _gameData.match?.player !== _oldGameData.match?.player
       || _gameData.match?.turns[0].throws.length !== _oldGameData.match?.turns[0].throws.length
       || _gameData.match?.gameScores.length !== _oldGameData.match?.gameScores.length
