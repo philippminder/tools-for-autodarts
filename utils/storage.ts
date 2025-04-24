@@ -42,6 +42,7 @@ export interface IConfig {
     enabled: boolean;
     background: string;
     text: string;
+    matchBackground: string;
   };
   recentLocalPlayers: {
     enabled: boolean;
@@ -330,6 +331,7 @@ export const defaultConfig: IConfig = {
     enabled: false,
     background: "#3182CE",
     text: "#FFFFFF",
+    matchBackground: "#3c3c3c",
   },
   recentLocalPlayers: {
     enabled: false,
