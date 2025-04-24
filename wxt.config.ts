@@ -5,6 +5,7 @@ import vue from "@vitejs/plugin-vue";
 import AutoImport from "unplugin-auto-import/vite";
 import Component from "unplugin-vue-components/vite";
 import RadixVueResolver from "radix-vue/resolver";
+import { ViteMcp } from "vite-plugin-mcp";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -80,6 +81,7 @@ export default defineConfig({
     },
     plugins: [
       vue(),
+      ViteMcp(),
 
       AutoImport({
         imports: [
