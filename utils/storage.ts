@@ -293,7 +293,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 9,
+  version: 10,
   discord: {
     enabled: false,
     manually: false,
