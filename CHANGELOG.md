@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.8] - 2025-04-28
+
+### Added
+- Added Enhanced Scoring Display feature that enhances dart throw displays with larger numbers and scoring notation
+  - Shows dart notation (S/D/T, BULL) beneath point values
+  - Includes smooth animations when scores update during matches
+  - Originally contributed by @LeSiiN
+
+### Changed
+- Improved Streaming Mode component to use reactive image-based board display instead of DOM manipulation
+- Enhanced board display in Streaming Mode to use the same image watcher mechanism as Zoom feature
+- Added fallback board image for better reliability
+
+### Fixed
+- Fixed potential rendering issues in Streaming Mode by removing direct DOM queries for SVG elements
+- Improved stability of the board display in Streaming Mode
+
 ## [2.1.7] - 2025-04-16
 
 ### Changed

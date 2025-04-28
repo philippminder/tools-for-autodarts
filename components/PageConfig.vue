@@ -182,6 +182,9 @@
 
             <!-- Ninth row of feature cards -->
             <QuickCorrection @setting-change="updateConfig" class="feature-card" data-feature-index="22" />
+
+            <!-- Tenth row of feature cards -->
+            <EnhancedScoringDisplay @setting-change="updateConfig" class="feature-card" data-feature-index="23" />
           </div>
 
           <!-- Feature cards grid for Boards tab -->
@@ -191,8 +194,8 @@
             class="grid grid-cols-1 gap-5 lg:grid-cols-2"
           >
             <!-- First row of feature cards -->
-            <ExternalBoards @setting-change="updateConfig" class="feature-card" data-feature-index="23" />
-            <div class="feature-card" data-feature-index="24">
+            <ExternalBoards @setting-change="updateConfig" class="feature-card" data-feature-index="24" />
+            <div class="feature-card" data-feature-index="25">
             <!-- Placeholder for future feature -->
             </div>
           </div>
@@ -219,12 +222,12 @@
             </div>
 
             <!-- First row of feature cards -->
-            <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="25" />
-            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="26" />
+            <Animations @toggle="openSettingsModal('animations')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="26" />
+            <Caller @toggle="openSettingsModal('caller')" @setting-change="updateConfig" class="feature-card" data-feature-index="27" />
 
             <!-- Second row of feature cards -->
-            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="27" />
-            <div class="feature-card" data-feature-index="28">
+            <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="28" />
+            <div class="feature-card" data-feature-index="29">
             <!-- Placeholder for future feature -->
             </div>
           </div>
@@ -261,6 +264,7 @@ import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
 import Zoom from "./Settings/Zoom.vue";
 import QuickCorrection from "./Settings/QuickCorrection.vue";
+import EnhancedScoringDisplay from "./Settings/EnhancedScoringDisplay.vue";
 
 import type { IConfig, ISound } from "@/utils/storage";
 
@@ -300,6 +304,7 @@ const featureGroups = [
       { id: "automatic-next-leg", title: "Automatic Next Leg Settings", component: AutomaticNextLeg, hasSettings: true },
       { id: "smaller-scores", title: "Smaller Scores Settings", component: SmallerScores, hasSettings: false },
       { id: "hide-menu-in-match", title: "Hide Menu In Match Settings", component: HideMenuInMatch, hasSettings: false },
+      { id: "enhanced-scoring-display", title: "Enhanced Scoring Display Settings", component: EnhancedScoringDisplay, hasSettings: false },
       { id: "streaming-mode", title: "Streaming Mode Settings", component: StreamingMode, hasSettings: true },
       { id: "larger-legs-sets", title: "Larger Legs Sets Settings", component: LargerLegsSets, hasSettings: true },
       { id: "larger-player-names", title: "Larger Player Names Settings", component: LargerPlayerNames, hasSettings: true },

@@ -58,6 +58,15 @@ async function migrateConfig(currentConfigVersion: number) {
           config.discord.autoStartAfterTimer.matchId = "";
         }
         break;
+      case 7:
+        // Migration from version 7 to version 8
+        config.version = 8;
+        if (!config.enhancedScoringDisplay) {
+          config.enhancedScoringDisplay = {
+            enabled: false,
+          };
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);

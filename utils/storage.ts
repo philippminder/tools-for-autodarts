@@ -133,6 +133,9 @@ export interface IConfig {
   quickCorrection: {
     enabled: boolean;
   };
+  enhancedScoringDisplay: {
+    enabled: boolean;
+  };
 }
 
 export interface ISound {
@@ -289,7 +292,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 7,
+  version: 8,
   discord: {
     enabled: false,
     manually: false,
@@ -404,6 +407,9 @@ export const defaultConfig: IConfig = {
     zoomOn: "everyone",
   },
   quickCorrection: {
+    enabled: false,
+  },
+  enhancedScoringDisplay: {
     enabled: false,
   },
   animations: {
