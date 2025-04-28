@@ -129,6 +129,7 @@ export interface IConfig {
     level: number;
     mode: "live" | "image";
     zoomOn: "everyone" | "opponents";
+    showMarker: boolean;
   };
   quickCorrection: {
     enabled: boolean;
@@ -292,7 +293,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 8,
+  version: 9,
   discord: {
     enabled: false,
     manually: false,
@@ -405,6 +406,7 @@ export const defaultConfig: IConfig = {
     level: 3,
     mode: "live",
     zoomOn: "everyone",
+    showMarker: true,
   },
   quickCorrection: {
     enabled: false,

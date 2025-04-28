@@ -36,7 +36,7 @@
               transformOrigin: 'center',
             }"
           >
-          <div class="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-blue-400 opacity-80" />
+          <div v-if="config?.zoom?.showMarker" class="absolute left-1/2 top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-blue-400 opacity-80" />
         </div>
       </div>
     </div>
@@ -225,7 +225,9 @@ function updateZoomDivs() {
 
     // Append elements
     containerDiv.appendChild(imgElement);
-    containerDiv.appendChild(dotMarker);
+    if (config.value?.zoom?.showMarker) {
+      containerDiv.appendChild(dotMarker);
+    }
     div.appendChild(containerDiv);
   };
 

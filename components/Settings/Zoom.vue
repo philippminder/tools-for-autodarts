@@ -53,7 +53,7 @@
               <div class="flex">
                 <AppRadioGroup
                   v-model="config.zoom.zoomOn"
-                  class="grid max-w-sm grid-cols-3"
+                  class="grid max-w-sm grid-cols-2"
                   :options="[
                     { label: 'Everyone', value: 'everyone' },
                     { label: 'Opponents', value: 'opponents' },
@@ -62,6 +62,21 @@
               </div>
               <p class="mt-1 text-sm text-white/60">
                 Control which throws to display in the zoom view.
+              </p>
+            </div>
+
+            <div class="mt-4">
+              <h4 class="mb-2 font-semibold">
+                Center Dot Marker
+              </h4>
+              <div class="flex items-center">
+                <AppToggle
+                  v-model="config.zoom.showMarker"
+                />
+                <span class="ml-2">Show center dot marker</span>
+              </div>
+              <p class="mt-1 text-sm text-white/60">
+                Toggle visibility of the center dot marker that indicates dart position.
               </p>
             </div>
 

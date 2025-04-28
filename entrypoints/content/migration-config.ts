@@ -67,6 +67,13 @@ async function migrateConfig(currentConfigVersion: number) {
           };
         }
         break;
+      case 8:
+        // Migration from version 8 to version 9
+        config.version = 9;
+        if (config.zoom.showMarker === undefined) {
+          config.zoom.showMarker = true;
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);
