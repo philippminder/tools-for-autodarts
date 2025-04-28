@@ -91,7 +91,8 @@
         zIndex: isCoordsDragging ? 100 : 10,
       }"
     >
-      <div v-html="coords" />
+      <img v-if="currentBoardImage" :src="currentBoardImage" class="pointer-events-none size-full" alt="Dartboard">
+      <img v-else :src="defaultBoardImage" class="pointer-events-none size-full" alt="Default dartboard">
     </div>
     <div
       v-if="gameData?.match?.players?.length"
@@ -230,6 +231,7 @@ import type {
   IConfig,
 } from "@/utils/storage";
 import type { IGameData } from "@/utils/game-data-storage";
+import type { IBoardImages } from "@/utils/board-image-storage";
 
 import { waitForElement } from "@/utils";
 import {
@@ -238,6 +240,7 @@ import {
 } from "@/utils/storage";
 import AppButton from "@/components/AppButton.vue";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
+import { AutodartsToolsBoardImages } from "@/utils/board-image-storage";
 
 const enabled = ref(false);
 const settings = ref(false);
@@ -264,7 +267,9 @@ const game = reactive<{
 
 const config: Ref<IConfig | null> = ref(null);
 const gameData: Ref<IGameData | null> = ref(null);
-const coords = ref("");
+
+const defaultBoardImage = browser.runtime.getURL("/images/board.png");
+const currentBoardImage = ref<string>("");
 
 const streamingModeButton: Ref<HTMLAnchorElement | null> = ref(null);
 
@@ -364,13 +369,20 @@ onMounted(async () => {
   AutodartsToolsGameData.watch((value) => {
     gameData.value = value;
 
-    // Update game title and board display when game data changes
-    updateGameTitleAndBoard();
+    // Update game title when game data changes
+    updateGameTitle();
+  });
+
+  // Set up board image watcher
+  AutodartsToolsBoardImages.watch((boardImages: IBoardImages) => {
+    if (boardImages.images.length > 0) {
+      currentBoardImage.value = boardImages.images[boardImages.images.length - 1];
+    }
   });
 
   try {
-    // Get game title from DOM and set up board display
-    updateGameTitleAndBoard();
+    // Get game title from DOM
+    updateGameTitle();
 
     await initStreamModeButton();
 
@@ -419,8 +431,8 @@ watch([ coordsElementScale, scoreBoardScale, coordsElementX, coordsElementY, sco
   console.log("Streaming Mode setting changed");
 }, { deep: true });
 
-// Helper function to update game title and board display
-function updateGameTitleAndBoard() {
+// Helper function to update game title
+function updateGameTitle() {
   try {
     // Update game title from DOM
     const gameSettingsContainerElement = document.querySelector("#ad-ext-game-variant")?.parentElement;
@@ -436,22 +448,15 @@ function updateGameTitleAndBoard() {
       game.footer = config.value.streamingMode.footerText;
     }
 
-    // Update board display if enabled
+    // Check if we need to trigger board mode change
     if (config.value?.streamingMode.board) {
       const coordsModeButton = config.value.streamingMode.boardImage
         ? document.querySelector("button[aria-label='Live mode']:not([data-active])") as HTMLButtonElement | null
         : document.querySelector("button[aria-label='Coords mode']:not([data-active])") as HTMLButtonElement | null;
       coordsModeButton?.click();
-
-      try {
-        const coordsSvg = document.querySelector("svg[viewBox='0 0 1000 1000']") as SVGSVGElement | null;
-        coords.value = coordsSvg?.outerHTML || "";
-      } catch (e) {
-        console.error("Autodarts Tools: Error getting board SVG", e);
-      }
     }
   } catch (e) {
-    console.error("Autodarts Tools: Error updating game title and board", e);
+    console.error("Autodarts Tools: Error updating game title", e);
     // Set default values if there's an error
     if (!game.title) game.title = "Autodarts Game";
   }

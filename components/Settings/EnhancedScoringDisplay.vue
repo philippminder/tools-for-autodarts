@@ -48,9 +48,12 @@
             />
           </div>
           <div class="self-end text-xs text-white/50">
-            <i>Created by @LeSiiN</i>
+            <i>Originally by @LeSiiN</i>
           </div>
         </div>
+      </div>
+      <div class="gradient-mask-left absolute inset-y-0 right-0 w-2/3">
+        <img :src="imageUrl" alt="External Boards" class="size-full object-cover">
       </div>
     </div>
   </template>
