@@ -77,13 +77,13 @@ export async function soundFx() {
       lobbyDataWatcherUnwatch = AutodartsToolsLobbyData.watch(async (_lobbyData: ILobbies | undefined, _oldLobbyData: ILobbies | undefined) => {
         if (!_lobbyData || !_oldLobbyData || !config?.soundFx?.enabled) return;
 
-        if ((_lobbyData.players?.length ?? 0) > (_oldLobbyData.players?.length ?? 0)) {
+        if ((_lobbyData.players?.length ?? 0) > (_oldLobbyData.players?.length ?? 0) && (_lobbyData.players?.length ?? 0) > 1) {
           const currentURL = window.location.href;
           if (!currentURL.includes("lobbies")) return;
           playSound("ambient_lobby_in", 2);
         }
 
-        if ((_lobbyData.players?.length ?? 0) < (_oldLobbyData.players?.length ?? 0)) {
+        if ((_lobbyData.players?.length ?? 0) < (_oldLobbyData.players?.length ?? 0) && (_lobbyData.players?.length ?? 0) > 0) {
           const currentURL = window.location.href;
           if (!currentURL.includes("lobbies")) return;
           playSound("ambient_lobby_out", 2);
