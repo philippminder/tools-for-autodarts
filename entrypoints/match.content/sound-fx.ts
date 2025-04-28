@@ -3,6 +3,7 @@ import { AutodartsToolsConfig, type IConfig, type ISound } from "@/utils/storage
 import { getSoundFxFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: any;
+let lobbyDataWatcherUnwatch: any;
 let config: IConfig;
 
 // Audio player for Safari compatibility
@@ -71,6 +72,24 @@ export async function soundFx() {
         processGameData(gameData, gameData);
       }
     }
+
+    if (!lobbyDataWatcherUnwatch) {
+      lobbyDataWatcherUnwatch = AutodartsToolsLobbyData.watch(async (_lobbyData: ILobbies | undefined, _oldLobbyData: ILobbies | undefined) => {
+        if (!_lobbyData || !_oldLobbyData || !config?.soundFx?.enabled) return;
+
+        if ((_lobbyData.players?.length ?? 0) > (_oldLobbyData.players?.length ?? 0)) {
+          const currentURL = window.location.href;
+          if (!currentURL.includes("lobbies")) return;
+          playSound("ambient_lobby_in", 2);
+        }
+
+        if ((_lobbyData.players?.length ?? 0) < (_oldLobbyData.players?.length ?? 0)) {
+          const currentURL = window.location.href;
+          if (!currentURL.includes("lobbies")) return;
+          playSound("ambient_lobby_out", 2);
+        }
+      });
+    }
   } catch (error) {
     console.error("Autodarts Tools: soundFx initialization error", error);
   }
@@ -81,6 +100,11 @@ export function soundFxOnRemove() {
   if (gameDataWatcherUnwatch) {
     gameDataWatcherUnwatch();
     gameDataWatcherUnwatch = null;
+  }
+
+  if (lobbyDataWatcherUnwatch) {
+    lobbyDataWatcherUnwatch();
+    lobbyDataWatcherUnwatch = null;
   }
 
   // Clear any pending debounce timer

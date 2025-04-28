@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.9] - 2025-05-05
+
+### Added
+- Added lobby sound effects to play audio cues when players join or leave lobbies
+  - Added `ambient_lobby_in` sound played when a player joins the lobby
+  - Added `ambient_lobby_out` sound played when a player leaves the lobby
+
 ## [2.1.8] - 2025-04-28
 
 ### Added

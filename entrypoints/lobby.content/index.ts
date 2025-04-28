@@ -1,8 +1,13 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
+
+import { soundFx } from "../match.content/sound-fx";
+
 import { teamLobby } from "./team-lobby";
-import { waitForElement, waitForElementWithTextContent } from "@/utils";
+
 import type { IConfig } from "@/utils/storage";
+
+import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
   AutodartsToolsConfig,
   AutodartsToolsUrlStatus,
@@ -16,6 +21,7 @@ import { processWebSocketMessage } from "@/utils/websocket-helpers";
 
 let recentLocalPlayersUI: any;
 let lobbyReadyUnwatch: any;
+
 export default defineContentScript({
   matches: [ "*://play.autodarts.io/*" ],
   cssInjectionMode: "ui",
@@ -56,14 +62,17 @@ export default defineContentScript({
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(discordWebhooks, url).catch(console.error);
         }
+
         if (config.autoStart.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(autoStart, url).catch(console.error);
         }
+
         if (config.shufflePlayers.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(shufflePlayers, url).catch(console.error);
         }
+
         if (config.recentLocalPlayers.enabled) {
           const div = document.querySelector("autodarts-tools-recent-local-players");
           if (!div) initRecentLocalPlayers(ctx).catch(console.error);
@@ -72,6 +81,11 @@ export default defineContentScript({
         if (config.teamLobby.enabled) {
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(teamLobby, url).catch(console.error);
+        }
+
+        if (config.soundFx.enabled) {
+          await waitForElementWithTextContent("h2", "Lobby");
+          await initScript(soundFx, url).catch(console.error);
         }
       } else {
         await onAutoStartRemove();
