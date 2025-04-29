@@ -130,6 +130,7 @@ export interface IConfig {
     level: number;
     mode: "live" | "image";
     zoomOn: "everyone" | "opponents";
+    showMarker: boolean;
   };
   quickCorrection: {
     enabled: boolean;
@@ -407,6 +408,7 @@ export const defaultConfig: IConfig = {
     level: 3,
     mode: "live",
     zoomOn: "everyone",
+    showMarker: true,
   },
   quickCorrection: {
     enabled: false,
