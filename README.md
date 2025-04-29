@@ -76,6 +76,9 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Smaller Font for Inactive Players**: Reduces the font size of scores for players not currently throwing
 - **External Boards Support**: Easily follow games on external boards
 - **Fancy Gameshot Animation**: Celebratory animation when a player wins
+- **Enhanced Scoring Display**: Improves dart throw visuals with larger numbers and scoring notation
+  - Shows dart notation (S/D/T, BULL) beneath point values
+  - Includes smooth animations when scores update
 - **Animations**: Display custom animations for special events like 180s, bulls, busts, and leg wins during gameplay
 - **Quick Correction**: Easily fix misrecognized dart throws with an intuitive interface
   - Grid-based correction panel showing all board segments
@@ -201,6 +204,9 @@ Add sound effects for various game events:
   - `ambient_bot`: Plays when switching to a CPU/bot player
   - `bot_throw`: Plays when a bot player throws a dart
   - Player-specific sounds using format: `ambient_playername` or `ambient_player_name`
+- **Lobby Sounds**:
+  - `ambient_lobby_in`: Plays when a player joins the lobby
+  - `ambient_lobby_out`: Plays when a player leaves the lobby
 - **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the following formats:
   - `gameshot_player name` (spaces preserved)
   - `gameshot_player_name` (with underscores replacing spaces)

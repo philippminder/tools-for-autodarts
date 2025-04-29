@@ -424,7 +424,7 @@ onMounted(async () => {
   });
 });
 
-function openCorrection(throwElement?: HTMLElement) {
+async function openCorrection(throwElement?: HTMLElement) {
   if (!throwElement?.classList.contains("ad-ext-turn-throw")) return;
 
   if (throwElement) {
@@ -452,7 +452,11 @@ function openCorrection(throwElement?: HTMLElement) {
     const height = throwElement.clientHeight;
     correctionContainerY.value = rect.top + height;
 
-    const throwText = throwElement.innerText.trim();
+    const config = await AutodartsToolsConfig.getValue();
+
+    const throwText = config.enhancedScoringDisplay.enabled
+      ? (throwElement.querySelector("p > div > div:last-of-type") as HTMLElement)?.innerText.trim()
+      : (throwElement as HTMLElement).innerText.trim();
 
     findGridForThrow(throwText);
   }

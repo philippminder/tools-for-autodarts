@@ -81,6 +81,7 @@ async function migrateConfig(currentConfigVersion: number) {
           config.colors.matchBackground = defaultConfig.colors.matchBackground;
         }
         break;
+
     }
 
     await AutodartsToolsConfig.setValue(config);

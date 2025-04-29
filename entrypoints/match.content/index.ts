@@ -20,6 +20,7 @@ import Animations from "./Animations.vue";
 import StreamingMode from "./StreamingMode.vue";
 import QuickCorrection from "./QuickCorrection.vue";
 import { discordStream, discordStreamOnRemove } from "./discord-stream";
+import { enhancedScoringDisplay, enhancedScoringDisplayOnRemove } from "./enhanced-scoring-display";
 
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import {
@@ -40,6 +41,7 @@ const tools = {
   animations: null as any,
   zoom: null as any,
   quickCorrection: null as any,
+  enhancedScoringDisplay: null as any,
 };
 
 export default defineContentScript({
@@ -191,6 +193,10 @@ async function initMatch(ctx, url: string, matchId?: string) {
 
   // *********************** YOU CAN ADD HERE ***********************
 
+  if (config.enhancedScoringDisplay.enabled) {
+    await initScript(enhancedScoringDisplay, url).catch(console.error);
+  }
+
   // ****************************************************************
 
   if (config.animations.enabled) {
@@ -225,6 +231,7 @@ function clearMatch(fromBullOff: boolean = false) {
   nextPlayerOnTakeOutStuckOnRemove();
   discordStreamOnRemove();
   automaticNextLegOnRemove();
+  enhancedScoringDisplayOnRemove();
   matchInitialized = false;
 }
 
