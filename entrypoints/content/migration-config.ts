@@ -74,6 +74,14 @@ async function migrateConfig(currentConfigVersion: number) {
           config.zoom.showMarker = true;
         }
         break;
+      case 9:
+        // Migration from version 9 to version 10
+        config.version = 10;
+        if (config.colors && !config.colors.matchBackground) {
+          config.colors.matchBackground = defaultConfig.colors.matchBackground;
+        }
+        break;
+
     }
 
     await AutodartsToolsConfig.setValue(config);

@@ -35,8 +35,18 @@
                     class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
                   >Text color</span>
                 </div>
+                <div class="relative min-h-14 w-full">
+                  <input
+                    v-model="config.colors.matchBackground"
+                    type="color"
+                    class="size-full overflow-hidden rounded-md border-none border-transparent p-0 outline-none"
+                  >
+                  <span
+                    class="pointer-events-none absolute inset-0 flex items-center justify-center p-2 text-center text-xs drop-shadow-[0_1.2px_1.2px_rgba(0,0,0,0.8)]"
+                  >Match background</span>
+                </div>
                 <div
-                  class="col-span-2 flex h-14 w-full items-center justify-center rounded-md text-5xl font-bold"
+                  class="col-span-1 flex h-14 w-full items-center justify-center rounded-md text-5xl font-bold"
                   :style="{
                     backgroundColor: config.colors.background,
                     color: config.colors.text,

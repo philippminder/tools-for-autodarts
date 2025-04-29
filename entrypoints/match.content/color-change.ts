@@ -18,6 +18,7 @@ async function handleChangeColor() {
     const playerDisplay = await waitForElement("#ad-ext-player-display") as HTMLElement;
     const playerScores = playerDisplay.querySelectorAll(".ad-ext-player");
     const playerInfos = playerDisplay.querySelectorAll("div:nth-of-type(2)");
+    const body = document.querySelector("body") as HTMLElement;
 
     playerScores.forEach(element => elements.push(element as HTMLElement));
     playerInfos.forEach(element => elements.push(element as HTMLElement));
@@ -37,6 +38,11 @@ async function handleChangeColor() {
       element.style.setProperty("background", config.colors.background);
       element.style.color = `${config.colors.text}`;
     });
+
+    if (body && config.colors.enabled && config.colors.matchBackground) {
+      body.style.setProperty("background-color", config.colors.matchBackground, "important");
+      body.style.setProperty("background-image", "none", "important");
+    }
   } catch (e) {
     console.error("Autodarts Tools: Color Change - Error changing color: ", e);
     if (colorChangeInterval) clearInterval(colorChangeInterval);
@@ -45,4 +51,9 @@ async function handleChangeColor() {
 
 export async function onRemove() {
   if (colorChangeInterval) clearInterval(colorChangeInterval);
+  const body = document.querySelector("body") as HTMLElement;
+  if (body) {
+    body.style.removeProperty("background-color");
+    body.style.removeProperty("background-image");
+  }
 }

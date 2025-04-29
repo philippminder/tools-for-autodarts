@@ -42,6 +42,7 @@ export interface IConfig {
     enabled: boolean;
     background: string;
     text: string;
+    matchBackground: string;
   };
   recentLocalPlayers: {
     enabled: boolean;
@@ -293,7 +294,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 9,
+  version: 10,
   discord: {
     enabled: false,
     manually: false,
@@ -334,6 +335,7 @@ export const defaultConfig: IConfig = {
     enabled: false,
     background: "#3182CE",
     text: "#FFFFFF",
+    matchBackground: "#3c3c3c",
   },
   recentLocalPlayers: {
     enabled: false,
