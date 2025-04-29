@@ -70,6 +70,13 @@ async function migrateConfig(currentConfigVersion: number) {
       case 8:
         // Migration from version 8 to version 9
         config.version = 9;
+        if (config.zoom.showMarker === undefined) {
+          config.zoom.showMarker = true;
+        }
+        break;
+      case 9:
+        // Migration from version 9 to version 10
+        config.version = 10;
         if (config.colors && !config.colors.matchBackground) {
           config.colors.matchBackground = defaultConfig.colors.matchBackground;
         }
