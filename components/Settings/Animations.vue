@@ -111,7 +111,7 @@
                 }"
               >
                 <!-- Main content -->
-                <img :src="getAnimationSource(animation, index)" class="size-full object-cover">
+                <img :src="getAnimationSource(animation)" class="size-full object-cover">
 
                 <!-- Drag handle overlay -->
                 <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/100 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
@@ -431,15 +431,18 @@ nine dart
 `;
 
 // Display animations - modified to retrieve from IndexedDB
-const animationSources = ref<Record<number, string>>({});
+// Change from index-based to id-based storage
+const animationSources = ref<Record<string, string>>({});
 
 // Load animation sources from IndexedDB
-async function loadAnimationSource(animation: IAnimation, index: number) {
+async function loadAnimationSource(animation: IAnimation) {
+  // Create a unique identifier for this animation
+  const animId = animation.animationId || `url_${animation.url}`;
   if (animation.animationId && isIndexedDBAvailable()) {
     try {
       const base64Data = await getAnimationFromIndexedDB(animation.animationId);
       if (base64Data) {
-        animationSources.value[index] = base64Data;
+        animationSources.value[animId] = base64Data;
         return;
       }
     } catch (error) {
@@ -447,24 +450,35 @@ async function loadAnimationSource(animation: IAnimation, index: number) {
     }
   }
   // Fallback to URL if IndexedDB failed or ID not present
-  animationSources.value[index] = animation.url;
+  animationSources.value[animId] = animation.url;
 }
 
 // Helper to get the proper URL source for an animation
-function getAnimationSource(animation: IAnimation, index: number): string {
+function getAnimationSource(animation: IAnimation): string {
+  // Create a unique identifier for this animation
+  const animId = animation.animationId || `url_${animation.url}`;
   // If we already have the source cached, return it
-  if (animationSources.value[index]) {
-    return animationSources.value[index];
+  if (animationSources.value[animId]) {
+    return animationSources.value[animId];
   }
   // If it's a regular URL, return it directly
   if (animation.url && !animation.url.startsWith("data:") && !animation.animationId) {
-    animationSources.value[index] = animation.url;
+    animationSources.value[animId] = animation.url;
     return animation.url;
   }
   // Otherwise, try to load from IndexedDB
-  loadAnimationSource(animation, index);
+  loadAnimationSource(animation);
   // Return placeholder or URL while loading
   return animation.url || "";
+}
+
+// Function to preload all animation sources
+function preloadAllAnimationSources() {
+  if (config.value?.animations.data) {
+    for (const animation of config.value.animations.data) {
+      loadAnimationSource(animation);
+    }
+  }
 }
 
 onMounted(async () => {
@@ -473,12 +487,9 @@ onMounted(async () => {
   initSortable();
   await nextTick();
   allowAdd.value = true;
+
   // Preload animation sources
-  if (config.value?.animations.data) {
-    config.value.animations.data.forEach((animation, index) => {
-      loadAnimationSource(animation, index);
-    });
-  }
+  preloadAllAnimationSources();
 });
 
 watch(config, async (_, oldValue) => {
@@ -604,13 +615,13 @@ function removeAnimation(index: number) {
     const animation = config.value.animations.data[index];
     if (animation.animationId && isIndexedDBAvailable()) {
       deleteAnimationFromIndexedDB(animation.animationId).catch(console.error);
+      // Also remove from sources cache
+      delete animationSources.value[animation.animationId];
     }
-
+    // Also remove URL-based entry if exists
+    delete animationSources.value[`url_${animation.url}`];
     config.value.animations.data.splice(index, 1);
     containerKey.value++; // Force re-render of the list
-
-    // Remove from animation sources cache
-    delete animationSources.value[index];
   }
 }
 
@@ -723,19 +734,21 @@ async function processGifFiles() {
           if (animationId) {
             // If successful, store the ID reference
             animation.animationId = animationId;
+            // Add to cache directly
+            animationSources.value[animationId] = base64Data;
           } else {
             // Fallback to base64 in URL if IndexedDB fails
             animation.url = base64Data;
+            animationSources.value[`url_${base64Data}`] = base64Data;
           }
         } else {
           // If IndexedDB is not available, store as base64 in URL
           animation.url = base64Data;
+          animationSources.value[`url_${base64Data}`] = base64Data;
         }
 
-        // Add to config and update animation sources
-        const newIndex = config.value.animations.data.length;
+        // Add to config
         config.value.animations.data.unshift(animation);
-        animationSources.value[newIndex] = base64Data;
       } catch (error) {
         console.error(`Error processing file ${file.name}:`, error);
       }
