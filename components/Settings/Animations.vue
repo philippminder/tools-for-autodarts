@@ -171,19 +171,25 @@
     >
       <div class="space-y-4">
         <div>
-          <label for="animation-url" class="mb-1 block text-sm font-medium text-white">Animation URL (GIF)</label>
+          <label for="animation-url" class="mb-1 block text-sm font-medium text-white">
+            {{ isUploadedGif ? "Uploaded GIF" : "Animation URL (GIF)" }}
+          </label>
           <div class="relative">
             <span class="absolute inset-y-0 left-3 flex items-center text-white/60">
-              <span class="icon-[pixelarticons--link]" />
+              <span :class="isUploadedGif ? 'icon-[pixelarticons--image]' : 'icon-[pixelarticons--link]'" />
             </span>
             <AppInput
               id="animation-url"
               v-model="newAnimation.url"
               type="url"
-              placeholder="https://example.com/animation.gif"
+              :placeholder="isUploadedGif ? `Uploaded GIF: ${uploadedGifFilename}` : 'https://example.com/animation.gif'"
               class="pl-9"
+              :disabled="isUploadedGif"
             />
           </div>
+          <p v-if="isUploadedGif" class="mt-1 text-xs text-white/60">
+            This GIF was uploaded to your browser's storage and cannot be edited directly.
+          </p>
         </div>
 
         <hr class="border-white/20">
@@ -383,9 +389,10 @@ const config = ref<IConfig>();
 const imageUrl = browser.runtime.getURL("/images/animations.png");
 const showAnimationModal = ref(false);
 const isEditMode = ref(false);
-const newAnimation = ref({
+const newAnimation = ref<{ url: string; text: string; animationId: string | null }>({
   url: "",
   text: "",
+  animationId: null,
 });
 const allowAdd = ref(false);
 const editingIndex = ref<number | null>(null);
@@ -405,6 +412,10 @@ const generateTriggersFromFilenamesGif = ref(true);
 
 // Delete All Modal state
 const showDeleteAllModal = ref(false);
+
+// In the script section with other refs
+const isUploadedGif = ref(false);
+const uploadedGifFilename = ref("");
 
 // Computed property for lowercase text handling
 const lowercaseText = computed({
@@ -555,14 +566,26 @@ function toggleAnimationEnabled(index: number) {
   config.value.animations.data[index].enabled = !config.value.animations.data[index].enabled;
 }
 
-function editAnimation(index: number) {
+async function editAnimation(index: number) {
   if (!config.value || !config.value.animations.data[index]) return;
 
+  const animation = config.value.animations.data[index];
+
+  isUploadedGif.value = !!animation.animationId;
+  uploadedGifFilename.value = "";
+
+  // Try to extract a friendly filename from the animationId if possible
+  if (animation.animationId) {
+    const name = await getAnimationNameFromIndexedDB(animation.animationId);
+    uploadedGifFilename.value = name || "unknown";
+  }
+
   newAnimation.value = {
-    url: config.value.animations.data[index].url || "",
-    text: Array.isArray(config.value.animations.data[index].triggers)
-      ? config.value.animations.data[index].triggers.join("\n")
+    url: animation.url || "",
+    text: Array.isArray(animation.triggers)
+      ? animation.triggers.join("\n")
       : "",
+    animationId: animation.animationId || null,
   };
   isEditMode.value = true;
   editingIndex.value = index;
@@ -570,7 +593,12 @@ function editAnimation(index: number) {
 }
 
 function saveAnimation() {
-  if (!config.value || !newAnimation.value.url || !newAnimation.value.text) {
+  if (!config.value || !newAnimation.value.text) {
+    return;
+  }
+
+  // Either url (remote gif) or animationId (uploaded gif) is required
+  if (!newAnimation.value.url && !newAnimation.value.animationId) {
     return;
   }
 
@@ -585,6 +613,7 @@ function saveAnimation() {
     url: newAnimation.value.url.trim(),
     triggers: Array.isArray(triggers) ? triggers : [], // Ensure triggers is an array
     enabled: true, // New animations are enabled by default
+    animationId: newAnimation.value.animationId ?? undefined,
   };
 
   if (isEditMode.value && editingIndex.value !== null) {
@@ -598,15 +627,17 @@ function saveAnimation() {
   }
 
   // Reset form and close modal
-  newAnimation.value = { url: "", text: "" };
+  newAnimation.value = { url: "", text: "", animationId: null };
   showAnimationModal.value = false;
   editingIndex.value = null;
 }
 
 function closeAnimationModal() {
-  newAnimation.value = { url: "", text: "" };
+  newAnimation.value = { url: "", text: "", animationId: null };
   showAnimationModal.value = false;
   editingIndex.value = null;
+  isUploadedGif.value = false;
+  uploadedGifFilename.value = "";
 }
 
 function removeAnimation(index: number) {
@@ -626,7 +657,7 @@ function removeAnimation(index: number) {
 }
 
 function openAddAnimationModal() {
-  newAnimation.value = { url: "", text: "" };
+  newAnimation.value = { url: "", text: "", animationId: null };
   isEditMode.value = false;
   editingIndex.value = null;
   showAnimationModal.value = true;
