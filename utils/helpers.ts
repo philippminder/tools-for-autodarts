@@ -959,3 +959,92 @@ export async function getAllAnimationsFromIndexedDB(): Promise<Array<{ id: strin
     return null;
   }
 }
+
+/**
+ * Validates animation triggers according to the supported formats
+ * @param triggers Array of trigger strings to validate
+ * @returns Object containing valid triggers and any invalid ones that were removed
+ */
+export function validateAnimationTriggers(triggers: string[]): {
+  validTriggers: string[];
+  invalidTriggers: string[];
+} {
+  const validTriggers: string[] = [];
+  const invalidTriggers: string[] = [];
+
+  console.log("checking triggers", triggers);
+
+  if (!Array.isArray(triggers)) {
+    return { validTriggers: [], invalidTriggers: [] };
+  }
+
+  // Define regex patterns for each trigger type
+  const patterns = {
+    // Points: 0 to 180
+    points: /^(180|1[0-7][0-9]|[1-9][0-9]|[0-9])$/,
+
+    // Singles: s0 to s20 and 25
+    singles: /^s(1[0-9]|20|[0-9]|25)$/,
+
+    // Doubles: d1 to d20
+    doubles: /^d(1[0-9]|20|[1-9])$/,
+
+    // Triples: t1 to t20
+    triples: /^t(1[0-9]|20|[1-9])$/,
+
+    // Special events
+    specialEvents: /^(bull|outside|busted|gameshot)$/,
+
+    // Combination tags: Format: [first dart]_[second dart]_[third dart]
+    // Each dart can be a single, double, triple, or bull
+    dartPattern: /^(s(1[0-9]|20|[0-9]|25)|d(1[0-9]|20|[1-9])|t(1[0-9]|20|[1-9])|bull)$/,
+  };
+
+  // Combination pattern builder
+  const isValidCombination = (combo: string): boolean => {
+    const parts = combo.split("_");
+
+    // Must have 2 or 3 parts
+    if (parts.length < 2 || parts.length > 3) {
+      return false;
+    }
+
+    // Each part must be a valid dart
+    return parts.every(part => patterns.dartPattern.test(part));
+  };
+
+  // Process each trigger
+  for (const trigger of triggers) {
+    const trimmedTrigger = trigger.trim().toLowerCase();
+
+    // Skip empty triggers
+    if (!trimmedTrigger) {
+      continue;
+    }
+
+    // Check if it's a valid combination
+    if (trimmedTrigger.includes("_")) {
+      if (isValidCombination(trimmedTrigger)) {
+        validTriggers.push(trimmedTrigger);
+      } else {
+        invalidTriggers.push(trimmedTrigger);
+      }
+      continue;
+    }
+
+    // Check against all single-dart patterns
+    if (
+      patterns.points.test(trimmedTrigger)
+      || patterns.singles.test(trimmedTrigger)
+      || patterns.doubles.test(trimmedTrigger)
+      || patterns.triples.test(trimmedTrigger)
+      || patterns.specialEvents.test(trimmedTrigger)
+    ) {
+      validTriggers.push(trimmedTrigger);
+    } else {
+      invalidTriggers.push(trimmedTrigger);
+    }
+  }
+
+  return { validTriggers, invalidTriggers };
+}

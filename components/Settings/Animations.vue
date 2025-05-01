@@ -224,6 +224,13 @@
           Save
         </AppButton>
       </template>
+
+      <AppNotification
+        @close="hideNotification"
+        :show="notification.show"
+        :message="notification.message"
+        :type="notification.type"
+      />
     </AppModal>
 
     <!-- File Upload Modal -->
@@ -335,6 +342,13 @@
         </AppButton>
       </template>
     </AppModal>
+
+    <AppNotification
+      @close="hideNotification"
+      :show="notification.show"
+      :message="notification.message"
+      :type="notification.type"
+    />
   </template>
 
   <template v-else>
@@ -370,7 +384,7 @@
 
 <script setup lang="ts">
 import { useNotification } from "@/composables/useNotification";
-import { deleteAnimationFromIndexedDB, getAnimationFromIndexedDB, isIndexedDBAvailable, saveAnimationToIndexedDB } from "@/utils/helpers";
+import { deleteAnimationFromIndexedDB, getAnimationFromIndexedDB, getAnimationNameFromIndexedDB, isIndexedDBAvailable, saveAnimationToIndexedDB, validateAnimationTriggers } from "@/utils/helpers";
 import { AutodartsToolsConfig, type IAnimation, type IConfig, defaultConfig } from "@/utils/storage";
 import { useStorage } from "@vueuse/core";
 import Sortable from "sortablejs";
@@ -378,6 +392,7 @@ import { nextTick, onMounted, ref, toRaw, watch } from "vue";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import AppModal from "../AppModal.vue";
+import AppNotification from "../AppNotification.vue";
 import AppSelect from "../AppSelect.vue";
 import AppTextarea from "../AppTextarea.vue";
 import AppToggle from "../AppToggle.vue";
@@ -603,15 +618,31 @@ function saveAnimation() {
   }
 
   // Convert text to array of triggers (split by newline and filter empty lines)
-  const triggers = newAnimation.value.text
+  const rawTriggers = newAnimation.value.text
     .split("\n")
     .map(line => line.trim().toLowerCase())
     .filter(line => line.length > 0);
 
+  // Validate triggers
+  const { validTriggers, invalidTriggers } = validateAnimationTriggers(rawTriggers);
+
+  // If there are invalid triggers, show a warning
+  if (invalidTriggers.length > 0) {
+    newAnimation.value.text = validTriggers.join("\n");
+    showNotification(`Some triggers were invalid and removed: ${invalidTriggers.join(", ")}`, "error");
+    return;
+  }
+
+  // If no valid triggers remain, show an error but still save
+  if (validTriggers.length === 0) {
+    showNotification("No valid triggers found. Please check the documentation for supported trigger formats.", "error");
+    return;
+  }
+
   // Create animation object
   const animation: IAnimation = {
     url: newAnimation.value.url.trim(),
-    triggers: Array.isArray(triggers) ? triggers : [], // Ensure triggers is an array
+    triggers: validTriggers, // Use the validated triggers
     enabled: true, // New animations are enabled by default
     animationId: newAnimation.value.animationId ?? undefined,
   };
