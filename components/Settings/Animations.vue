@@ -144,6 +144,13 @@
                 </div>
               </div>
             </div>
+
+            <div class="flex w-full flex-wrap gap-2 sm:w-auto mt-2">
+              <AppButton @click="openGifUploadModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
+                <span class="icon-[pixelarticons--upload] mr-1" />
+                <span class="whitespace-nowrap">Upload GIFs</span>
+              </AppButton>
+            </div>
           </div>
         </div>
       </div>
@@ -205,6 +212,90 @@
         </AppButton>
       </template>
     </AppModal>
+
+    <!-- File Upload Modal -->
+    <AppModal
+      @close="closeGifUploadModal"
+      :show="showGifUploadModal"
+      title="Upload Animation GIFs"
+    >
+      <div class="space-y-4">
+        <div
+          @dragover.prevent="onGifDragOver"
+          @dragleave.prevent="onGifDragLeave"
+          @drop.prevent="onGifDrop"
+          @click="triggerGifFileInput"
+          :class="{ 'border-white/50 bg-white/10': isGifDragging }"
+          class="flex h-40 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-white/30 transition-colors hover:bg-white/5"
+        >
+          <span class="icon-[pixelarticons--upload] mb-2 text-3xl text-white/70" />
+          <p class="text-white/70">
+            Drag and drop GIF files here or click to browse
+          </p>
+          <p class="mt-1 text-xs text-white/50">
+            Supported format: GIF
+          </p>
+          <input
+            @change="onGifFileSelect"
+            ref="gifFileInput"
+            type="file"
+            accept="image/gif"
+            multiple
+            class="hidden"
+          >
+        </div>
+        <div v-if="selectedGifFiles.length > 0" class="mt-4">
+          <h4 class="mb-2 text-sm font-medium">
+            Selected Files ({{ selectedGifFiles.length }})
+          </h4>
+          <div class="max-h-60 overflow-y-auto rounded-md border border-white/20">
+            <div
+              v-for="(file, index) in selectedGifFiles"
+              :key="index"
+              class="flex items-center justify-between border-b border-white/10 p-2 last:border-b-0"
+            >
+              <div class="flex items-center">
+                <span class="icon-[pixelarticons--image] mr-2 text-white/70" />
+                <span class="max-w-[calc(100%-2rem)] truncate">{{ file.name }}</span>
+              </div>
+              <button
+                @click.stop="removeGifFile(index)"
+                class="flex items-center justify-center text-red-500 hover:text-red-400"
+              >
+                <span class="icon-[pixelarticons--close]" />
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center">
+          <label class="flex cursor-pointer items-center">
+            <input
+              v-model="generateTriggersFromFilenamesGif"
+              type="checkbox"
+              class="form-checkbox size-4 rounded text-blue-600 focus:ring-blue-500"
+            >
+            <span class="ml-2 text-sm">Generate triggers from filenames</span>
+          </label>
+          <span
+            class="icon-[pixelarticons--info-box] ml-2 cursor-help text-white/50"
+            title="If enabled, triggers will be automatically generated from filenames. For example, a file named '180.gif' will trigger on '180' scores."
+          />
+        </div>
+      </div>
+      <template #footer>
+        <AppButton @click="closeGifUploadModal">
+          Cancel
+        </AppButton>
+        <AppButton
+          @click="processGifFiles"
+          type="success"
+          :disabled="selectedGifFiles.length === 0 || isGifProcessing"
+          :loading="isGifProcessing"
+        >
+          Save {{ selectedGifFiles.length }} GIFs
+        </AppButton>
+      </template>
+    </AppModal>
   </template>
 
   <template v-else>
@@ -239,17 +330,17 @@
 </template>
 
 <script setup lang="ts">
-import Sortable from "sortablejs";
-import { computed } from "vue";
-import { useStorage } from "@vueuse/core";
-import AppToggle from "../AppToggle.vue";
-import AppModal from "../AppModal.vue";
-import AppTextarea from "../AppTextarea.vue";
-import AppInput from "../AppInput.vue";
-import AppSelect from "../AppSelect.vue";
-import AppButton from "../AppButton.vue";
-import { AutodartsToolsConfig, type IAnimation, type IConfig } from "@/utils/storage";
 import { useNotification } from "@/composables/useNotification";
+import { AutodartsToolsConfig, type IAnimation, type IConfig } from "@/utils/storage";
+import { useStorage } from "@vueuse/core";
+import Sortable from "sortablejs";
+import { computed, nextTick, onMounted, ref, toRaw, watch } from "vue";
+import AppButton from "../AppButton.vue";
+import AppInput from "../AppInput.vue";
+import AppModal from "../AppModal.vue";
+import AppSelect from "../AppSelect.vue";
+import AppTextarea from "../AppTextarea.vue";
+import AppToggle from "../AppToggle.vue";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
 const { notification, showNotification, hideNotification } = useNotification();
@@ -269,6 +360,14 @@ const isDragging = ref(false);
 const currentDragIndex = ref<number | null>(null);
 const containerKey = ref(0);
 let sortableInstance: Sortable | null = null;
+
+// GIF upload modal state
+const showGifUploadModal = ref(false);
+const gifFileInput = ref<HTMLInputElement | null>(null);
+const selectedGifFiles = ref<File[]>([]);
+const isGifDragging = ref(false);
+const isGifProcessing = ref(false);
+const generateTriggersFromFilenamesGif = ref(true);
 
 // Computed property for lowercase text handling
 const lowercaseText = computed({
@@ -444,6 +543,102 @@ async function toggleFeature() {
   if (!wasEnabled) {
     await nextTick();
     emit("toggle", "animations");
+  }
+}
+
+function openGifUploadModal() {
+  showGifUploadModal.value = true;
+  selectedGifFiles.value = [];
+}
+
+function closeGifUploadModal() {
+  showGifUploadModal.value = false;
+  selectedGifFiles.value = [];
+  isGifDragging.value = false;
+}
+
+function triggerGifFileInput() {
+  gifFileInput.value?.click();
+}
+
+function onGifDragOver(event: DragEvent) {
+  isGifDragging.value = true;
+}
+
+function onGifDragLeave(event: DragEvent) {
+  isGifDragging.value = false;
+}
+
+function onGifDrop(event: DragEvent) {
+  isGifDragging.value = false;
+  if (!event.dataTransfer) return;
+  const files = Array.from(event.dataTransfer.files).filter(file => file.type === "image/gif");
+  if (files.length > 0) {
+    selectedGifFiles.value = [ ...selectedGifFiles.value, ...files ];
+  }
+}
+
+function onGifFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement;
+  if (!input.files) return;
+  const files = Array.from(input.files).filter(file => file.type === "image/gif");
+  if (files.length > 0) {
+    selectedGifFiles.value = [ ...selectedGifFiles.value, ...files ];
+  }
+  input.value = "";
+}
+
+function removeGifFile(index: number) {
+  selectedGifFiles.value.splice(index, 1);
+}
+
+function extractTriggerFromGifFilename(filename: string): string[] {
+  const nameWithoutExt = filename.substring(0, filename.lastIndexOf(".")).toLowerCase();
+  const cleanName = nameWithoutExt.replace(/-/g, "_").trim();
+  const plusIndex = cleanName.indexOf("+");
+  const finalTrigger = plusIndex !== -1 ? cleanName.substring(0, plusIndex) : cleanName;
+  return finalTrigger ? [ finalTrigger ] : [];
+}
+
+async function gifFileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+}
+
+async function processGifFiles() {
+  if (!config.value || selectedGifFiles.value.length === 0) return;
+  isGifProcessing.value = true;
+  try {
+    for (const file of selectedGifFiles.value) {
+      try {
+        const base64Data = await gifFileToBase64(file);
+        const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf("."));
+        const triggers = generateTriggersFromFilenamesGif.value
+          ? extractTriggerFromGifFilename(file.name)
+          : [];
+        const animation: IAnimation = {
+          url: base64Data,
+          triggers,
+          enabled: true,
+        };
+        config.value.animations.data.unshift(animation);
+      } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error);
+      }
+    }
+    await AutodartsToolsConfig.setValue(toRaw(config.value));
+    emit("settingChange");
+    showNotification(`Successfully added ${selectedGifFiles.value.length} GIFs`);
+  } catch (error) {
+    console.error("Error processing GIF files:", error);
+    showNotification("Error processing GIF files", "error");
+  } finally {
+    isGifProcessing.value = false;
+    closeGifUploadModal();
   }
 }
 </script>
