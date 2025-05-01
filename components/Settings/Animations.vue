@@ -97,7 +97,7 @@
                 }"
               >
                 <!-- Main content -->
-                <img :src="animation.url" class="size-full object-cover">
+                <img :src="getAnimationSource(animation, index)" class="size-full object-cover">
 
                 <!-- Drag handle overlay -->
                 <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/100 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
@@ -331,10 +331,11 @@
 
 <script setup lang="ts">
 import { useNotification } from "@/composables/useNotification";
-import { AutodartsToolsConfig, type IAnimation, type IConfig } from "@/utils/storage";
+import { deleteAnimationFromIndexedDB, getAnimationFromIndexedDB, isIndexedDBAvailable, saveAnimationToIndexedDB } from "@/utils/helpers";
+import { AutodartsToolsConfig, type IAnimation, type IConfig, defaultConfig } from "@/utils/storage";
 import { useStorage } from "@vueuse/core";
 import Sortable from "sortablejs";
-import { computed, nextTick, onMounted, ref, toRaw, watch } from "vue";
+import { nextTick, onMounted, ref, toRaw, watch } from "vue";
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import AppModal from "../AppModal.vue";
@@ -393,18 +394,61 @@ whitewash
 nine dart
 `;
 
+// Display animations - modified to retrieve from IndexedDB
+const animationSources = ref<Record<number, string>>({});
+
+// Load animation sources from IndexedDB
+async function loadAnimationSource(animation: IAnimation, index: number) {
+  if (animation.animationId && isIndexedDBAvailable()) {
+    try {
+      const base64Data = await getAnimationFromIndexedDB(animation.animationId);
+      if (base64Data) {
+        animationSources.value[index] = base64Data;
+        return;
+      }
+    } catch (error) {
+      console.error("Error loading animation from IndexedDB:", error);
+    }
+  }
+  // Fallback to URL if IndexedDB failed or ID not present
+  animationSources.value[index] = animation.url;
+}
+
+// Helper to get the proper URL source for an animation
+function getAnimationSource(animation: IAnimation, index: number): string {
+  // If we already have the source cached, return it
+  if (animationSources.value[index]) {
+    return animationSources.value[index];
+  }
+  // If it's a regular URL, return it directly
+  if (animation.url && !animation.url.startsWith("data:") && !animation.animationId) {
+    animationSources.value[index] = animation.url;
+    return animation.url;
+  }
+  // Otherwise, try to load from IndexedDB
+  loadAnimationSource(animation, index);
+  // Return placeholder or URL while loading
+  return animation.url || "";
+}
+
 onMounted(async () => {
   config.value = await AutodartsToolsConfig.getValue();
   await nextTick();
   initSortable();
   await nextTick();
   allowAdd.value = true;
+  // Preload animation sources
+  if (config.value?.animations.data) {
+    config.value.animations.data.forEach((animation, index) => {
+      loadAnimationSource(animation, index);
+    });
+  }
 });
 
 watch(config, async (_, oldValue) => {
   if (!oldValue) return;
 
-  await AutodartsToolsConfig.setValue(toRaw(config.value!));
+  await AutodartsToolsConfig.setValue(toRaw(config.value ?? defaultConfig));
   emit("settingChange");
   console.log("Animations setting changed");
 }, { deep: true });
@@ -519,9 +563,18 @@ function closeAnimationModal() {
 }
 
 function removeAnimation(index: number) {
-  if (config.value && config.value.animations.data) {
+  if (config.value?.animations.data) {
+    // If animation is stored in IndexedDB, delete it
+    const animation = config.value.animations.data[index];
+    if (animation.animationId && isIndexedDBAvailable()) {
+      deleteAnimationFromIndexedDB(animation.animationId).catch(console.error);
+    }
+
     config.value.animations.data.splice(index, 1);
     containerKey.value++; // Force re-render of the list
+
+    // Remove from animation sources cache
+    delete animationSources.value[index];
   }
 }
 
@@ -620,12 +673,33 @@ async function processGifFiles() {
         const triggers = generateTriggersFromFilenamesGif.value
           ? extractTriggerFromGifFilename(file.name)
           : [];
+
+        // Create the animation object
         const animation: IAnimation = {
-          url: base64Data,
+          url: "", // Empty URL since we're storing in IndexedDB
           triggers,
           enabled: true,
         };
+
+        // Try to save to IndexedDB if available
+        if (isIndexedDBAvailable()) {
+          const animationId = await saveAnimationToIndexedDB(nameWithoutExt, base64Data);
+          if (animationId) {
+            // If successful, store the ID reference
+            animation.animationId = animationId;
+          } else {
+            // Fallback to base64 in URL if IndexedDB fails
+            animation.url = base64Data;
+          }
+        } else {
+          // If IndexedDB is not available, store as base64 in URL
+          animation.url = base64Data;
+        }
+
+        // Add to config and update animation sources
+        const newIndex = config.value.animations.data.length;
         config.value.animations.data.unshift(animation);
+        animationSources.value[newIndex] = base64Data;
       } catch (error) {
         console.error(`Error processing file ${file.name}:`, error);
       }

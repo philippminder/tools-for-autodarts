@@ -129,6 +129,16 @@ export interface SoundDB extends DBSchema {
     };
     indexes: { "by-date": number };
   };
+  "animations": {
+    key: string;
+    value: {
+      id: string;
+      name: string;
+      base64: string;
+      dateAdded: number;
+    };
+    indexes: { "by-date": number };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<SoundDB>> | null = null;
@@ -208,7 +218,7 @@ export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
   }
 
   if (!dbPromise) {
-    dbPromise = openDB<SoundDB>("autodarts-tools-sounds", 2, {
+    dbPromise = openDB<SoundDB>("autodarts-tools-sounds", 3, {
       upgrade(db, oldVersion, newVersion) {
         // Create a store for Caller sounds if it doesn't exist
         if (!db.objectStoreNames.contains("sounds-caller")) {
@@ -224,6 +234,14 @@ export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
             keyPath: "id",
           });
           soundFxStore.createIndex("by-date", "dateAdded");
+        }
+        
+        // Create a store for Animations if it doesn't exist
+        if (!db.objectStoreNames.contains("animations")) {
+          const animationsStore = db.createObjectStore("animations", {
+            keyPath: "id",
+          });
+          animationsStore.createIndex("by-date", "dateAdded");
         }
       },
     });
@@ -823,4 +841,143 @@ export function generateAvatar(name: string): string {
   }
 
   return canvas.toDataURL("image/png");
+}
+
+// Save a base64 animation to IndexedDB
+export async function saveAnimationToIndexedDB(
+  name: string,
+  base64Data: string,
+  existingId?: string,
+): Promise<string | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+
+    // Use existing ID if provided, otherwise generate a new one
+    const id = existingId || `animation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const dateAdded = existingId 
+      ? (await db.get("animations", id))?.dateAdded || Date.now() 
+      : Date.now();
+      
+    const animationData = {
+      id,
+      name,
+      base64: base64Data,
+      dateAdded,
+    };
+
+    await db.put("animations", animationData);
+    return id;
+  } catch (error) {
+    console.error("Error saving animation to IndexedDB:", error);
+    return null;
+  }
+}
+
+// Get an animation from IndexedDB by ID
+export async function getAnimationFromIndexedDB(id: string): Promise<string | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+
+    const animation = await db.get("animations", id);
+    if (!animation) return null;
+    
+    return animation.base64;
+  } catch (error) {
+    console.error("Error getting animation from IndexedDB:", error);
+    return null;
+  }
+}
+
+// Delete an animation from IndexedDB
+export async function deleteAnimationFromIndexedDB(id: string): Promise<boolean> {
+  try {
+    const db = await getDB();
+    if (!db) return false;
+
+    await db.delete("animations", id);
+    return true;
+  } catch (error) {
+    console.error("Error deleting animation from IndexedDB:", error);
+    return false;
+  }
+}
+
+// Clear all animations from IndexedDB
+export async function clearAnimationsFromIndexedDB(): Promise<boolean> {
+  try {
+    const db = await getDB();
+    if (!db) return false;
+
+    await db.clear("animations");
+    return true;
+  } catch (error) {
+    console.error("Error clearing animations from IndexedDB:", error);
+    return false;
+  }
+}
+
+// Get all animations from IndexedDB
+export async function getAllAnimationsFromIndexedDB(): Promise<Array<{ id: string; name: string; base64: string }> | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+
+    const animations = await db.getAll("animations");
+    return animations.map(animation => ({
+      id: animation.id,
+      name: animation.name,
+      base64: animation.base64,
+    }));
+  } catch (error) {
+    console.error("Error getting all animations from IndexedDB:", error);
+    return null;
+  }
+}
+
+// Migrate animations from config to IndexedDB
+export async function migrateAnimationsToIndexedDB(
+  config: IConfig,
+  updateConfig: (updatedConfig: IConfig) => Promise<void>,
+): Promise<boolean> {
+  if (!config.animations?.data || !isIndexedDBAvailable()) {
+    return false;
+  }
+
+  try {
+    let modified = false;
+
+    // Loop through all animations with base64 data
+    for (let i = 0; i < config.animations.data.length; i++) {
+      const animation = config.animations.data[i];
+      
+      // Only migrate items that have base64 data (starts with data:)
+      if (animation.url && animation.url.startsWith('data:')) {
+        // Save to IndexedDB and get an ID
+        const name = `Animation ${i + 1}`;
+        const animationId = await saveAnimationToIndexedDB(name, animation.url);
+        
+        if (animationId) {
+          // Successfully saved to IndexedDB, now update the config
+          config.animations.data[i] = {
+            ...animation,
+            url: '', // Clear the base64 data from config
+            animationId, // Store the IndexedDB reference
+          };
+          modified = true;
+        }
+      }
+    }
+
+    if (modified) {
+      // Update the config with the new references
+      await updateConfig(config);
+    }
+
+    return modified;
+  } catch (error) {
+    console.error('Error migrating animations to IndexedDB:', error);
+    return false;
+  }
 }

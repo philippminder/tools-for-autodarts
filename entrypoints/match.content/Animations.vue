@@ -26,8 +26,9 @@ import { twMerge } from "tailwind-merge";
 
 import type { IGameData } from "@/utils/game-data-storage";
 
-import { AutodartsToolsConfig } from "@/utils/storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
+import { getAnimationFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
+import { AutodartsToolsConfig } from "@/utils/storage";
 
 // Constants
 const FADE_DURATION = 300; // ms
@@ -48,6 +49,9 @@ const boardPosition = ref({
   width: 0,
   height: 0,
 });
+
+// Keep a cache of animation URLs loaded from IndexedDB
+const animationCache = ref<Record<string, string>>({});
 
 // Computed properties
 const animationContainerClasses = computed(() => {
@@ -163,11 +167,91 @@ async function processGameData(gameData: IGameData): Promise<void> {
   if (miss) playAnimation("outside");
 }
 
+/**
+ * Get animation URL for a trigger, selecting randomly from matching animations
+ */
+function getAnimationUrl(trigger: string): string | null {
+  if (!config.value?.animations?.data || config.value.animations.data.length === 0) {
+    return null;
+  }
+
+  // Find animations that match this trigger
+  const matchedAnimations = config.value.animations.data.filter(
+    animation => animation.enabled && Array.isArray(animation.triggers) && 
+    animation.triggers.some(t => t === trigger)
+  );
+
+  if (matchedAnimations.length === 0) {
+    return null;
+  }
+
+  // Select a random animation from the matched ones
+  const randomIndex = Math.floor(Math.random() * matchedAnimations.length);
+  const selectedAnimation = matchedAnimations[randomIndex];
+
+  // Check if we need to load from IndexedDB
+  if (selectedAnimation.animationId && !selectedAnimation.url) {
+    // Check if we already have it in cache
+    if (animationCache.value[selectedAnimation.animationId]) {
+      return animationCache.value[selectedAnimation.animationId];
+    }
+
+    // If not in cache, trigger loading but return an empty URL for now
+    loadAnimationFromIndexedDB(selectedAnimation.animationId);
+    return null;
+  }
+
+  return selectedAnimation.url;
+}
+
+/**
+ * Load animation data from IndexedDB and cache it
+ */
+async function loadAnimationFromIndexedDB(animationId: string): Promise<void> {
+  if (!isIndexedDBAvailable()) return;
+  
+  try {
+    const base64Data = await getAnimationFromIndexedDB(animationId);
+    if (base64Data) {
+      // Store in cache
+      animationCache.value[animationId] = base64Data;
+      
+      // If we're currently waiting for this animation, try playing again
+      if (currentWaitingId.value === animationId) {
+        const trigger = currentWaitingTrigger.value;
+        currentWaitingId.value = null;
+        currentWaitingTrigger.value = null;
+        
+        // Try playing again now that we have the data
+        if (trigger) {
+          playAnimation(trigger);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error loading animation from IndexedDB:", error);
+  }
+}
+
+// Track which animation we're waiting for
+const currentWaitingId = ref<string | null>(null);
+const currentWaitingTrigger = ref<string | null>(null);
+
+/**
+ * Play animation for a trigger
+ */
 async function playAnimation(trigger: string): Promise<void> {
   console.log("Autodarts Tools: Playing animation", trigger);
 
   try {
     const animationUrl = getAnimationUrl(trigger);
+
+    // If we couldn't get a URL and a load is in progress, store the trigger for later
+    if (!animationUrl && currentWaitingId.value) {
+      currentWaitingTrigger.value = trigger;
+      return;
+    }
+
     if (!animationUrl) return;
 
     // Update the board position before showing animation
@@ -218,23 +302,5 @@ function abortAnimation(): void {
   isShowingAnimation.value = false;
   isFadingOut.value = false;
   isFadingIn.value = false;
-}
-
-function getAnimationUrl(trigger: string): string | undefined {
-  // Ensure animations.data is an array before filtering
-  const animationsData = config.value?.animations?.data || [];
-
-  // Find all animations that match the trigger
-  const matchingAnimations = animationsData.filter(a => a.triggers.includes(trigger) && a.enabled);
-
-  // If no matching animations, return undefined
-  if (!matchingAnimations.length) return undefined;
-
-  // If only one animation matches, return its URL
-  if (matchingAnimations.length === 1) return matchingAnimations[0].url;
-
-  // Otherwise, randomly select one from the matching animations
-  const randomIndex = Math.floor(Math.random() * matchingAnimations.length);
-  return matchingAnimations[randomIndex].url;
 }
 </script>
