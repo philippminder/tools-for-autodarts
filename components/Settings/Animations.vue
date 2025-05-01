@@ -9,6 +9,20 @@
         <div>
           <h3 class="mb-1 flex flex-col items-start gap-2 font-bold uppercase sm:flex-row sm:items-center sm:justify-between">
             <span>Settings - Animations</span>
+            <div class="flex w-full flex-wrap gap-2 sm:w-auto">
+              <AppButton @click="sortAnimationsByTriggers" size="sm" class="!py-1 text-xs sm:text-sm" auto title="Sort animations by their triggers">
+                <span class="icon-[pixelarticons--sort-alphabetic] mr-1" />
+                <span class="whitespace-nowrap">Sort</span>
+              </AppButton>
+              <AppButton @click="openDeleteAllModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="danger" title="Delete all animations">
+                <span class="icon-[pixelarticons--trash] mr-1" />
+                <span class="whitespace-nowrap">Delete All</span>
+              </AppButton>
+              <AppButton @click="openGifUploadModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
+                <span class="icon-[pixelarticons--upload] mr-1" />
+                <span class="whitespace-nowrap">Upload GIFs</span>
+              </AppButton>
+            </div>
           </h3>
           <div class="space-y-3 text-white/70">
             <p>Configure the animations for the game. Click the plus button to add a new animation.</p>
@@ -143,13 +157,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="flex w-full flex-wrap gap-2 sm:w-auto mt-2">
-              <AppButton @click="openGifUploadModal" size="sm" class="!py-1 text-xs sm:text-sm" auto type="success">
-                <span class="icon-[pixelarticons--upload] mr-1" />
-                <span class="whitespace-nowrap">Upload GIFs</span>
-              </AppButton>
             </div>
           </div>
         </div>
@@ -296,6 +303,32 @@
         </AppButton>
       </template>
     </AppModal>
+
+    <!-- Delete All Confirmation Modal -->
+    <AppModal
+      @close="closeDeleteAllModal"
+      :show="showDeleteAllModal"
+      title="Delete All Animations"
+    >
+      <div class="space-y-4">
+        <p>Are you sure you want to delete all animations? This action cannot be undone.</p>
+        <p class="text-sm text-white/60">
+          This will remove all {{ config?.animations.data.length || 0 }} animations.
+        </p>
+      </div>
+
+      <template #footer>
+        <AppButton @click="closeDeleteAllModal">
+          Cancel
+        </AppButton>
+        <AppButton
+          @click="deleteAllAnimations"
+          type="danger"
+        >
+          Delete All
+        </AppButton>
+      </template>
+    </AppModal>
   </template>
 
   <template v-else>
@@ -369,6 +402,9 @@ const selectedGifFiles = ref<File[]>([]);
 const isGifDragging = ref(false);
 const isGifProcessing = ref(false);
 const generateTriggersFromFilenamesGif = ref(true);
+
+// Delete All Modal state
+const showDeleteAllModal = ref(false);
 
 // Computed property for lowercase text handling
 const lowercaseText = computed({
@@ -714,5 +750,72 @@ async function processGifFiles() {
     isGifProcessing.value = false;
     closeGifUploadModal();
   }
+}
+
+function openDeleteAllModal() {
+  showDeleteAllModal.value = true;
+}
+
+function closeDeleteAllModal() {
+  showDeleteAllModal.value = false;
+}
+
+async function deleteAllAnimations() {
+  if (!config.value) return;
+
+  // Delete all animations from IndexedDB
+  if (isIndexedDBAvailable()) {
+    // Delete individual animations with their IDs to ensure cleanup
+    for (const animation of config.value.animations.data) {
+      if (animation.animationId) {
+        await deleteAnimationFromIndexedDB(animation.animationId);
+      }
+    }
+  }
+
+  // Clear all animations from the config
+  config.value.animations.data = [];
+
+  // Update config
+  await AutodartsToolsConfig.setValue(toRaw(config.value));
+  emit("settingChange");
+  console.log("Animations setting changed");
+
+  // Close modal and show notification
+  closeDeleteAllModal();
+  showNotification("All animations have been deleted", "error");
+
+  // Reset animations cache
+  animationSources.value = {};
+
+  // Force re-render of the list
+  containerKey.value++;
+}
+
+function sortAnimationsByTriggers() {
+  if (!config.value || !config.value.animations.data || config.value.animations.data.length <= 1) {
+    return;
+  }
+
+  // Sort animations by their first trigger alphabetically
+  config.value.animations.data.sort((a, b) => {
+    // Get first trigger from each animation, or empty string if no triggers
+    const triggerA = Array.isArray(a.triggers) && a.triggers.length > 0 ? a.triggers[0] : "";
+    const triggerB = Array.isArray(b.triggers) && b.triggers.length > 0 ? b.triggers[0] : "";
+
+    // Sort numerically if both are numbers
+    if (!Number.isNaN(Number(triggerA)) && !Number.isNaN(Number(triggerB))) {
+      return Number(triggerA) - Number(triggerB);
+    }
+
+    // Otherwise sort alphabetically
+    return triggerA.localeCompare(triggerB);
+  });
+
+  // Show notification
+  showNotification("Animations have been sorted by their triggers");
+
+  // Force re-render of the list
+  containerKey.value++;
 }
 </script>
