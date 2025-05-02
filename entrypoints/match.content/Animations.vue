@@ -57,14 +57,17 @@ const animationCache = ref<Record<string, string>>({});
 const animationContainerClasses = computed(() => {
   const isFullPage = config.value?.animations?.viewMode === "full-page";
   return {
-    "left-0 top-0 size-full": isFullPage,
+    "left-0 top-0 size-full backdrop-blur-md": isFullPage,
   };
 });
 
 const animationContainerStyle = computed(() => {
   const isFullPage = config.value?.animations?.viewMode === "full-page";
   if (isFullPage) {
-    return {};
+    return {
+      backdropFilter: "blur(8px)",
+      background: "#00000099",
+    };
   }
 
   return {
@@ -170,7 +173,7 @@ async function processGameData(gameData: IGameData): Promise<void> {
 /**
  * Get animation URL for a trigger, selecting randomly from matching animations
  */
-function getAnimationUrl(trigger: string): string | null {
+async function getAnimationUrl(trigger: string): Promise<string | null> {
   if (!config.value?.animations?.data || config.value.animations.data.length === 0) {
     return null;
   }
@@ -197,8 +200,7 @@ function getAnimationUrl(trigger: string): string | null {
     }
 
     // If not in cache, trigger loading but return an empty URL for now
-    loadAnimationFromIndexedDB(selectedAnimation.animationId);
-    return null;
+    return await loadAnimationFromIndexedDB(selectedAnimation.animationId);
   }
 
   return selectedAnimation.url;
@@ -207,35 +209,25 @@ function getAnimationUrl(trigger: string): string | null {
 /**
  * Load animation data from IndexedDB and cache it
  */
-async function loadAnimationFromIndexedDB(animationId: string): Promise<void> {
-  if (!isIndexedDBAvailable()) return;
-  
+async function loadAnimationFromIndexedDB(animationId: string): Promise<string | null> {
+  if (!isIndexedDBAvailable()) {
+    console.error("Autodarts Tools: IndexedDB not available, cannot load animation", animationId);
+    return null;
+  }
+
   try {
     const base64Data = await getAnimationFromIndexedDB(animationId);
     if (base64Data) {
       // Store in cache
       animationCache.value[animationId] = base64Data;
-      
-      // If we're currently waiting for this animation, try playing again
-      if (currentWaitingId.value === animationId) {
-        const trigger = currentWaitingTrigger.value;
-        currentWaitingId.value = null;
-        currentWaitingTrigger.value = null;
-        
-        // Try playing again now that we have the data
-        if (trigger) {
-          playAnimation(trigger);
-        }
-      }
+      return base64Data;
     }
   } catch (error) {
     console.error("Error loading animation from IndexedDB:", error);
   }
-}
 
-// Track which animation we're waiting for
-const currentWaitingId = ref<string | null>(null);
-const currentWaitingTrigger = ref<string | null>(null);
+  return null;
+}
 
 /**
  * Play animation for a trigger
@@ -244,14 +236,7 @@ async function playAnimation(trigger: string): Promise<void> {
   console.log("Autodarts Tools: Playing animation", trigger);
 
   try {
-    const animationUrl = getAnimationUrl(trigger);
-
-    // If we couldn't get a URL and a load is in progress, store the trigger for later
-    if (!animationUrl && currentWaitingId.value) {
-      currentWaitingTrigger.value = trigger;
-      return;
-    }
-
+    const animationUrl = await getAnimationUrl(trigger);
     if (!animationUrl) return;
 
     // Update the board position before showing animation
