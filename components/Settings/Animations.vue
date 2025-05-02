@@ -442,18 +442,13 @@ const lowercaseText = computed({
 
 const textareaPlaceholder = `0
 180
-triple 20
-double bull
+100-180
+t20
+25
 bull
-bust
-checkout
-high score
-ton
-ton 40
-ton 80
-hat-trick
-whitewash
-nine dart
+gameshot
+busted
+outside
 `;
 
 // Display animations - modified to retrieve from IndexedDB

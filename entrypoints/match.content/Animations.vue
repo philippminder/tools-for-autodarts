@@ -27,7 +27,7 @@ import { twMerge } from "tailwind-merge";
 import type { IGameData } from "@/utils/game-data-storage";
 
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
-import { getAnimationFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
+import { getAnimationFromIndexedDB, isIndexedDBAvailable, triggerPatterns } from "@/utils/helpers";
 import { AutodartsToolsConfig } from "@/utils/storage";
 
 // Constants
@@ -178,10 +178,31 @@ async function getAnimationUrl(trigger: string): Promise<string | null> {
     return null;
   }
 
+  const satisfiesTrigger = (animation: IAnimation, trigger: string) => {
+    if (!Array.isArray(animation.triggers)) return false;
+
+    // validate range triggers of animation
+    const triggerNum = Number(trigger);
+    if (!Number.isNaN(triggerNum)) {
+      const rangeTriggers = animation.triggers.map((t) => {
+        const match = t.match(triggerPatterns.ranges);
+        if (!match) return null;
+        return { min: Number(match[1]), max: Number(match[2]) };
+      }).filter(x => x !== null);
+
+      const hasMatchingRange = rangeTriggers.some(({ min, max }) => {
+        return triggerNum >= min && triggerNum <= max;
+      });
+
+      if (hasMatchingRange) return true;
+    }
+
+    return animation.triggers.includes(trigger);
+  };
+
   // Find animations that match this trigger
   const matchedAnimations = config.value.animations.data.filter(
-    animation => animation.enabled && Array.isArray(animation.triggers) && 
-    animation.triggers.some(t => t === trigger)
+    animation => animation.enabled && satisfiesTrigger(animation, trigger),
   );
 
   if (matchedAnimations.length === 0) {
