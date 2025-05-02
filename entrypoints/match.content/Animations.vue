@@ -57,7 +57,7 @@ const animationCache = ref<Record<string, string>>({});
 const animationContainerClasses = computed(() => {
   const isFullPage = config.value?.animations?.viewMode === "full-page";
   return {
-    "left-0 top-0 size-full backdrop-blur-md": isFullPage,
+    "left-0 top-0 size-full": isFullPage,
   };
 });
 
@@ -213,14 +213,12 @@ async function getAnimationUrl(trigger: string): Promise<string | null> {
   const randomIndex = Math.floor(Math.random() * matchedAnimations.length);
   const selectedAnimation = matchedAnimations[randomIndex];
 
-  // Check if we need to load from IndexedDB
+  // handle locally uploaded animations from indexedDB
   if (selectedAnimation.animationId && !selectedAnimation.url) {
     // Check if we already have it in cache
-    if (animationCache.value[selectedAnimation.animationId]) {
-      return animationCache.value[selectedAnimation.animationId];
-    }
+    const fromCache = animationCache.value[selectedAnimation.animationId];
+    if (fromCache) return fromCache;
 
-    // If not in cache, trigger loading but return an empty URL for now
     return await loadAnimationFromIndexedDB(selectedAnimation.animationId);
   }
 

@@ -1,8 +1,8 @@
 import type { IConfig } from "@/utils/storage";
 
 import { addStyles, waitForElement } from "@/utils";
-import { AutodartsToolsConfig } from "@/utils/storage";
 import { AutodartsToolsGameData, GameMode } from "@/utils/game-data-storage";
+import { AutodartsToolsConfig } from "@/utils/storage";
 
 // CSS styles for winner animation
 const WINNER_ANIMATION_STYLES = `
@@ -137,7 +137,6 @@ export async function removeWinnerAnimationOnEdit(): Promise<void> {
  */
 async function applyWinnerAnimation(gameData: any): Promise<void> {
   if (!gameData?.match) return;
-  console.log("TEST");
 
   // If match is activated (>= 0), call removeWinnerAnimationOnEdit
   if ((gameData.match.activated !== undefined && gameData.match.activated >= 0) || (gameData.match.winner === -1 && gameData.match.gameWinner === -1)) {
