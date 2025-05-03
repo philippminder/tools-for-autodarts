@@ -111,7 +111,12 @@
                 }"
               >
                 <!-- Main content -->
-                <img :src="getAnimationSource(animation)" class="size-full object-cover">
+                <img
+                  :src="getAnimationSource(animation)"
+                  class="size-full object-cover"
+                  loading="lazy"
+                  :alt="`Animation ${index + 1}: ${animation.triggers.join(', ')}`"
+                >
 
                 <!-- Drag handle overlay -->
                 <div class="absolute inset-0 flex h-12 cursor-move items-center justify-center bg-gradient-to-b from-black/100 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
@@ -383,12 +388,10 @@
 </template>
 
 <script setup lang="ts">
-import { useNotification } from "@/composables/useNotification";
-import { deleteAnimationFromIndexedDB, getAnimationFromIndexedDB, getAnimationNameFromIndexedDB, isIndexedDBAvailable, saveAnimationToIndexedDB, validateAnimationTriggers } from "@/utils/helpers";
-import { AutodartsToolsConfig, type IAnimation, type IConfig, defaultConfig } from "@/utils/storage";
 import { useStorage } from "@vueuse/core";
 import Sortable from "sortablejs";
 import { nextTick, onMounted, ref, toRaw, watch } from "vue";
+
 import AppButton from "../AppButton.vue";
 import AppInput from "../AppInput.vue";
 import AppModal from "../AppModal.vue";
@@ -396,6 +399,10 @@ import AppNotification from "../AppNotification.vue";
 import AppSelect from "../AppSelect.vue";
 import AppTextarea from "../AppTextarea.vue";
 import AppToggle from "../AppToggle.vue";
+
+import { useNotification } from "@/composables/useNotification";
+import { deleteAnimationFromOPFS, getAnimationFromOPFS, getAnimationNameFromOPFS, isOPFSAvailable, saveAnimationToOPFS, validateAnimationTriggers } from "@/utils/helpers";
+import { AutodartsToolsConfig, type IAnimation, type IConfig, defaultConfig } from "@/utils/storage";
 
 const emit = defineEmits([ "toggle", "settingChange" ]);
 const { notification, showNotification, hideNotification } = useNotification();
@@ -416,6 +423,10 @@ const isDragging = ref(false);
 const currentDragIndex = ref<number | null>(null);
 const containerKey = ref(0);
 let sortableInstance: Sortable | null = null;
+
+// Track which animations are visible
+const visibleAnimations = ref<Set<string>>(new Set());
+let intersectionObserver: IntersectionObserver | null = null;
 
 // GIF upload modal state
 const showGifUploadModal = ref(false);
@@ -451,53 +462,97 @@ busted
 outside
 `;
 
-// Display animations - modified to retrieve from IndexedDB
+// Display animations - modified to retrieve from OPFS
 // Change from index-based to id-based storage
 const animationSources = ref<Record<string, string>>({});
-
-// Load animation sources from IndexedDB
-async function loadAnimationSource(animation: IAnimation) {
-  // Create a unique identifier for this animation
-  const animId = animation.animationId || `url_${animation.url}`;
-  if (animation.animationId && isIndexedDBAvailable()) {
-    try {
-      const base64Data = await getAnimationFromIndexedDB(animation.animationId);
-      if (base64Data) {
-        animationSources.value[animId] = base64Data;
-        return;
-      }
-    } catch (error) {
-      console.error("Error loading animation from IndexedDB:", error);
-    }
-  }
-  // Fallback to URL if IndexedDB failed or ID not present
-  animationSources.value[animId] = animation.url;
-}
 
 // Helper to get the proper URL source for an animation
 function getAnimationSource(animation: IAnimation): string {
   // Create a unique identifier for this animation
   const animId = animation.animationId || `url_${animation.url}`;
+
+  // If it's not in the visible set, don't load it yet
+  const uniqueId = `${animId}_${animation.triggers.join("_")}`;
+  if (!visibleAnimations.value.has(uniqueId)) {
+    // Return an empty placeholder for animations not yet visible
+    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'%3E%3C/svg%3E";
+  }
+
   // If we already have the source cached, return it
   if (animationSources.value[animId]) {
     return animationSources.value[animId];
   }
+
   // If it's a regular URL, return it directly
-  if (animation.url && !animation.url.startsWith("data:") && !animation.animationId) {
+  if (animation.url && !animation.animationId) {
     animationSources.value[animId] = animation.url;
     return animation.url;
   }
-  // Otherwise, try to load from IndexedDB
+
+  // Otherwise, try to load from OPFS
   loadAnimationSource(animation);
+
   // Return placeholder or URL while loading
   return animation.url || "";
 }
 
-// Function to preload all animation sources
-function preloadAllAnimationSources() {
-  if (config.value?.animations.data) {
-    for (const animation of config.value.animations.data) {
-      loadAnimationSource(animation);
+// Load animation sources from OPFS
+async function loadAnimationSource(animation: IAnimation) {
+  // Create a unique identifier for this animation
+  const animId = animation.animationId || `url_${animation.url}`;
+  if (animation.animationId && isOPFSAvailable()) {
+    try {
+      const objectURL = await getAnimationFromOPFS(animation.animationId);
+      if (objectURL) {
+        animationSources.value[animId] = objectURL;
+        return;
+      }
+    } catch (error) {
+      console.error("Error loading animation from OPFS:", error);
+    }
+  }
+  // Fallback to URL if animation is not stored in OPFS
+  animationSources.value[animId] = animation.url;
+}
+
+// Setup the intersection observer to detect which animations are visible
+function setupIntersectionObserver() {
+  if (!intersectionObserver) {
+    intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const target = entry.target as HTMLElement;
+          const index = target.dataset.id;
+          if (!index || !config.value) continue;
+
+          const animation = config.value.animations.data[Number.parseInt(index, 10)];
+          if (!animation) continue;
+
+          const animId = animation.animationId || `url_${animation.url}`;
+          const uniqueId = `${animId}_${animation.triggers.join("_")}`;
+
+          if (entry.isIntersecting) {
+            // Add to visible set when intersecting
+            visibleAnimations.value.add(uniqueId);
+          } else if (!isDragging.value) {
+            // Only remove from visible set if not dragging
+            visibleAnimations.value.delete(uniqueId);
+          }
+        }
+      },
+      {
+        root: null, // viewport
+        rootMargin: "200px", // Load images 200px before they enter viewport
+        threshold: 0.1, // Trigger when at least 10% is visible
+      },
+    );
+  }
+
+  // Observe all animation items
+  if (animationsContainer.value) {
+    const items = animationsContainer.value.querySelectorAll("[data-id]");
+    for (const item of items) {
+      intersectionObserver?.observe(item);
     }
   }
 }
@@ -509,8 +564,23 @@ onMounted(async () => {
   await nextTick();
   allowAdd.value = true;
 
-  // Preload animation sources
-  preloadAllAnimationSources();
+  // Setup intersection observer for lazy gif loading after the DOM is updated
+  await nextTick();
+  setupIntersectionObserver();
+});
+
+onUnmounted(() => {
+  // Disconnect the observer
+  if (intersectionObserver) {
+    intersectionObserver.disconnect();
+    intersectionObserver = null;
+  }
+
+  // Revoke all object URLs
+  for (const url of Object.values(animationSources.value)) {
+    URL.revokeObjectURL(url);
+  }
+  animationSources.value = {};
 });
 
 watch(config, async (_, oldValue) => {
@@ -586,7 +656,7 @@ async function editAnimation(index: number) {
 
   // Try to extract a friendly filename from the animationId if possible
   if (animation.animationId) {
-    const name = await getAnimationNameFromIndexedDB(animation.animationId);
+    const name = await getAnimationNameFromOPFS(animation.animationId);
     uploadedGifFilename.value = name || "unknown";
   }
 
@@ -600,6 +670,18 @@ async function editAnimation(index: number) {
   isEditMode.value = true;
   editingIndex.value = index;
   showAnimationModal.value = true;
+}
+
+// After a new animation is added or animations are rearranged, re-initialize the observer
+async function updateIntersectionObserverForNewAnimations() {
+  // Disconnect existing observer to prevent memory leaks
+  if (intersectionObserver) {
+    intersectionObserver.disconnect();
+  }
+
+  // Short delay to ensure DOM is updated
+  await nextTick();
+  setupIntersectionObserver();
 }
 
 function saveAnimation() {
@@ -656,6 +738,9 @@ function saveAnimation() {
   newAnimation.value = { url: "", text: "", animationId: null };
   showAnimationModal.value = false;
   editingIndex.value = null;
+
+  // Update intersection observer to detect the newly added animation
+  updateIntersectionObserverForNewAnimations();
 }
 
 function closeAnimationModal() {
@@ -668,10 +753,10 @@ function closeAnimationModal() {
 
 function removeAnimation(index: number) {
   if (config.value?.animations.data) {
-    // If animation is stored in IndexedDB, delete it
+    // If animation is stored in OPFS, delete it
     const animation = config.value.animations.data[index];
-    if (animation.animationId && isIndexedDBAvailable()) {
-      deleteAnimationFromIndexedDB(animation.animationId).catch(console.error);
+    if (animation.animationId && isOPFSAvailable()) {
+      deleteAnimationFromOPFS(animation.animationId).catch(console.error);
       // Also remove from sources cache
       delete animationSources.value[animation.animationId];
     }
@@ -750,29 +835,33 @@ function removeGifFile(index: number) {
 }
 
 function extractTriggerFromGifFilename(filename: string): string[] {
-  const nameWithoutExt = filename.substring(0, filename.lastIndexOf(".")).toLowerCase();
+  const nameWithoutExt = filename.substring(0, filename.lastIndexOf("."));
   const cleanName = nameWithoutExt.replace(/-/g, "_").trim();
   const plusIndex = cleanName.indexOf("+");
   const finalTrigger = plusIndex !== -1 ? cleanName.substring(0, plusIndex) : cleanName;
   return finalTrigger ? [ finalTrigger ] : [];
 }
 
-async function gifFileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-  });
+// Convert a File object directly to a Blob
+function fileToBlob(file: File): Blob {
+  return new Blob([ file ], { type: file.type });
 }
 
 async function processGifFiles() {
   if (!config.value || selectedGifFiles.value.length === 0) return;
   isGifProcessing.value = true;
+
+  if (!isOPFSAvailable()) {
+    showNotification("Your browser doesn't support file storage. Try a different browser.", "error");
+    isGifProcessing.value = false;
+    return;
+  }
+
   try {
+    let successCount = 0;
+
     for (const file of selectedGifFiles.value) {
       try {
-        const base64Data = await gifFileToBase64(file);
         const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf("."));
         const triggers = generateTriggersFromFilenamesGif.value
           ? extractTriggerFromGifFilename(file.name)
@@ -780,45 +869,52 @@ async function processGifFiles() {
 
         // Create the animation object
         const animation: IAnimation = {
-          url: "", // Empty URL since we're storing in IndexedDB
+          url: "", // Empty URL since we're storing in OPFS
           triggers,
           enabled: true,
         };
 
-        // Try to save to IndexedDB if available
-        if (isIndexedDBAvailable()) {
-          const animationId = await saveAnimationToIndexedDB(nameWithoutExt, base64Data);
-          if (animationId) {
-            // If successful, store the ID reference
-            animation.animationId = animationId;
-            // Add to cache directly
-            animationSources.value[animationId] = base64Data;
-          } else {
-            // Fallback to base64 in URL if IndexedDB fails
-            animation.url = base64Data;
-            animationSources.value[`url_${base64Data}`] = base64Data;
-          }
-        } else {
-          // If IndexedDB is not available, store as base64 in URL
-          animation.url = base64Data;
-          animationSources.value[`url_${base64Data}`] = base64Data;
-        }
+        // Save to OPFS
+        const blob = fileToBlob(file);
+        const animationId = await saveAnimationToOPFS(nameWithoutExt, blob);
 
-        // Add to config
-        config.value.animations.data.unshift(animation);
+        if (animationId) {
+          // If successful, store the ID reference
+          animation.animationId = animationId;
+          // Get object URL for display
+          const objectURL = await getAnimationFromOPFS(animationId);
+          if (objectURL) {
+            animationSources.value[animationId] = objectURL;
+          }
+
+          // Add to animations list
+          config.value.animations.data.unshift(animation);
+          successCount++;
+        } else {
+          throw new Error("Failed to save animation to browser storage");
+        }
       } catch (error) {
         console.error(`Error processing file ${file.name}:`, error);
+        showNotification(`Failed to process ${file.name}`, "error");
       }
     }
+
+    // Save config
     await AutodartsToolsConfig.setValue(toRaw(config.value));
     emit("settingChange");
-    showNotification(`Successfully added ${selectedGifFiles.value.length} GIFs`);
+
+    // Close modal and update UI
+    closeGifUploadModal();
+    showNotification(`Added ${successCount} GIFs`, "success");
+    containerKey.value++; // Force re-render
+
+    // Update intersection observer to detect newly added animations
+    updateIntersectionObserverForNewAnimations();
   } catch (error) {
-    console.error("Error processing GIF files:", error);
-    showNotification("Error processing GIF files", "error");
+    console.error("Error processing files:", error);
+    showNotification("Error processing files", "error");
   } finally {
     isGifProcessing.value = false;
-    closeGifUploadModal();
   }
 }
 
@@ -833,12 +929,12 @@ function closeDeleteAllModal() {
 async function deleteAllAnimations() {
   if (!config.value) return;
 
-  // Delete all animations from IndexedDB
-  if (isIndexedDBAvailable()) {
+  // Delete all animations from OPFS
+  if (isOPFSAvailable()) {
     // Delete individual animations with their IDs to ensure cleanup
     for (const animation of config.value.animations.data) {
       if (animation.animationId) {
-        await deleteAnimationFromIndexedDB(animation.animationId);
+        await deleteAnimationFromOPFS(animation.animationId);
       }
     }
   }
@@ -888,4 +984,19 @@ function sortAnimationsByTriggers() {
   // Force re-render of the list
   containerKey.value++;
 }
+
+// Need to update containerKey when things change
+
+// Also need to add a watch to reinit observer
+watch(containerKey, () => {
+  // Disconnect existing observer
+  if (intersectionObserver) {
+    intersectionObserver.disconnect();
+  }
+
+  // Wait for DOM update then reinitialize
+  nextTick(() => {
+    setupIntersectionObserver();
+  });
+});
 </script>

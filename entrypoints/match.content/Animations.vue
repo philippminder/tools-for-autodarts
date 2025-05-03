@@ -27,8 +27,8 @@ import { twMerge } from "tailwind-merge";
 import type { IGameData } from "@/utils/game-data-storage";
 
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
-import { getAnimationFromIndexedDB, isIndexedDBAvailable, triggerPatterns } from "@/utils/helpers";
-import { AutodartsToolsConfig } from "@/utils/storage";
+import { getAnimationFromOPFS, isOPFSAvailable, triggerPatterns } from "@/utils/helpers";
+import { AutodartsToolsConfig, type IAnimation } from "@/utils/storage";
 
 // Constants
 const FADE_DURATION = 300; // ms
@@ -41,7 +41,7 @@ const isShowingAnimation = ref(false);
 const isFadingOut = ref(false);
 const isFadingIn = ref(false);
 const currentAnimationUrl = ref("");
-const config = ref<any>(null);
+const config = ref<IConfig | null>(null);
 const animationTimeout = ref<number | null>(null);
 const boardPosition = ref({
   top: 0,
@@ -50,7 +50,7 @@ const boardPosition = ref({
   height: 0,
 });
 
-// Keep a cache of animation URLs loaded from IndexedDB
+// Keep a cache of animation URLs loaded from OPFS
 const animationCache = ref<Record<string, string>>({});
 
 // Computed properties
@@ -98,12 +98,17 @@ onMounted(async () => {
   } catch (error) {
     console.error("Autodarts Tools: Animation initialization error", error);
   }
-}); ;
+});
 
 // Clean up interval on unmount
 onUnmounted(() => {
   if (updateInterval) clearInterval(updateInterval);
   window.removeEventListener("resize", updateBoardPosition);
+
+  // Clean up cached object URLs
+  for (const url of Object.values(animationCache.value)) {
+    URL.revokeObjectURL(url);
+  }
 });
 
 function updateBoardPosition(): void {
@@ -184,13 +189,13 @@ async function getAnimationUrl(trigger: string): Promise<string | null> {
     // validate range triggers of animation
     const triggerNum = Number(trigger);
     if (!Number.isNaN(triggerNum)) {
-      const rangeTriggers = animation.triggers.map((t) => {
+      const rangeTriggers = animation.triggers.map((t: string) => {
         const match = t.match(triggerPatterns.ranges);
         if (!match) return null;
         return { min: Number(match[1]), max: Number(match[2]) };
       }).filter(x => x !== null);
 
-      const hasMatchingRange = rangeTriggers.some(({ min, max }) => {
+      const hasMatchingRange = rangeTriggers.some(({ min, max }: { min: number; max: number }) => {
         return triggerNum >= min && triggerNum <= max;
       });
 
@@ -202,7 +207,7 @@ async function getAnimationUrl(trigger: string): Promise<string | null> {
 
   // Find animations that match this trigger
   const matchedAnimations = config.value.animations.data.filter(
-    animation => animation.enabled && satisfiesTrigger(animation, trigger),
+    (animation: IAnimation) => animation.enabled && satisfiesTrigger(animation, trigger),
   );
 
   if (matchedAnimations.length === 0) {
@@ -213,36 +218,36 @@ async function getAnimationUrl(trigger: string): Promise<string | null> {
   const randomIndex = Math.floor(Math.random() * matchedAnimations.length);
   const selectedAnimation = matchedAnimations[randomIndex];
 
-  // handle locally uploaded animations from indexedDB
+  // Handle locally uploaded animations from OPFS
   if (selectedAnimation.animationId && !selectedAnimation.url) {
     // Check if we already have it in cache
     const fromCache = animationCache.value[selectedAnimation.animationId];
     if (fromCache) return fromCache;
 
-    return await loadAnimationFromIndexedDB(selectedAnimation.animationId);
+    return await loadAnimationFromOPFS(selectedAnimation.animationId);
   }
 
   return selectedAnimation.url;
 }
 
 /**
- * Load animation data from IndexedDB and cache it
+ * Load animation data from OPFS and cache it
  */
-async function loadAnimationFromIndexedDB(animationId: string): Promise<string | null> {
-  if (!isIndexedDBAvailable()) {
-    console.error("Autodarts Tools: IndexedDB not available, cannot load animation", animationId);
+async function loadAnimationFromOPFS(animationId: string): Promise<string | null> {
+  if (!isOPFSAvailable()) {
+    console.error("Autodarts Tools: OPFS not available, cannot load animation", animationId);
     return null;
   }
 
   try {
-    const base64Data = await getAnimationFromIndexedDB(animationId);
-    if (base64Data) {
+    const objectURL = await getAnimationFromOPFS(animationId);
+    if (objectURL) {
       // Store in cache
-      animationCache.value[animationId] = base64Data;
-      return base64Data;
+      animationCache.value[animationId] = objectURL;
+      return objectURL;
     }
   } catch (error) {
-    console.error("Error loading animation from IndexedDB:", error);
+    console.error("Error loading animation from OPFS:", error);
   }
 
   return null;

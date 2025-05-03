@@ -1054,3 +1054,179 @@ export function validateAnimationTriggers(triggers: string[]): {
 
   return { validTriggers, invalidTriggers };
 }
+
+// OPFS helpers for animation storage
+// Check if OPFS is available in this browser
+export function isOPFSAvailable(): boolean {
+  return typeof navigator !== "undefined"
+      && typeof navigator.storage !== "undefined"
+      && typeof navigator.storage.getDirectory === "function";
+}
+
+// Get the animations directory in OPFS
+async function getAnimationsDirectory(): Promise<FileSystemDirectoryHandle> {
+  if (!isOPFSAvailable()) {
+    throw new Error("OPFS is not available");
+  }
+
+  const root = await navigator.storage.getDirectory();
+  return await root.getDirectoryHandle("animations", { create: true });
+}
+
+// Save animation GIF to OPFS
+export async function saveAnimationToOPFS(fileName: string, fileBlob: Blob): Promise<string> {
+  try {
+    // Get root directory
+    const animDir = await getAnimationsDirectory();
+
+    // Generate a unique ID for this animation
+    const animationId = `animation_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const uniqueFileName = `${animationId}_${fileName}`;
+
+    // Save the file to OPFS
+    const fileHandle = await animDir.getFileHandle(uniqueFileName, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(fileBlob);
+    await writable.close();
+
+    // Store metadata in local storage
+    const metadata = {
+      id: animationId,
+      fileName,
+      storedName: uniqueFileName,
+      dateAdded: Date.now(),
+    };
+
+    localStorage.setItem(`animation_meta_${animationId}`, JSON.stringify(metadata));
+
+    return animationId;
+  } catch (error) {
+    console.error("Error saving animation to OPFS:", error);
+    throw error;
+  }
+}
+
+// Get animation from OPFS
+export async function getAnimationFromOPFS(animationId: string): Promise<string | null> {
+  try {
+    const animDir = await getAnimationsDirectory();
+
+    // Get metadata from local storage
+    const metadataStr = localStorage.getItem(`animation_meta_${animationId}`);
+    if (!metadataStr) return null;
+
+    const metadata = JSON.parse(metadataStr);
+    const uniqueFileName = metadata.storedName;
+
+    const fileHandle = await animDir.getFileHandle(uniqueFileName);
+    const file = await fileHandle.getFile();
+
+    // Create and return an object URL for the file
+    return URL.createObjectURL(file);
+  } catch (error) {
+    console.error("Error retrieving animation from OPFS:", error);
+    return null;
+  }
+}
+
+// Get animation original filename
+export async function getAnimationNameFromOPFS(animationId: string): Promise<string | null> {
+  try {
+    const metadataStr = localStorage.getItem(`animation_meta_${animationId}`);
+    if (!metadataStr) return null;
+
+    const metadata = JSON.parse(metadataStr);
+    return metadata.fileName || null;
+  } catch (error) {
+    console.error("Error getting animation name:", error);
+    return null;
+  }
+}
+
+// Delete animation from OPFS
+export async function deleteAnimationFromOPFS(animationId: string): Promise<boolean> {
+  try {
+    const animDir = await getAnimationsDirectory();
+
+    // Get metadata from local storage
+    const metadataStr = localStorage.getItem(`animation_meta_${animationId}`);
+    if (!metadataStr) return false;
+
+    const metadata = JSON.parse(metadataStr);
+    const uniqueFileName = metadata.storedName;
+
+    // Delete the file from OPFS and metadata from local storage
+    await animDir.removeEntry(uniqueFileName);
+    localStorage.removeItem(`animation_meta_${animationId}`);
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting animation from OPFS:", error);
+    return false;
+  }
+}
+
+// Clear all animations from OPFS
+export async function clearAnimationsFromOPFS(): Promise<boolean> {
+  try {
+    const animDir = await getAnimationsDirectory();
+
+    // Find all animation metadata entries in local storage
+    const animationKeys = Object.keys(localStorage)
+      .filter(key => key.startsWith("animation_meta_"));
+
+    if (animationKeys.length === 0) {
+      return true; // No animations to delete
+    }
+
+    // @ts-expect-error - entries() returns an iterator (see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/entries)
+    for await (const [ name ] of animDir.entries()) {
+      try {
+        await animDir.removeEntry(name);
+      } catch (err) {
+        console.error(`Could not delete ${name}:`, err);
+      }
+    }
+
+    // Clear all metadata entries
+    for (const key of animationKeys) {
+      localStorage.removeItem(key);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error clearing animations from OPFS:", error);
+    return false;
+  }
+}
+
+// Get all animations metadata
+export async function getAllAnimationsMetadataFromOPFS(): Promise<Array<{
+  id: string;
+  fileName: string;
+  storedName: string;
+  dateAdded: number;
+}> | null> {
+  try {
+    // Get all animation metadata from local storage
+    const animationKeys = Object.keys(localStorage)
+      .filter(key => key.startsWith("animation_meta_"));
+
+    const metadataList = animationKeys.map((key) => {
+      const metadataStr = localStorage.getItem(key);
+      return metadataStr ? JSON.parse(metadataStr) : null;
+    }).filter(Boolean);
+
+    return metadataList;
+  } catch (error) {
+    console.error("Error getting all animations metadata:", error);
+    return null;
+  }
+}
+
+// Revoke object URL to free memory
+export function revokeAnimationURL(objectURL: string): void {
+  if (objectURL?.startsWith("blob:")) {
+    URL.revokeObjectURL(objectURL);
+  }
+}
