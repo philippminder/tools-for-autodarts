@@ -834,12 +834,10 @@ function removeGifFile(index: number) {
   selectedGifFiles.value.splice(index, 1);
 }
 
-function extractTriggerFromGifFilename(filename: string): string[] {
-  const nameWithoutExt = filename.substring(0, filename.lastIndexOf("."));
-  const cleanName = nameWithoutExt.replace(/-/g, "_").trim();
-  const plusIndex = cleanName.indexOf("+");
-  const finalTrigger = plusIndex !== -1 ? cleanName.substring(0, plusIndex) : cleanName;
-  return finalTrigger ? [ finalTrigger ] : [];
+function extractTriggersFromGifFilename(filename: string): string[] {
+  const nameWithoutExt = filename.substring(0, filename.lastIndexOf(".")).trim();
+  const { validTriggers } = validateAnimationTriggers(nameWithoutExt.split("+"));
+  return validTriggers;
 }
 
 // Convert a File object directly to a Blob
@@ -864,7 +862,7 @@ async function processGifFiles() {
       try {
         const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf("."));
         const triggers = generateTriggersFromFilenamesGif.value
-          ? extractTriggerFromGifFilename(file.name)
+          ? extractTriggersFromGifFilename(file.name)
           : [];
 
         // Create the animation object
