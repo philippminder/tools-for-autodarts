@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.10] - 2025-05-05
+
+### Added
+- Added color customization feature to allow players to change game appearance
+  - Set match background color for a personalized gaming environment
+
+### Fixed
+- Fixed issue where sound effects were playing twice during gameplay
+
 ## [2.1.9] - 2025-05-05
 
 ### Added

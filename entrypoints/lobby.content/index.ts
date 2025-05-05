@@ -1,7 +1,7 @@
 import "~/assets/tailwind.css";
 import { createApp } from "vue";
 
-import { soundFx } from "../match.content/sound-fx";
+import { soundFx, soundFxOnRemove } from "../match.content/sound-fx";
 
 import { teamLobby } from "./team-lobby";
 
@@ -90,6 +90,7 @@ export default defineContentScript({
       } else {
         await onAutoStartRemove();
         await onShufflePlayersRemove();
+        await soundFxOnRemove();
       }
     });
   },
