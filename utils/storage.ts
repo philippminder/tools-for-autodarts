@@ -17,6 +17,9 @@ export interface IConfig {
   autoStart: {
     enabled: boolean;
   };
+  qrCode: {
+    enabled: boolean;
+  };
   streamingMode: {
     enabled: boolean;
     backgroundImage: boolean;
@@ -295,7 +298,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 10,
+  version: 11,
   discord: {
     enabled: false,
     manually: false,
@@ -309,6 +312,9 @@ export const defaultConfig: IConfig = {
     },
   },
   autoStart: {
+    enabled: false,
+  },
+  qrCode: {
     enabled: false,
   },
   streamingMode: {

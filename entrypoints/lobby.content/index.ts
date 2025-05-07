@@ -15,6 +15,7 @@ import {
 import { discordWebhooks } from "@/entrypoints/lobby.content/discord-webhooks";
 import { autoStart, onRemove as onAutoStartRemove } from "@/entrypoints/lobby.content/auto-start";
 import { onRemove as onShufflePlayersRemove, shufflePlayers } from "@/entrypoints/lobby.content/shuffle-players";
+import { onRemove as onQrCodeRemove, qrCode } from "@/entrypoints/lobbynew.content/qr-code";
 import RecentLocalPlayers from "@/entrypoints/lobby.content/RecentLocalPlayers.vue";
 import { fetchWithAuth, isSafari, isiOS } from "@/utils/helpers";
 import { processWebSocketMessage } from "@/utils/websocket-helpers";
@@ -73,6 +74,11 @@ export default defineContentScript({
           await initScript(shufflePlayers, url).catch(console.error);
         }
 
+        if (config.qrCode.enabled) {
+          await waitForElementWithTextContent("h2", "Lobby");
+          await initScript(qrCode, url).catch(console.error);
+        }
+
         if (config.recentLocalPlayers.enabled) {
           const div = document.querySelector("autodarts-tools-recent-local-players");
           if (!div) initRecentLocalPlayers(ctx).catch(console.error);
@@ -90,6 +96,7 @@ export default defineContentScript({
       } else {
         await onAutoStartRemove();
         await onShufflePlayersRemove();
+        await onQrCodeRemove();
         await soundFxOnRemove();
       }
     });

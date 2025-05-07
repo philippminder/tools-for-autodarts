@@ -1,9 +1,12 @@
+import { onRemove as onQrCodeRemove, qrCode } from "./qr-code";
+
 import type { IConfig } from "@/utils/storage";
+import type { GameMode, IGameData } from "@/utils/game-data-storage";
+
 import {
   AutodartsToolsConfig,
   AutodartsToolsUrlStatus,
 } from "@/utils/storage";
-import type { GameMode, IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 import { waitForElement, waitForElementWithTextContent } from "@/utils";
 import { isSafari, isiOS } from "@/utils/helpers";
@@ -61,7 +64,20 @@ export default defineContentScript({
           });
           console.log("Autodarts Tools: Lobby is Private");
         }
+      } else if (/\/lobbies\/(?!.*new\/)/.test(url)) {
+        // Initialize QR code feature when in a specific lobby (not new lobby page)
+        if (config.qrCode.enabled) {
+          await initScript(qrCode, url).catch(console.error);
+        }
+      } else {
+        // Clean up when leaving lobby
+        await onQrCodeRemove();
       }
     });
   },
 });
+
+async function initScript(fn: any, url: string) {
+  if (window.location.href !== url) return;
+  await fn();
+}

@@ -137,11 +137,12 @@
             <AutoStart @setting-change="updateConfig" class="feature-card" data-feature-index="2" />
 
             <!-- Second row of feature cards -->
-            <RecentLocalPlayers @toggle="openSettingsModal('recent-local-players')" @setting-change="updateConfig" class="feature-card" data-feature-index="3" />
-            <ShufflePlayers @setting-change="updateConfig" class="feature-card" data-feature-index="4" />
+            <RecentLocalPlayers @toggle="openSettingsModal('recent-local-players')" @setting-change="updateConfig" class="feature-card" data-feature-index="4" />
+            <ShufflePlayers @setting-change="updateConfig" class="feature-card" data-feature-index="5" />
 
             <!-- Third row of feature cards -->
-            <TeamLobby @setting-change="updateConfig" class="feature-card" data-feature-index="5" />
+            <TeamLobby @setting-change="updateConfig" class="feature-card" data-feature-index="6" />
+            <QrCode @setting-change="updateConfig" class="feature-card" data-feature-index="3" />
           </div>
 
           <!-- Feature cards grid for Matches tab -->
@@ -245,6 +246,7 @@ import AutoStart from "./Settings/AutoStart.vue";
 import RecentLocalPlayers from "./Settings/RecentLocalPlayers.vue";
 import ShufflePlayers from "./Settings/ShufflePlayers.vue";
 import TeamLobby from "./Settings/TeamLobby.vue";
+import QrCode from "./Settings/QrCode.vue";
 import Colors from "./Settings/Colors.vue";
 import TakeoutNotification from "./Settings/TakeoutNotification.vue";
 import NextPlayerOnTakeoutStuck from "./Settings/NextPlayerOnTakeoutStuck.vue";
@@ -290,6 +292,7 @@ const featureGroups = [
       { id: "recent-local-players", title: "Recent Local Players Settings", component: RecentLocalPlayers, hasSettings: true },
       { id: "shuffle-players", title: "Shuffle Players Settings", component: ShufflePlayers, hasSettings: false },
       { id: "team-lobby", title: "Team Lobby Settings", component: TeamLobby, hasSettings: false },
+      { id: "qr-code", title: "QR Code Settings", component: QrCode, hasSettings: false },
     ],
     settingIds: [ "discord-webhooks", "recent-local-players" ],
   },

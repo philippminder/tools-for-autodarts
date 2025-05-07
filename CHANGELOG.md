@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
   - Set match background color for a personalized gaming environment
 - Added support for point ranges as animation triggers, e.g. 0-60
 - Added validation for "Triggers" according to the rules in the README
+- Added QR Code feature that automatically displays the lobby QR code for easily sharing with other players
 
 ### Fixed
 - Fixed issue where sound effects were playing twice during gameplay

@@ -81,7 +81,15 @@ async function migrateConfig(currentConfigVersion: number) {
           config.colors.matchBackground = defaultConfig.colors.matchBackground;
         }
         break;
-
+      case 10:
+        // Migration from version 10 to version 11
+        config.version = 11;
+        if (!config.qrCode) {
+          config.qrCode = {
+            enabled: false,
+          };
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);

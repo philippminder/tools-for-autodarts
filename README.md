@@ -55,6 +55,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Shuffle Players**: Randomly reorder players in the lobby
 - **Extended Recent Players List**: Increase the number of recent local players beyond the default limit of 5
 - **Team Lobby Mode**: Removes initial player and auto-selects board for team games
+- **QR Code**: Automatically displays the lobby QR code for easily sharing with other players
 
 ### 🎨 Match Customization
 - **Color Customization**: Change the colors of dart throws, scores, and match background for a personalized gaming environment
