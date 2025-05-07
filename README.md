@@ -57,7 +57,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Team Lobby Mode**: Removes initial player and auto-selects board for team games
 
 ### 🎨 Match Customization
-- **Color Customization**: Change the colors of dart throws and scores
+- **Color Customization**: Change the colors of dart throws, scores, and match background for a personalized gaming environment
 - **Streaming Mode**: Includes green screen support, board visualization, and thrown darts display
 - **Virtual Board Surround**: Adds a customizable surround to the dartboard
 - **Darts Zoom**: Shows a zoomed view of your dart throws in the bottom corners or center of the screen

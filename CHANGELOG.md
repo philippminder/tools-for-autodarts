@@ -7,9 +7,16 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Added color customization feature to allow players to change game appearance
   - Set match background color for a personalized gaming environment
+- Added support for point ranges as animation triggers, e.g. 0-60
+- Added validation for "Triggers" according to the rules in the README
 
 ### Fixed
 - Fixed issue where sound effects were playing twice during gameplay
+- Fixed broken sorting of gifs
+
+### Thanks
+- Thanks to @boemjay for contributing the animation improvements
+- Thanks to @WilliamLundqvist for the background color customization feature
 
 ## [2.1.9] - 2025-05-05
 
