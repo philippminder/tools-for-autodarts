@@ -103,6 +103,7 @@ The Caller feature provides voice announcements during your darts gameplay, simi
 You can assign sounds to be played based on these triggers:
 
 - **Points**: `0` to `180` (point totals)
+- **Point Ranges**: A range between `0` and `180`, e.g. `0-20` or `100-180` (point totals)
 - **Singles**: `s1` to `s20` and `s25` (single segments)
 - **Doubles**: `d1` to `d20` and `bull` (double segments and bullseye)
 - **Triples**: `t1` to `t20` (triple segments)

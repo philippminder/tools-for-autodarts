@@ -26,8 +26,9 @@ import { twMerge } from "tailwind-merge";
 
 import type { IGameData } from "@/utils/game-data-storage";
 
-import { AutodartsToolsConfig } from "@/utils/storage";
 import { AutodartsToolsGameData } from "@/utils/game-data-storage";
+import { getAnimationFromOPFS, isOPFSAvailable, triggerPatterns } from "@/utils/helpers";
+import { AutodartsToolsConfig, type IAnimation } from "@/utils/storage";
 
 // Constants
 const FADE_DURATION = 300; // ms
@@ -40,7 +41,7 @@ const isShowingAnimation = ref(false);
 const isFadingOut = ref(false);
 const isFadingIn = ref(false);
 const currentAnimationUrl = ref("");
-const config = ref<any>(null);
+const config = ref<IConfig | null>(null);
 const animationTimeout = ref<number | null>(null);
 const boardPosition = ref({
   top: 0,
@@ -48,6 +49,9 @@ const boardPosition = ref({
   width: 0,
   height: 0,
 });
+
+// Keep a cache of animation URLs loaded from OPFS
+const animationCache = ref<Record<string, string>>({});
 
 // Computed properties
 const animationContainerClasses = computed(() => {
@@ -60,7 +64,10 @@ const animationContainerClasses = computed(() => {
 const animationContainerStyle = computed(() => {
   const isFullPage = config.value?.animations?.viewMode === "full-page";
   if (isFullPage) {
-    return {};
+    return {
+      backdropFilter: "blur(8px)",
+      background: "#00000099",
+    };
   }
 
   return {
@@ -91,12 +98,17 @@ onMounted(async () => {
   } catch (error) {
     console.error("Autodarts Tools: Animation initialization error", error);
   }
-}); ;
+});
 
 // Clean up interval on unmount
 onUnmounted(() => {
   if (updateInterval) clearInterval(updateInterval);
   window.removeEventListener("resize", updateBoardPosition);
+
+  // Clean up cached object URLs
+  for (const url of Object.values(animationCache.value)) {
+    URL.revokeObjectURL(url);
+  }
 });
 
 function updateBoardPosition(): void {
@@ -163,11 +175,92 @@ async function processGameData(gameData: IGameData): Promise<void> {
   if (miss) playAnimation("outside");
 }
 
+/**
+ * Get animation URL for a trigger, selecting randomly from matching animations
+ */
+async function getAnimationUrl(trigger: string): Promise<string | null> {
+  if (!config.value?.animations?.data || config.value.animations.data.length === 0) {
+    return null;
+  }
+
+  const satisfiesTrigger = (animation: IAnimation, trigger: string) => {
+    if (!Array.isArray(animation.triggers)) return false;
+
+    // validate range triggers of animation
+    const triggerNum = Number(trigger);
+    if (!Number.isNaN(triggerNum)) {
+      const rangeTriggers = animation.triggers.map((t: string) => {
+        const match = t.match(triggerPatterns.ranges);
+        if (!match) return null;
+        return { min: Number(match[1]), max: Number(match[2]) };
+      }).filter(x => x !== null);
+
+      const hasMatchingRange = rangeTriggers.some(({ min, max }: { min: number; max: number }) => {
+        return triggerNum >= min && triggerNum <= max;
+      });
+
+      if (hasMatchingRange) return true;
+    }
+
+    return animation.triggers.includes(trigger);
+  };
+
+  // Find animations that match this trigger
+  const matchedAnimations = config.value.animations.data.filter(
+    (animation: IAnimation) => animation.enabled && satisfiesTrigger(animation, trigger),
+  );
+
+  if (matchedAnimations.length === 0) {
+    return null;
+  }
+
+  // Select a random animation from the matched ones
+  const randomIndex = Math.floor(Math.random() * matchedAnimations.length);
+  const selectedAnimation = matchedAnimations[randomIndex];
+
+  // Handle locally uploaded animations from OPFS
+  if (selectedAnimation.animationId && !selectedAnimation.url) {
+    // Check if we already have it in cache
+    const fromCache = animationCache.value[selectedAnimation.animationId];
+    if (fromCache) return fromCache;
+
+    return await loadAnimationFromOPFS(selectedAnimation.animationId);
+  }
+
+  return selectedAnimation.url;
+}
+
+/**
+ * Load animation data from OPFS and cache it
+ */
+async function loadAnimationFromOPFS(animationId: string): Promise<string | null> {
+  if (!isOPFSAvailable()) {
+    console.error("Autodarts Tools: OPFS not available, cannot load animation", animationId);
+    return null;
+  }
+
+  try {
+    const objectURL = await getAnimationFromOPFS(animationId);
+    if (objectURL) {
+      // Store in cache
+      animationCache.value[animationId] = objectURL;
+      return objectURL;
+    }
+  } catch (error) {
+    console.error("Error loading animation from OPFS:", error);
+  }
+
+  return null;
+}
+
+/**
+ * Play animation for a trigger
+ */
 async function playAnimation(trigger: string): Promise<void> {
   console.log("Autodarts Tools: Playing animation", trigger);
 
   try {
-    const animationUrl = getAnimationUrl(trigger);
+    const animationUrl = await getAnimationUrl(trigger);
     if (!animationUrl) return;
 
     // Update the board position before showing animation
@@ -218,23 +311,5 @@ function abortAnimation(): void {
   isShowingAnimation.value = false;
   isFadingOut.value = false;
   isFadingIn.value = false;
-}
-
-function getAnimationUrl(trigger: string): string | undefined {
-  // Ensure animations.data is an array before filtering
-  const animationsData = config.value?.animations?.data || [];
-
-  // Find all animations that match the trigger
-  const matchingAnimations = animationsData.filter(a => a.triggers.includes(trigger) && a.enabled);
-
-  // If no matching animations, return undefined
-  if (!matchingAnimations.length) return undefined;
-
-  // If only one animation matches, return its URL
-  if (matchingAnimations.length === 1) return matchingAnimations[0].url;
-
-  // Otherwise, randomly select one from the matching animations
-  const randomIndex = Math.floor(Math.random() * matchingAnimations.length);
-  return matchingAnimations[randomIndex].url;
 }
 </script>

@@ -129,6 +129,16 @@ export interface SoundDB extends DBSchema {
     };
     indexes: { "by-date": number };
   };
+  "animations": {
+    key: string;
+    value: {
+      id: string;
+      name: string;
+      base64: string;
+      dateAdded: number;
+    };
+    indexes: { "by-date": number };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<SoundDB>> | null = null;
@@ -208,7 +218,7 @@ export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
   }
 
   if (!dbPromise) {
-    dbPromise = openDB<SoundDB>("autodarts-tools-sounds", 2, {
+    dbPromise = openDB<SoundDB>("autodarts-tools-sounds", 3, {
       upgrade(db, oldVersion, newVersion) {
         // Create a store for Caller sounds if it doesn't exist
         if (!db.objectStoreNames.contains("sounds-caller")) {
@@ -224,6 +234,14 @@ export function getDB(): Promise<IDBPDatabase<SoundDB>> | null {
             keyPath: "id",
           });
           soundFxStore.createIndex("by-date", "dateAdded");
+        }
+
+        // Create a store for Animations if it doesn't exist
+        if (!db.objectStoreNames.contains("animations")) {
+          const animationsStore = db.createObjectStore("animations", {
+            keyPath: "id",
+          });
+          animationsStore.createIndex("by-date", "dateAdded");
         }
       },
     });
@@ -823,4 +841,392 @@ export function generateAvatar(name: string): string {
   }
 
   return canvas.toDataURL("image/png");
+}
+
+// Save a base64 animation to IndexedDB
+export async function saveAnimationToIndexedDB(
+  name: string,
+  base64Data: string,
+  existingId?: string,
+): Promise<string | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+
+    // Use existing ID if provided, otherwise generate a new one
+    const id = existingId || `animation_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const dateAdded = existingId
+      ? (await db.get("animations", id))?.dateAdded || Date.now()
+      : Date.now();
+
+    const animationData = {
+      id,
+      name,
+      base64: base64Data,
+      dateAdded,
+    };
+
+    await db.put("animations", animationData);
+    return id;
+  } catch (error) {
+    console.error("Error saving animation to IndexedDB:", error);
+    return null;
+  }
+}
+
+// Get an animation from IndexedDB by ID
+export async function getAnimationDataFromIndexedDB(id: string) {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+
+    const animation = await db.get("animations", id);
+    if (!animation) return null;
+
+    return animation;
+  } catch (error) {
+    console.error("Error getting animation data from IndexedDB:", error);
+    return null;
+  }
+}
+
+export async function getAnimationFromIndexedDB(id: string): Promise<string | null> {
+  try {
+    const data = await getAnimationDataFromIndexedDB(id);
+    if (!data) return null;
+
+    return data.base64;
+  } catch (error) {
+    console.error("Error getting animation from IndexedDB:", error);
+    return null;
+  }
+}
+
+export async function getAnimationNameFromIndexedDB(id: string): Promise<string | null> {
+  try {
+    const data = await getAnimationDataFromIndexedDB(id);
+    if (!data) return null;
+
+    return data.name;
+  } catch (error) {
+    console.error("Error getting animation name from IndexedDB:", error);
+    return null;
+  }
+}
+
+// Delete an animation from IndexedDB
+export async function deleteAnimationFromIndexedDB(id: string): Promise<boolean> {
+  try {
+    const db = await getDB();
+    if (!db) return false;
+
+    await db.delete("animations", id);
+    return true;
+  } catch (error) {
+    console.error("Error deleting animation from IndexedDB:", error);
+    return false;
+  }
+}
+
+// Clear all animations from IndexedDB
+export async function clearAnimationsFromIndexedDB(): Promise<boolean> {
+  try {
+    const db = await getDB();
+    if (!db) return false;
+
+    await db.clear("animations");
+    return true;
+  } catch (error) {
+    console.error("Error clearing animations from IndexedDB:", error);
+    return false;
+  }
+}
+
+// Get all animations from IndexedDB
+export async function getAllAnimationsFromIndexedDB(): Promise<Array<{ id: string; name: string; base64: string }> | null> {
+  try {
+    const db = await getDB();
+    if (!db) return null;
+
+    const animations = await db.getAll("animations");
+    return animations.map(animation => ({
+      id: animation.id,
+      name: animation.name,
+      base64: animation.base64,
+    }));
+  } catch (error) {
+    console.error("Error getting all animations from IndexedDB:", error);
+    return null;
+  }
+}
+
+/**
+ * Define regex patterns for each trigger type
+ */
+export const triggerPatterns = {
+  // Points: 0 to 180
+  points: /^(180|1[0-7][0-9]|[1-9][0-9]|[0-9])$/,
+
+  // Ranges: 100-140
+  ranges: /^(180|1[0-7][0-9]|[1-9][0-9]|[0-9])-(180|1[0-7][0-9]|[1-9][0-9]|[0-9])$/,
+
+  // Singles: s0 to s20 and 25
+  singles: /^s(1[0-9]|20|[0-9]|25)$/,
+
+  // Doubles: d1 to d20
+  doubles: /^d(1[0-9]|20|[1-9])$/,
+
+  // Triples: t1 to t20
+  triples: /^t(1[0-9]|20|[1-9])$/,
+
+  // Special events
+  specialEvents: /^(bull|outside|busted|gameshot)$/,
+
+  // Combination tags: Format: [first dart]_[second dart]_[third dart]
+  // Each dart can be a single, double, triple, or bull
+  dartPattern: /^(s(1[0-9]|20|[0-9]|25)|d(1[0-9]|20|[1-9])|t(1[0-9]|20|[1-9])|bull)$/,
+};
+
+/**
+ * Validates animation triggers according to the supported formats
+ * @param triggers Array of trigger strings to validate
+ * @returns Object containing valid triggers and any invalid ones that were removed
+ */
+export function validateAnimationTriggers(triggers: string[]): {
+  validTriggers: string[];
+  invalidTriggers: string[];
+} {
+  const validTriggers: string[] = [];
+  const invalidTriggers: string[] = [];
+
+  console.log("checking triggers", triggers);
+
+  if (!Array.isArray(triggers)) {
+    return { validTriggers: [], invalidTriggers: [] };
+  }
+
+  // Combination pattern builder
+  const isValidCombination = (combo: string): boolean => {
+    const parts = combo.split("_");
+
+    // Must have 2 or 3 parts
+    if (parts.length < 2 || parts.length > 3) {
+      return false;
+    }
+
+    // Each part must be a valid dart
+    return parts.every(part => triggerPatterns.dartPattern.test(part));
+  };
+
+  // Process each trigger
+  for (const trigger of triggers) {
+    const trimmedTrigger = trigger.trim().toLowerCase();
+
+    // Skip empty triggers
+    if (!trimmedTrigger) {
+      continue;
+    }
+
+    // Check if it's a valid combination
+    if (trimmedTrigger.includes("_")) {
+      if (isValidCombination(trimmedTrigger)) {
+        validTriggers.push(trimmedTrigger);
+      } else {
+        invalidTriggers.push(trimmedTrigger);
+      }
+      continue;
+    }
+
+    // Check against all single-dart patterns
+    if (
+      triggerPatterns.points.test(trimmedTrigger)
+      || triggerPatterns.singles.test(trimmedTrigger)
+      || triggerPatterns.doubles.test(trimmedTrigger)
+      || triggerPatterns.triples.test(trimmedTrigger)
+      || triggerPatterns.specialEvents.test(trimmedTrigger)
+      || triggerPatterns.ranges.test(trimmedTrigger)
+    ) {
+      validTriggers.push(trimmedTrigger);
+    } else {
+      invalidTriggers.push(trimmedTrigger);
+    }
+  }
+
+  return { validTriggers, invalidTriggers };
+}
+
+// OPFS helpers for animation storage
+// Check if OPFS is available in this browser
+export function isOPFSAvailable(): boolean {
+  return typeof navigator !== "undefined"
+      && typeof navigator.storage !== "undefined"
+      && typeof navigator.storage.getDirectory === "function";
+}
+
+// Get the animations directory in OPFS
+async function getAnimationsDirectory(): Promise<FileSystemDirectoryHandle> {
+  if (!isOPFSAvailable()) {
+    throw new Error("OPFS is not available");
+  }
+
+  const root = await navigator.storage.getDirectory();
+  return await root.getDirectoryHandle("animations", { create: true });
+}
+
+// Save animation GIF to OPFS
+export async function saveAnimationToOPFS(fileName: string, fileBlob: Blob): Promise<string> {
+  try {
+    // Get root directory
+    const animDir = await getAnimationsDirectory();
+
+    // Generate a unique ID for this animation
+    const animationId = `animation_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const uniqueFileName = `${animationId}_${fileName}`;
+
+    // Save the file to OPFS
+    const fileHandle = await animDir.getFileHandle(uniqueFileName, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(fileBlob);
+    await writable.close();
+
+    // Store metadata in local storage
+    const metadata = {
+      id: animationId,
+      fileName,
+      storedName: uniqueFileName,
+      dateAdded: Date.now(),
+    };
+
+    localStorage.setItem(`animation_meta_${animationId}`, JSON.stringify(metadata));
+
+    return animationId;
+  } catch (error) {
+    console.error("Error saving animation to OPFS:", error);
+    throw error;
+  }
+}
+
+// Get animation from OPFS
+export async function getAnimationFromOPFS(animationId: string): Promise<string | null> {
+  try {
+    const animDir = await getAnimationsDirectory();
+
+    // Get metadata from local storage
+    const metadataStr = localStorage.getItem(`animation_meta_${animationId}`);
+    if (!metadataStr) return null;
+
+    const metadata = JSON.parse(metadataStr);
+    const uniqueFileName = metadata.storedName;
+
+    const fileHandle = await animDir.getFileHandle(uniqueFileName);
+    const file = await fileHandle.getFile();
+
+    // Create and return an object URL for the file
+    return URL.createObjectURL(file);
+  } catch (error) {
+    console.error("Error retrieving animation from OPFS:", error);
+    return null;
+  }
+}
+
+// Get animation original filename
+export async function getAnimationNameFromOPFS(animationId: string): Promise<string | null> {
+  try {
+    const metadataStr = localStorage.getItem(`animation_meta_${animationId}`);
+    if (!metadataStr) return null;
+
+    const metadata = JSON.parse(metadataStr);
+    return metadata.fileName || null;
+  } catch (error) {
+    console.error("Error getting animation name:", error);
+    return null;
+  }
+}
+
+// Delete animation from OPFS
+export async function deleteAnimationFromOPFS(animationId: string): Promise<boolean> {
+  try {
+    const animDir = await getAnimationsDirectory();
+
+    // Get metadata from local storage
+    const metadataStr = localStorage.getItem(`animation_meta_${animationId}`);
+    if (!metadataStr) return false;
+
+    const metadata = JSON.parse(metadataStr);
+    const uniqueFileName = metadata.storedName;
+
+    // Delete the file from OPFS and metadata from local storage
+    await animDir.removeEntry(uniqueFileName);
+    localStorage.removeItem(`animation_meta_${animationId}`);
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting animation from OPFS:", error);
+    return false;
+  }
+}
+
+// Clear all animations from OPFS
+export async function clearAnimationsFromOPFS(): Promise<boolean> {
+  try {
+    const animDir = await getAnimationsDirectory();
+
+    // Find all animation metadata entries in local storage
+    const animationKeys = Object.keys(localStorage)
+      .filter(key => key.startsWith("animation_meta_"));
+
+    if (animationKeys.length === 0) {
+      return true; // No animations to delete
+    }
+
+    // @ts-expect-error - entries() returns an iterator (see https://developer.mozilla.org/en-US/docs/Web/API/FileSystemDirectoryHandle/entries)
+    for await (const [ name ] of animDir.entries()) {
+      try {
+        await animDir.removeEntry(name);
+      } catch (err) {
+        console.error(`Could not delete ${name}:`, err);
+      }
+    }
+
+    // Clear all metadata entries
+    for (const key of animationKeys) {
+      localStorage.removeItem(key);
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error clearing animations from OPFS:", error);
+    return false;
+  }
+}
+
+// Get all animations metadata
+export async function getAllAnimationsMetadataFromOPFS(): Promise<Array<{
+  id: string;
+  fileName: string;
+  storedName: string;
+  dateAdded: number;
+}> | null> {
+  try {
+    // Get all animation metadata from local storage
+    const animationKeys = Object.keys(localStorage)
+      .filter(key => key.startsWith("animation_meta_"));
+
+    const metadataList = animationKeys.map((key) => {
+      const metadataStr = localStorage.getItem(key);
+      return metadataStr ? JSON.parse(metadataStr) : null;
+    }).filter(Boolean);
+
+    return metadataList;
+  } catch (error) {
+    console.error("Error getting all animations metadata:", error);
+    return null;
+  }
+}
+
+// Revoke object URL to free memory
+export function revokeAnimationURL(objectURL: string): void {
+  if (objectURL?.startsWith("blob:")) {
+    URL.revokeObjectURL(objectURL);
+  }
 }

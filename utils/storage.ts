@@ -153,6 +153,7 @@ export interface IAnimation {
   url: string;
   triggers: string[];
   enabled: boolean;
+  animationId?: string;
 }
 
 export interface IGlobalStatus {
