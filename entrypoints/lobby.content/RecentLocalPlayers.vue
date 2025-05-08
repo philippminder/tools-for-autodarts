@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import { twMerge } from "tailwind-merge";
+
 import { waitForElement } from "@/utils";
 import { AutodartsToolsConfig } from "@/utils/storage";
 
@@ -106,7 +107,23 @@ async function addUserToLobby(player: string) {
   if (addUserInput.value) {
     // simulate type into addUserInput
     addUserInput.value.value = player;
-    addUserInput.value.dispatchEvent(new Event("input", { bubbles: true }));
+
+    try {
+      // Use InputEvent which is designed for input elements
+      const inputEvent = new InputEvent("input", { bubbles: true });
+      addUserInput.value.dispatchEvent(inputEvent);
+    } catch (e) {
+      // Fallback for browsers that might have issues with InputEvent
+      try {
+        // Create event the old way as fallback
+        const event = document.createEvent("HTMLEvents");
+        event.initEvent("input", true, true);
+        addUserInput.value.dispatchEvent(event);
+      } catch (err) {
+        console.error("Autodarts Tools: Error dispatching input event", err);
+      }
+    }
+
     if (addUserButton.value) {
       addUserButton.value.removeAttribute("disabled");
       addUserButton.value.click();

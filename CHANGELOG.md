@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.10] - 2025-05-05
+## [2.1.11] - 2025-05-8
+
+### Fixed
+- Added fallback mechanism for browsers that might have issues with InputEvent when adding local players to improve cross-browser compatibility
+
+## [2.1.10] - 2025-05-07
 
 ### Added
 - Added color customization feature to allow players to change game appearance
