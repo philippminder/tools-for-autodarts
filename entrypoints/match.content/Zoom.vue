@@ -8,7 +8,7 @@
   <div
     v-if="boardImages.length > 0 && throws > 0 && position !== 'center' && shouldShowZoom"
     :class="twMerge(
-      'pointer-events-none fixed bottom-4 mx-auto flex max-w-[1366px] justify-end',
+      'pointer-events-none fixed bottom-4 mx-auto flex justify-end',
       position === 'bottom-right' ? 'right-4' : 'left-4',
     )"
     :style="{
@@ -252,7 +252,7 @@ function resetZoomDivs() {
 }
 
 onMounted(async () => {
-  console.log("Autodarts Tools: Animations mounted");
+  console.log("Autodarts Tools: Zoom mounted");
 
   config.value = await AutodartsToolsConfig.getValue();
   if (config.value.zoom.position === "center") initCenterZoom();
