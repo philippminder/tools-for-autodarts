@@ -90,6 +90,41 @@ async function migrateConfig(currentConfigVersion: number) {
           };
         }
         break;
+      case 11:
+        // Migration from version 11 to version 12
+        config.version = 12;
+        if (!config.instantReplay) {
+          config.instantReplay = {
+            enabled: false,
+            deviceId: "",
+            duration: 10,
+            viewMode: "board-only",
+            zoom: 1,
+            positionX: 0,
+            positionY: 0,
+          };
+        }
+        break;
+      case 12:
+        // Migration from version 12 to version 13
+        config.version = 13;
+        if (config.instantReplay && !config.instantReplay.viewMode) {
+          config.instantReplay.viewMode = "board-only";
+        }
+        break;
+      case 13:
+        // Migration from version 13 to version 14
+        config.version = 14;
+        if (config.instantReplay) {
+          (config.instantReplay as any).zoom = 1;
+          (config.instantReplay as any).positionX = 0;
+          (config.instantReplay as any).positionY = 0;
+        } else {
+          config.instantReplay = {
+            ...defaultConfig.instantReplay,
+          };
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);
