@@ -44,7 +44,7 @@
                   <AppInput
                     v-model="duration"
                     type="number"
-                    label="Recording Duration (seconds)"
+                    label="Duration (seconds)"
                     min="5"
                     max="30"
                     class="w-full"
@@ -53,6 +53,21 @@
                 </div>
                 <p class="text-sm text-white/60">
                   Set how many seconds of video should be saved for instant replay (5-30 seconds).
+                </p>
+
+                <div class="relative w-36">
+                  <AppInput
+                    v-model="delay"
+                    type="number"
+                    label="Delay (seconds)"
+                    min="0"
+                    max="10"
+                    class="w-full"
+                    size="sm"
+                  />
+                </div>
+                <p class="text-sm text-white/60">
+                  Set how many seconds before the event to start the replay (0-10 seconds).
                 </p>
 
                 <div>
@@ -155,10 +170,11 @@
         <div>
           <h3 class="mb-1 flex items-center font-bold uppercase">
             Instant Replay
+            <span class="ml-2 rounded bg-amber-500/80 px-1.5 py-0.5 text-xs font-medium text-black">BETA</span>
             <span class="icon-[material-symbols--settings-alert-outline-rounded] ml-2 size-5" />
           </h3>
           <p class="w-2/3 text-white/70">
-            Records the last several seconds of your webcam footage to review throws or save highlights.
+            Records your webcam footage and allows you to review throws with customizable duration and delay.
           </p>
         </div>
         <div class="flex">
@@ -251,6 +267,17 @@ const positionY = computed({
   set: (value: number) => {
     if (config.value?.instantReplay) {
       config.value.instantReplay.positionY = value;
+    }
+  },
+});
+
+const delay = computed({
+  get: () => config.value?.instantReplay?.delay?.toString() || "0",
+  set: (value: string) => {
+    if (config.value?.instantReplay) {
+      const numValue = Number.parseInt(value, 10);
+      // Clamp value between 0 and 10 seconds
+      config.value.instantReplay.delay = Math.min(Math.max(numValue, 0), 10);
     }
   },
 });

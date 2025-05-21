@@ -145,6 +145,7 @@ export interface IConfig {
     enabled: boolean;
     deviceId: string;
     duration: number;
+    delay: number;
     viewMode?: "full-page" | "board-only";
     zoom: number;
     positionX: number;
@@ -307,7 +308,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 14,
+  version: 15,
   discord: {
     enabled: false,
     manually: false,
@@ -436,6 +437,7 @@ export const defaultConfig: IConfig = {
     enabled: false,
     deviceId: "",
     duration: 10,
+    delay: 5,
     viewMode: "board-only",
     zoom: 1,
     positionX: 0,

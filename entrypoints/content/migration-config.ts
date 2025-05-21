@@ -98,6 +98,7 @@ async function migrateConfig(currentConfigVersion: number) {
             enabled: false,
             deviceId: "",
             duration: 10,
+            delay: 5,
             viewMode: "board-only",
             zoom: 1,
             positionX: 0,
@@ -123,6 +124,13 @@ async function migrateConfig(currentConfigVersion: number) {
           config.instantReplay = {
             ...defaultConfig.instantReplay,
           };
+        }
+        break;
+      case 14:
+        // Migration from version 14 to version 15
+        config.version = 15;
+        if (config.instantReplay && config.instantReplay.delay === undefined) {
+          config.instantReplay.delay = 5;
         }
         break;
     }

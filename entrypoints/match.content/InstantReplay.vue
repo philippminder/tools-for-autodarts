@@ -1,7 +1,9 @@
 <template>
   <div
-    v-show="config?.instantReplay?.enabled"
-    class="fixed bottom-0 right-0 z-[190] size-72"
+    v-show="config?.instantReplay?.enabled && (showReplay || isTransitioning)"
+    class="fixed z-[190] transition-opacity duration-500"
+    :class="[containerClasses, { 'opacity-0': !showReplay, 'opacity-100': showReplay }]"
+    :style="containerStyle"
   >
     <div class="absolute inset-0">
       <video
@@ -19,12 +21,16 @@
 
 <script setup lang="ts">
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
+import { AutodartsToolsGameData } from "@/utils/game-data-storage";
 
 const videoElement = ref<HTMLVideoElement | null>(null);
 const config = ref<IConfig>();
 const mediaStream = ref<MediaStream | null>(null);
 const cameraError = ref<string | null>(null);
-const DELAY_SECONDS = 3;
+const showReplay = ref(false);
+const isTransitioning = ref(false);
+let hideReplayTimeout: NodeJS.Timeout | null = null;
+let transitionTimeout: NodeJS.Timeout | null = null;
 
 // For storing the delayed playback components
 let sourceVideo: HTMLVideoElement | null = null;
@@ -34,19 +40,77 @@ let sourceCanvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 let canvasStream: MediaStream | null = null;
 
+// Board position tracking
+const boardPosition = ref({
+  top: 0,
+  left: 0,
+  width: 0,
+  height: 0,
+});
+let updateInterval: NodeJS.Timeout | null = null;
+
 // Computed properties for camera settings
 const zoomLevel = computed(() => config.value?.instantReplay?.zoom || 1);
 const positionX = computed(() => config.value?.instantReplay?.positionX ?? 0);
 const positionY = computed(() => config.value?.instantReplay?.positionY ?? 0);
+const delaySeconds = computed(() => (config.value?.instantReplay?.delay ?? 0) + 3);
+const viewMode = computed(() => config.value?.instantReplay?.viewMode || "full-page");
+
+// Computed properties for container styling
+const containerClasses = computed(() => {
+  const isFullPage = viewMode.value === "full-page";
+  return {
+    "inset-0 size-full": isFullPage,
+  };
+});
+
+const containerStyle = computed(() => {
+  const isFullPage = viewMode.value === "full-page";
+  if (isFullPage) {
+    return {};
+  }
+
+  return {
+    top: `${boardPosition.value.top}px`,
+    left: `${boardPosition.value.left}px`,
+    width: `${boardPosition.value.width}px`,
+    height: `${boardPosition.value.height}px`,
+  };
+});
 
 onMounted(async () => {
   // Load config and start camera
   await loadConfig();
   await startCamera();
+
+  // Update board position
+  updateBoardPosition();
+
+  // Set up interval to update board position
+  window.addEventListener("resize", updateBoardPosition);
+  updateInterval = setInterval(updateBoardPosition, 1000);
+
+  // Watch for game data changes to detect winner
+  setupGameDataWatcher();
 });
 
 onUnmounted(() => {
   cleanup();
+
+  // Clean up board position tracking
+  if (updateInterval) clearInterval(updateInterval);
+  window.removeEventListener("resize", updateBoardPosition);
+
+  // Clear any pending timeouts
+  if (hideReplayTimeout) {
+    clearTimeout(hideReplayTimeout);
+    hideReplayTimeout = null;
+  }
+
+  if (transitionTimeout) {
+    clearTimeout(transitionTimeout);
+    transitionTimeout = null;
+  }
 });
 
 // Watch for changes in config
@@ -94,8 +158,59 @@ function cleanup() {
   ctx = null;
 }
 
+function updateBoardPosition(): void {
+  const boardElement = document.querySelector("#ad-ext-turn")?.nextElementSibling?.querySelector(".showAnimations");
+  if (boardElement) {
+    const rect = boardElement.getBoundingClientRect();
+    boardPosition.value = {
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+    };
+  }
+}
+
 async function loadConfig() {
   config.value = await AutodartsToolsConfig.getValue();
+}
+
+function setupGameDataWatcher() {
+  AutodartsToolsGameData.watch(async (gameData) => {
+    // Check if there's a winner
+    if (gameData?.match && (gameData.match.winner !== -1 || gameData.match.gameWinner !== -1)) {
+      // Clear any existing timeouts
+      if (hideReplayTimeout) {
+        clearTimeout(hideReplayTimeout);
+        hideReplayTimeout = null;
+      }
+
+      if (transitionTimeout) {
+        clearTimeout(transitionTimeout);
+        transitionTimeout = null;
+      }
+
+      // Wait 3 seconds before showing the replay
+      setTimeout(() => {
+        // Show the replay with fade-in
+        fadeInReplay();
+
+        // Set a timeout to hide the replay after the configured duration
+        const replayDuration = ((config.value?.instantReplay?.duration || 10) + delaySeconds.value) * 1000; // Convert to milliseconds
+        hideReplayTimeout = setTimeout(() => {
+          fadeOutReplay();
+          hideReplayTimeout = null;
+        }, replayDuration);
+      }, 3000); // 3-second delay
+    } else if (gameData?.match?.activated !== undefined && gameData.match.activated >= 0) {
+      // Hide replay when game is active or edited
+      fadeOutReplay();
+      if (hideReplayTimeout) {
+        clearTimeout(hideReplayTimeout);
+        hideReplayTimeout = null;
+      }
+    }
+  });
 }
 
 async function startCamera() {
@@ -183,7 +298,7 @@ function startDelayedPlayback() {
   }
 
   // Calculate frame buffer size based on delay (assuming 30fps)
-  const bufferSize = DELAY_SECONDS * 30;
+  const bufferSize = delaySeconds.value * 30;
   const frameBuffer: ImageData[] = [];
   let shouldOutput = false;
 
@@ -232,5 +347,27 @@ function startDelayedPlayback() {
   animationFrameId = requestAnimationFrame(captureFrame);
 
   console.log("Delayed playback started");
+}
+
+// Function to show replay with fade-in
+function fadeInReplay() {
+  isTransitioning.value = true;
+  showReplay.value = true;
+}
+
+// Function to hide replay with fade-out
+function fadeOutReplay() {
+  showReplay.value = false;
+
+  // Keep element in DOM during transition
+  if (transitionTimeout) {
+    clearTimeout(transitionTimeout);
+  }
+
+  // Remove element after transition completes
+  transitionTimeout = setTimeout(() => {
+    isTransitioning.value = false;
+    transitionTimeout = null;
+  }, 500); // match the duration-500 from the CSS
 }
 </script>
