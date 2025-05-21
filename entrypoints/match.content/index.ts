@@ -19,6 +19,7 @@ import Zoom from "./Zoom.vue";
 import Animations from "./Animations.vue";
 import StreamingMode from "./StreamingMode.vue";
 import QuickCorrection from "./QuickCorrection.vue";
+import InstantReplay from "./InstantReplay.vue";
 import { discordStream, discordStreamOnRemove } from "./discord-stream";
 import { enhancedScoringDisplay, enhancedScoringDisplayOnRemove } from "./enhanced-scoring-display";
 
@@ -42,6 +43,7 @@ const tools = {
   zoom: null as any,
   quickCorrection: null as any,
   enhancedScoringDisplay: null as any,
+  instantReplay: null as any,
 };
 
 export default defineContentScript({
@@ -187,6 +189,10 @@ async function initMatch(ctx, url: string, matchId?: string) {
     await initQuickCorrection(ctx).catch(console.error);
   }
 
+  if (config.instantReplay.enabled) {
+    await initInstantReplay(ctx).catch(console.error);
+  }
+
   if (matchId && config.discord.autoStartAfterTimer?.stream) {
     if (config.discord.autoStartAfterTimer?.matchId === matchId || config.discord.autoStartAfterTimer?.matchId?.includes(matchId)) await initScript(discordStream, url).catch(console.error);
   }
@@ -222,6 +228,7 @@ function clearMatch(fromBullOff: boolean = false) {
   tools.animations?.remove();
   tools.zoom?.remove();
   tools.quickCorrection?.remove();
+  tools.instantReplay?.remove();
   colorChangeOnRemove();
   if (!fromBullOff) hideMenuInMatchOnRemove();
   if (!fromBullOff) automaticFullscreenOnRemove();
@@ -407,4 +414,28 @@ async function initQuickCorrection(ctx) {
   });
 
   tools.quickCorrection.mount();
+}
+
+async function initInstantReplay(ctx) {
+  await waitForElement("#root > div > div:nth-of-type(2)");
+  tools.instantReplay = await createShadowRootUi(ctx, {
+    name: "autodarts-tools-instant-replay",
+    position: "inline",
+    anchor: "#root > div > div:nth-of-type(2)",
+    onMount: (container: any) => {
+      console.log("Autodarts Tools: Instant Replay initialized");
+      const app = createApp(InstantReplay);
+      app.mount(container);
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        container.classList.add("dark");
+      }
+      return app;
+    },
+    onRemove: (app: any) => {
+      app?.unmount();
+      console.log("Autodarts Tools: Instant Replay removed");
+    },
+  });
+
+  tools.instantReplay.mount();
 }

@@ -141,6 +141,16 @@ export interface IConfig {
   enhancedScoringDisplay: {
     enabled: boolean;
   };
+  instantReplay: {
+    enabled: boolean;
+    deviceId: string;
+    duration: number;
+    delay: number;
+    viewMode?: "full-page" | "board-only";
+    zoom: number;
+    positionX: number;
+    positionY: number;
+  };
 }
 
 export interface ISound {
@@ -298,7 +308,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 11,
+  version: 15,
   discord: {
     enabled: false,
     manually: false,
@@ -422,6 +432,16 @@ export const defaultConfig: IConfig = {
   },
   enhancedScoringDisplay: {
     enabled: false,
+  },
+  instantReplay: {
+    enabled: false,
+    deviceId: "",
+    duration: 10,
+    delay: 5,
+    viewMode: "board-only",
+    zoom: 1,
+    positionX: 0,
+    positionY: 0,
   },
   animations: {
     enabled: false,
