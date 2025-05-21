@@ -52,7 +52,7 @@ async function checkStatus(boardData: IBoard) {
 
 async function handleBackdropClick() {
   show.value = false;
-  (await waitForElementWithTextContent("button", "Reset"))?.click();
+  (await waitForElementWithTextContent("button", ["Reset", "Zurücksetzen"]))?.click();
 }
 </script>
 

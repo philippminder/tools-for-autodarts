@@ -22,7 +22,7 @@ export async function automaticNextLeg() {
 
     boardDataWatcherUnwatch = AutodartsToolsBoardData.watch(async (_boardData: IBoard, _oldBoardData: IBoard) => {
       if (_boardData.event === "Takeout finished" && (gameData.match?.gameWinner ?? -1) >= 0) {
-        const nextLegBtn = await waitForElementWithTextContent("button", "Next Leg");
+        const nextLegBtn = await waitForElementWithTextContent("button", ["Next Leg", "Nächstes Leg", "Volgende leg"]);
         if (!nextLegBtn) return;
         let startSec = config.automaticNextLeg.sec;
 
