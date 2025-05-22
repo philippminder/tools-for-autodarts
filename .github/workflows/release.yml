@@ -26,6 +26,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      prerelease: ${{ steps.release-flags.outputs.prerelease }}
 
     steps:
       - uses: actions/checkout@v3
@@ -40,7 +43,7 @@ jobs:
 
       - name: Get Package Version
         id: get-version
-        run: echo "::set-output name=version::$(node -p "require('./package.json').version")"
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - run: yarn build
       - run: yarn zip
@@ -51,18 +54,93 @@ jobs:
         id: release-flags
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/tools-2.0.0" ]]; then
-            echo "::set-output name=prerelease::true"
+            echo "prerelease=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=prerelease::false"
+            echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
 
       - name: GH Release
         uses: softprops/action-gh-release@v0.1.15
         with:
           tag_name: ${{ steps.get-version.outputs.version }}
-          release_name: ${{ steps.get-version.outputs.version }}
+          name: ${{ steps.get-version.outputs.version }}
           draft: true
           prerelease: ${{ steps.release-flags.outputs.prerelease }}
           files: |
             .output/autodarts-tools-${{ steps.get-version.outputs.version }}-chrome.zip
             .output/autodarts-tools-${{ steps.get-version.outputs.version }}-firefox.zip
+
+  build_ios_app:
+    permissions:
+      contents: write # Allows this job to create releases
+    
+    runs-on: macos-latest
+    timeout-minutes: 30
+    needs: draft_release
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Get Package Version
+        run: echo "VERSION=${{ needs.draft_release.outputs.version }}" >> $GITHUB_ENV
+        
+      - name: Install latest Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      
+      - name: Build and Archive iOS App
+        run: |
+          cd "Tools for Autodarts"
+          # Build the archive with the correct scheme
+          xcodebuild -project "Tools for Autodarts.xcodeproj" -scheme "Tools for Autodarts (iOS)" -configuration Release -archivePath "./build/ToolsForAutodarts.xcarchive" archive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+          
+          # Verify the archive was created
+          ls -la ./build/ToolsForAutodarts.xcarchive/Products/Applications/
+      
+      - name: Create IPA File
+        run: |
+          # Switch to correct directory
+          cd "Tools for Autodarts"
+          
+          # Create Payload directory
+          mkdir -p Payload
+          
+          # Copy the .app file to the Payload directory
+          cp -R "./build/ToolsForAutodarts.xcarchive/Products/Applications/Tools for Autodarts.app" Payload/
+          
+          # Create zip file and rename to .ipa
+          zip -r "autodarts-tools-${VERSION}-ios.ipa" Payload
+          
+          # Move to output directory
+          mkdir -p ../.output
+          mv "autodarts-tools-${VERSION}-ios.ipa" ../.output/
+          
+          # Cleanup
+          rm -rf Payload
+          
+          # Verify IPA was created
+          ls -la ../.output/
+      
+      - name: Download Draft Release
+        uses: robinraju/release-downloader@v1.8
+        with:
+          tag: ${{ needs.draft_release.outputs.version }}
+          fileName: "*.zip"
+          out-file-path: ".output"
+          token: ${{ github.token }}
+          tarBall: false
+          zipBall: false
+          latest: false
+      
+      - name: Update Release with IPA File
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          tag_name: ${{ needs.draft_release.outputs.version }}
+          name: ${{ needs.draft_release.outputs.version }}
+          draft: true
+          prerelease: ${{ needs.draft_release.outputs.prerelease }}
+          files: |
+            .output/autodarts-tools-${{ needs.draft_release.outputs.version }}-chrome.zip
+            .output/autodarts-tools-${{ needs.draft_release.outputs.version }}-firefox.zip
+            .output/autodarts-tools-${{ needs.draft_release.outputs.version }}-ios.ipa
