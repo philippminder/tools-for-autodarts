@@ -142,17 +142,6 @@ jobs:
           # Verify IPA was created
           ls -la ../.output/
       
-      - name: Download Draft Release
-        uses: robinraju/release-downloader@v1.8
-        with:
-          tag: ${{ needs.draft_release.outputs.version }}
-          fileName: "*.zip"
-          out-file-path: ".output"
-          token: ${{ github.token }}
-          tarBall: false
-          zipBall: false
-          latest: false
-      
       - name: Update Release with IPA File
         uses: softprops/action-gh-release@v0.1.15
         with:
@@ -161,6 +150,4 @@ jobs:
           draft: true
           prerelease: ${{ needs.draft_release.outputs.prerelease }}
           files: |
-            .output/autodarts-tools-${{ needs.draft_release.outputs.version }}-chrome.zip
-            .output/autodarts-tools-${{ needs.draft_release.outputs.version }}-firefox.zip
             .output/autodarts-tools-${{ needs.draft_release.outputs.version }}-ios.ipa
