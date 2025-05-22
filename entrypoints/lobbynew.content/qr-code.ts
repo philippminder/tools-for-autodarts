@@ -5,7 +5,7 @@ import { QR_CODE_OPTIONS } from "./qr-code-options";
 export async function qrCode() {
   console.log("Autodarts Tools: QR Code feature initializing");
 
-  await waitForElementWithTextContent("p", "or share link:");
+  await waitForElementWithTextContent("p", ["or share link:", "Link teilen:", "Deel link:"]);
 
   // get input with placeholder "Lobby invite url"
   const shareLinkInput = document.querySelector("input[placeholder=\"Lobby invite url\"]") as HTMLInputElement;

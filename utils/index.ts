@@ -31,7 +31,8 @@ export function waitForElement(selector: string | string[], timeout = 3000): Pro
   });
 }
 
-export function waitForElementWithTextContent(selector: string | string[], textContent: string, timeout = 3000): Promise<HTMLElement> {
+export function waitForElementWithTextContent(selector: string | string[], textContent: string | string[], timeout = 3000): Promise<HTMLElement> {
+  const texts = Array.isArray(textContent) ? textContent : [textContent];
   return new Promise((resolve, reject) => {
     const startTime = Date.now();
     const timer = setInterval(() => {
@@ -39,7 +40,7 @@ export function waitForElementWithTextContent(selector: string | string[], textC
         for (const sel of selector) {
           const elements = document.querySelectorAll(sel);
           for (const element of elements) {
-            if (element.textContent === textContent) {
+            if (texts.includes(element.textContent ?? "")) {
               clearInterval(timer);
               resolve(element as HTMLElement);
               return;
@@ -49,7 +50,7 @@ export function waitForElementWithTextContent(selector: string | string[], textC
       } else {
         const elements = document.querySelectorAll(selector);
         for (const element of elements) {
-          if (element.textContent === textContent) {
+          if (texts.includes(element.textContent ?? "")) {
             clearInterval(timer);
             resolve(element as HTMLElement);
             return;
@@ -59,7 +60,7 @@ export function waitForElementWithTextContent(selector: string | string[], textC
 
       if (Date.now() - startTime >= timeout) {
         clearInterval(timer);
-        reject(new Error(`Timeout waiting for element ${selector} with text content ${textContent}`));
+        reject(new Error(`Timeout waiting for element ${selector} with text content ${texts.join(", ")}`));
       }
     }, 100);
   });
