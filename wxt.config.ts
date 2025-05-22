@@ -34,6 +34,7 @@ export default defineConfig({
     permissions: [
       "storage",
       // "background",
+      "camera",
     ],
     background: {
       service_worker: "background.js",

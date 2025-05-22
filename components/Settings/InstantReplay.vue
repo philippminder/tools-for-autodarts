@@ -323,14 +323,17 @@ async function checkCameraPermission() {
   }
 
   try {
+    // Standard approach for all browsers
     await navigator.mediaDevices.getUserMedia({ video: true })
       .then((stream) => {
         hasCameraPermission.value = true;
         stream.getTracks().forEach(track => track.stop());
         loadCameraDevices();
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Autodarts Tools: Camera permission error:", error);
         hasCameraPermission.value = false;
+        cameraError.value = "Camera access was denied. Please allow camera access in your browser settings.";
       });
   } catch (error) {
     console.error("Error checking camera permission:", error);

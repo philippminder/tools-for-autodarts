@@ -229,8 +229,14 @@ async function startCamera() {
       audio: false,
     };
 
-    // Request camera access
-    mediaStream.value = await navigator.mediaDevices.getUserMedia(constraints);
+    try {
+      // Request camera access
+      mediaStream.value = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (cameraError) {
+      console.error("Camera access error:", cameraError);
+      // Re-throw to be caught by outer try-catch
+      throw cameraError;
+    }
 
     // Create a new source video element for the live feed
     sourceVideo = document.createElement("video");
