@@ -130,11 +130,11 @@ jobs:
           cp -R "./build/ToolsForAutodarts.xcarchive/Products/Applications/Tools for Autodarts.app" Payload/
           
           # Create zip file and rename to .ipa
-          zip -r "autodarts-tools-${VERSION}-ios.ipa" Payload
+          zip -r "autodarts-tools-ios.ipa" Payload
           
           # Move to output directory
           mkdir -p ../.output
-          mv "autodarts-tools-${VERSION}-ios.ipa" ../.output/
+          mv "autodarts-tools-ios.ipa" ../.output/
           
           # Cleanup
           rm -rf Payload
@@ -150,4 +150,4 @@ jobs:
           draft: true
           prerelease: ${{ needs.draft_release.outputs.prerelease }}
           files: |
-            .output/autodarts-tools-${{ needs.draft_release.outputs.version }}-ios.ipa
+            .output/autodarts-tools-ios.ipa
