@@ -86,6 +86,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
   - Numpad keyboard shortcuts for fast corrections
   - Color-coded buttons matching dart board segments
   - Keyboard shortcuts for accessing throws (/, *, -) and making corrections
+- **Instant Replay**: Records webcam footage and automatically shows replays of winning throws
 
 ### 🔊 Audio Features
 - **Caller**: Voice announcements for scores, checkouts, and each dart thrown during gameplay
