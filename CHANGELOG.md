@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.14] - 2025-01-XX
+
+### Added
+- Added Instant Replay feature that records webcam footage and automatically shows replays of winning throws
+  - Configurable duration and delay settings for customized replay timing
+  - Two view modes: Full Page overlay covering the entire screen or Board Only overlay positioned over the dartboard
+  - Camera zoom (1x-5x) and positioning controls for optimal viewing angle
+  - Automatic FPS detection and smart camera device management that excludes cameras in use by other applications
+  - Live camera preview in settings with real-time FPS display
+  - Intelligent delayed playback system using canvas-based frame buffering
+  - Shows replay automatically 3 seconds after a game/leg win with smooth fade-in/fade-out transitions
+  - Click-to-dismiss functionality or automatic timeout based on configured duration
+  - Comprehensive camera permission handling with user-friendly error messages
+  - BETA feature with ongoing improvements and optimizations
+
 ## [2.1.11] - 2025-05-8
 
 ### Fixed
