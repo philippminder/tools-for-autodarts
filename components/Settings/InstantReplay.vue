@@ -31,18 +31,41 @@
               <!-- Left side: Settings -->
               <div class="space-y-4">
                 <div>
-                  <label class="mb-1 block text-sm font-medium">Select Camera</label>
+                  <div class="mb-1 flex items-center justify-between">
+                    <label class="text-sm font-medium">Select Camera</label>
+                    <AppButton
+                      @click="loadCameraDevices"
+                      auto
+                      size="sm"
+                      variant="ghost"
+                      class="text-xs"
+                      :disabled="isLoadingDevices"
+                    >
+                      <span
+                        class="mr-1"
+                        :class="isLoadingDevices ? 'icon-[eos-icons--loading] animate-spin' : 'icon-[material-symbols--refresh]'"
+                      />
+                      {{ isLoadingDevices ? 'Checking...' : 'Refresh' }}
+                    </AppButton>
+                  </div>
                   <AppSelect
                     v-model="selectedDeviceId"
                     class="w-full"
                     :options="cameraOptions"
                     :disabled="!cameraDevices.length"
                   />
+                  <p v-if="!cameraDevices.length && hasCameraPermission" class="mt-1 text-xs text-white/60">
+                    No available cameras found. They may be in use by other applications.
+                  </p>
+                  <p v-else-if="cameraDevices.length && hasCameraPermission" class="mt-1 text-xs text-white/60">
+                    Only showing cameras not currently in use by other applications.
+                  </p>
                 </div>
 
                 <div class="relative w-36">
                   <AppInput
-                    v-model="duration"
+                    @update:model-value="config.instantReplay.duration = Math.min(Math.max(Number($event), 0), 60)"
+                    :model-value="String(config.instantReplay.duration)"
                     type="number"
                     label="Duration (seconds)"
                     min="5"
@@ -57,7 +80,8 @@
 
                 <div class="relative w-36">
                   <AppInput
-                    v-model="delay"
+                    @update:model-value="config.instantReplay.delay = Math.min(Math.max(Number($event), 0), 60)"
+                    :model-value="String(config.instantReplay.delay)"
                     type="number"
                     label="Delay (seconds)"
                     min="0"
@@ -151,6 +175,9 @@
                     playsinline
                     :style="{ transform: `scale(${zoomLevel}) translate(${positionX}%, ${positionY}%)` }"
                   />
+                  <div v-if="currentFps" class="absolute bottom-2 right-2 rounded bg-black/70 px-2 py-1 text-xs text-white">
+                    {{ currentFps }} FPS
+                  </div>
                 </div>
               </div>
             </div>
@@ -205,6 +232,8 @@ const mediaStream = ref<MediaStream | null>(null);
 const hasCameraPermission = ref(false);
 const cameraError = ref<string | null>(null);
 const cameraDevices = ref<MediaDeviceInfo[]>([]);
+const isLoadingDevices = ref(false);
+const currentFps = ref<number | null>(null);
 
 // Computed properties
 const cameraOptions = computed(() => {
@@ -214,23 +243,14 @@ const cameraOptions = computed(() => {
   }));
 });
 
+// Computed properties for form inputs
+
 const selectedDeviceId = computed({
   get: () => config.value?.instantReplay?.deviceId || "",
   set: (value: string) => {
     if (config.value?.instantReplay) {
       config.value.instantReplay.deviceId = value;
       updateCameraPreview(value);
-    }
-  },
-});
-
-const duration = computed({
-  get: () => config.value?.instantReplay?.duration?.toString() || "10",
-  set: (value: string) => {
-    if (config.value?.instantReplay) {
-      const numValue = Number.parseInt(value, 10);
-      // Clamp value between 5 and 30 seconds
-      config.value.instantReplay.duration = Math.min(Math.max(numValue, 5), 30);
     }
   },
 });
@@ -267,17 +287,6 @@ const positionY = computed({
   set: (value: number) => {
     if (config.value?.instantReplay) {
       config.value.instantReplay.positionY = value;
-    }
-  },
-});
-
-const delay = computed({
-  get: () => config.value?.instantReplay?.delay?.toString() || "0",
-  set: (value: string) => {
-    if (config.value?.instantReplay) {
-      const numValue = Number.parseInt(value, 10);
-      // Clamp value between 0 and 10 seconds
-      config.value.instantReplay.delay = Math.min(Math.max(numValue, 0), 10);
     }
   },
 });
@@ -368,13 +377,51 @@ async function requestCameraAccess() {
 }
 
 async function loadCameraDevices() {
+  isLoadingDevices.value = true;
+  cameraError.value = null;
+
   try {
     const devices = await navigator.mediaDevices.enumerateDevices();
-    cameraDevices.value = devices.filter(device => device.kind === "videoinput");
+    const allCameraDevices = devices.filter(device => device.kind === "videoinput");
+
+    // Filter out devices that are already in use by testing each one
+    const availableDevices: MediaDeviceInfo[] = [];
+
+    for (const device of allCameraDevices) {
+      try {
+        // Try to access the device briefly to check if it's available
+        const testStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: device.deviceId } },
+        });
+
+        // If successful, the device is available
+        availableDevices.push(device);
+
+        // Immediately stop the test stream
+        testStream.getTracks().forEach(track => track.stop());
+      } catch (error: any) {
+        // Check if the error indicates the device is in use
+        if (error?.name === "NotReadableError"
+            || error?.name === "TrackStartError"
+            || error?.name === "AbortError"
+            || error?.message?.includes("Could not start video source")
+            || error?.message?.includes("Failed to allocate videosource")
+            || error?.message?.includes("Starting videoinput failed")) {
+          console.log(`Camera device ${device.label || device.deviceId} is already in use, excluding from list`);
+          // Device is in use, don't add to available devices
+        } else {
+          // Other errors (like permission issues) - still include the device
+          // as the user might be able to resolve the issue
+          availableDevices.push(device);
+        }
+      }
+    }
+
+    cameraDevices.value = availableDevices;
 
     // If we have devices and a selected device in config
     if (cameraDevices.value.length > 0) {
-      // If we have a saved device ID and it's in the list
+      // If we have a saved device ID and it's in the available list
       const savedDeviceId = config.value?.instantReplay?.deviceId;
       if (savedDeviceId && cameraDevices.value.some(d => d.deviceId === savedDeviceId)) {
         updateCameraPreview(savedDeviceId);
@@ -386,10 +433,15 @@ async function loadCameraDevices() {
         }
         updateCameraPreview(firstDeviceId);
       }
+    } else if (allCameraDevices.length > 0) {
+      // All devices are in use
+      cameraError.value = "All camera devices are currently in use by other applications. Please close other video applications and try again.";
     }
   } catch (error) {
     console.error("Error loading camera devices:", error);
     cameraError.value = "Failed to load camera devices.";
+  } finally {
+    isLoadingDevices.value = false;
   }
 }
 
@@ -409,10 +461,53 @@ async function updateCameraPreview(deviceId: string) {
 
     mediaStream.value = await navigator.mediaDevices.getUserMedia(constraints);
     videoPreview.value.srcObject = mediaStream.value;
+
+    // Detect camera FPS
+    detectCameraFps();
   } catch (error) {
     console.error("Error updating camera preview:", error);
     cameraError.value = "Failed to access the selected camera.";
   }
+}
+
+function detectCameraFps() {
+  if (!mediaStream.value) return;
+
+  const videoTrack = mediaStream.value.getVideoTracks()[0];
+  if (videoTrack) {
+    const settings = videoTrack.getSettings();
+    if (settings.frameRate) {
+      currentFps.value = settings.frameRate;
+      console.log(`Camera FPS: ${settings.frameRate}`);
+    } else {
+      // Fallback: measure FPS manually
+      measureFpsManually();
+    }
+  }
+}
+
+function measureFpsManually() {
+  if (!videoPreview.value) return;
+
+  let frameCount = 0;
+  const startTime = performance.now();
+
+  const measureFrame = () => {
+    frameCount++;
+    const currentTime = performance.now();
+    const elapsed = currentTime - startTime;
+
+    // Measure for 2 seconds
+    if (elapsed >= 2000) {
+      const fps = Math.round((frameCount / elapsed) * 1000);
+      currentFps.value = fps;
+      console.log(`Measured FPS: ${fps}`);
+    } else {
+      requestAnimationFrame(measureFrame);
+    }
+  };
+
+  requestAnimationFrame(measureFrame);
 }
 
 async function toggleFeature() {

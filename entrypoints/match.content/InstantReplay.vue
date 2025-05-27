@@ -7,13 +7,14 @@
   >
     <div class="absolute inset-0">
       <video
+        @click="handleVideoClick"
         id="replay-video"
         ref="videoElement"
         autoplay
         muted
         playsinline
         :style="{ transform: `scale(${zoomLevel}) translate(${positionX}%, ${positionY}%)` }"
-        class="size-full object-cover"
+        class="size-full cursor-pointer object-cover"
       />
     </div>
   </div>
@@ -40,6 +41,11 @@ let sourceCanvas: HTMLCanvasElement | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 let canvasStream: MediaStream | null = null;
 
+// FPS detection
+const detectedFPS = ref<number>(30); // Default to 30 FPS until detected
+let fpsDetectionFrames: number[] = [];
+let fpsDetectionStartTime: number | null = null;
+
 // Board position tracking
 const boardPosition = ref({
   top: 0,
@@ -53,7 +59,8 @@ let updateInterval: NodeJS.Timeout | null = null;
 const zoomLevel = computed(() => config.value?.instantReplay?.zoom || 1);
 const positionX = computed(() => config.value?.instantReplay?.positionX ?? 0);
 const positionY = computed(() => config.value?.instantReplay?.positionY ?? 0);
-const delaySeconds = computed(() => (config.value?.instantReplay?.delay ?? 0) + 3);
+const delaySeconds = computed(() => config.value?.instantReplay?.delay ?? 0);
+const durationSeconds = computed(() => config.value?.instantReplay?.duration ?? 10);
 const viewMode = computed(() => config.value?.instantReplay?.viewMode || "full-page");
 
 // Computed properties for container styling
@@ -95,6 +102,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  // Clean up camera and all resources first
   cleanup();
 
   // Clean up board position tracking
@@ -111,6 +119,11 @@ onUnmounted(() => {
     clearTimeout(transitionTimeout);
     transitionTimeout = null;
   }
+
+  // Ensure video element is cleared
+  if (videoElement.value) {
+    videoElement.value.srcObject = null;
+  }
 });
 
 // Watch for changes in config
@@ -122,6 +135,24 @@ watch(() => config.value?.instantReplay, async () => {
   }
 }, { deep: true });
 
+// Watch for FPS detection changes to update canvas stream
+watch(detectedFPS, (newFPS) => {
+  if (canvasStream && sourceCanvas) {
+    // Stop the current stream
+    canvasStream.getTracks().forEach(track => track.stop());
+
+    // Create a new stream with the detected FPS
+    canvasStream = sourceCanvas.captureStream(newFPS);
+
+    // Update the video element with the new stream
+    if (videoElement.value) {
+      videoElement.value.srcObject = canvasStream;
+    }
+
+    console.log(`Updated canvas stream to use ${newFPS} FPS`);
+  }
+});
+
 function cleanup() {
   // Stop animation frame
   if (animationFrameId !== null) {
@@ -131,19 +162,28 @@ function cleanup() {
 
   // Clean up canvas stream
   if (canvasStream) {
-    canvasStream.getTracks().forEach(track => track.stop());
+    canvasStream.getTracks().forEach((track) => {
+      track.stop();
+      console.log("Canvas stream track stopped:", track.kind);
+    });
     canvasStream = null;
   }
 
-  // Clean up media stream
+  // Clean up media stream (camera)
   if (mediaStream.value) {
-    mediaStream.value.getTracks().forEach(track => track.stop());
+    mediaStream.value.getTracks().forEach((track) => {
+      track.stop();
+      console.log("Media stream track stopped:", track.kind, track.label);
+    });
     mediaStream.value = null;
   }
 
-  // Remove the source video element
-  if (sourceVideo && sourceVideo.parentNode) {
-    sourceVideo.parentNode.removeChild(sourceVideo);
+  // Clear source video srcObject before removing
+  if (sourceVideo) {
+    sourceVideo.srcObject = null;
+    if (sourceVideo.parentNode) {
+      sourceVideo.parentNode.removeChild(sourceVideo);
+    }
     sourceVideo = null;
   }
 
@@ -156,6 +196,14 @@ function cleanup() {
   // Clear the buffer
   buffer = [];
   ctx = null;
+
+  // Reset camera error state
+  cameraError.value = null;
+
+  // Reset FPS detection
+  detectedFPS.value = 30;
+  fpsDetectionFrames = [];
+  fpsDetectionStartTime = null;
 }
 
 function updateBoardPosition(): void {
@@ -195,8 +243,8 @@ function setupGameDataWatcher() {
         // Show the replay with fade-in
         fadeInReplay();
 
-        // Set a timeout to hide the replay after the configured duration
-        const replayDuration = ((config.value?.instantReplay?.duration || 10) + delaySeconds.value) * 1000; // Convert to milliseconds
+        // Set a timeout to hide the replay after the configured duration (delay + duration)
+        const replayDuration = (delaySeconds.value + durationSeconds.value) * 1000; // Convert to milliseconds
         hideReplayTimeout = setTimeout(() => {
           fadeOutReplay();
           hideReplayTimeout = null;
@@ -276,8 +324,8 @@ async function startCamera() {
       if (ctx) {
         console.log("Canvas and context created successfully");
 
-        // Create a stream from the canvas
-        canvasStream = sourceCanvas.captureStream(30);
+        // Create a stream from the canvas (will be updated when FPS is detected)
+        canvasStream = sourceCanvas.captureStream(detectedFPS.value);
 
         // Set the delayed stream as the source for our display video
         if (videoElement.value) {
@@ -303,12 +351,12 @@ function startDelayedPlayback() {
     return;
   }
 
-  // Calculate frame buffer size based on delay (assuming 30fps)
-  const bufferSize = delaySeconds.value * 30;
+  // Calculate frame buffer size based on delay using detected FPS
+  const bufferSize = delaySeconds.value * detectedFPS.value;
   const frameBuffer: ImageData[] = [];
   let shouldOutput = false;
 
-  console.log(`Starting delayed playback with buffer size: ${bufferSize}`);
+  console.log(`Starting delayed playback with buffer size: ${bufferSize} (${detectedFPS.value} FPS)`);
 
   // Function to capture frames and create the delay
   const captureFrame = () => {
@@ -318,6 +366,11 @@ function startDelayedPlayback() {
     }
 
     try {
+      // Detect FPS during the first few seconds
+      if (fpsDetectionStartTime === null || performance.now() - fpsDetectionStartTime < 2000) {
+        detectFPS();
+      }
+
       // Draw the current frame from the source video to the canvas
       ctx.drawImage(sourceVideo, 0, 0, sourceCanvas.width, sourceCanvas.height);
 
@@ -375,5 +428,50 @@ function fadeOutReplay() {
     isTransitioning.value = false;
     transitionTimeout = null;
   }, 500); // match the duration-500 from the CSS
+}
+
+function handleVideoClick() {
+  // Clear any existing timeout to prevent automatic hiding
+  if (hideReplayTimeout) {
+    clearTimeout(hideReplayTimeout);
+    hideReplayTimeout = null;
+  }
+
+  fadeOutReplay();
+}
+
+// Function to detect the actual FPS of the camera
+function detectFPS() {
+  const now = performance.now();
+
+  if (fpsDetectionStartTime === null) {
+    fpsDetectionStartTime = now;
+    fpsDetectionFrames = [ now ];
+    return;
+  }
+
+  fpsDetectionFrames.push(now);
+
+  // Collect frames for 2 seconds to get a good average
+  const detectionDuration = 2000; // 2 seconds
+  if (now - fpsDetectionStartTime >= detectionDuration) {
+    // Calculate FPS based on collected frames
+    const frameCount = fpsDetectionFrames.length - 1; // Subtract 1 because we count intervals
+    const totalTime = (fpsDetectionFrames[fpsDetectionFrames.length - 1] - fpsDetectionFrames[0]) / 1000; // Convert to seconds
+    const calculatedFPS = frameCount / totalTime;
+
+    // Round to nearest common FPS value (24, 25, 30, 60, etc.)
+    const commonFPS = [ 24, 25, 30, 50, 60, 120 ];
+    const closestFPS = commonFPS.reduce((prev, curr) =>
+      Math.abs(curr - calculatedFPS) < Math.abs(prev - calculatedFPS) ? curr : prev,
+    );
+
+    detectedFPS.value = closestFPS;
+    console.log(`Detected camera FPS: ${calculatedFPS.toFixed(2)}, using: ${closestFPS}`);
+
+    // Reset detection variables to stop measuring
+    fpsDetectionStartTime = null;
+    fpsDetectionFrames = [];
+  }
 }
 </script>
