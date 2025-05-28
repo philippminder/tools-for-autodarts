@@ -27,7 +27,11 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/tools-for-autodarts/oolfddhehmbpdnlmoljmllcdggmkgihh)
 - [Firefox Add-ons](https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts)
 - [MacOS & iOS App Store](https://apps.apple.com/de/app/tools-for-autodarts/id6479754594)
-- [iOS sideload via AltStore](https://tinyurl.com/autodartstools-ipa)
+- [iOS sideload via AltStore](https://intradeus.github.io/http-protocol-redirector?r=altstore://install?url=https://github.com/creazy231/tools-for-autodarts/releases/latest/download/autodarts-tools-ios.ipa)
+
+### 🌐 AltStore Source
+- [View in Browser](https://therealfoxster.github.io/altsource-viewer/view/?source=https://raw.githubusercontent.com/creazy231/tools-for-autodarts/refs/heads/main/Autodarts_Tools_Source.json)
+- [Add to AltStore](https://intradeus.github.io/http-protocol-redirector?r=altstore://source?url=https://raw.githubusercontent.com/creazy231/tools-for-autodarts/refs/heads/main/Autodarts_Tools_Source.json)
 
 # 📑 Table of Contents
 

@@ -1,0 +1,51 @@
+{
+  "name": "Autodarts Tools Source",
+  "subtitle": "AltStore Source for Tools for Autodarts",
+  "description": "Install and Update Tools for Autodarts directly through AltStore.",
+  "iconURL": "https://i.imgur.com/I4ZLN8l.png",
+  "website": "https://github.com/creazy231/tools-for-autodarts",
+  "tintColor": "#6156e2",
+  "featuredApps": [
+    "com.boltapi.autodarts-tools"
+  ],
+  "apps": [
+    {
+      "name": "Tools for Autodarts",
+      "bundleIdentifier": "com.boltapi.autodarts-tools",
+      "developerName": "Tobias Thiele",
+      "subtitle": "Enhance your Autodarts experience",
+      "localizedDescription": "Tools for Autodarts is a browser extension that enhances your gaming experience on autodarts.io. It adds numerous quality-of-life features, customization options, and advanced functionality to make your Autodarts experience more enjoyable and personalized.",
+      "iconURL": "https://i.imgur.com/I4ZLN8l.png",
+      "tintColor": "#6156e2",
+      "category": "entertainment",
+      "screenshots": [],
+      "versions": [
+        {
+          "version": "2.1.14",
+          "date": "2025-05-27T12:18:00+02:00",
+          "localizedDescription": null,
+          "downloadURL": "https://github.com/creazy231/tools-for-autodarts/releases/latest/download/autodarts-tools-ios.ipa",
+          "size": 31400000,
+          "buildVersion": "2.1.14",
+          "minOSVersion": "15.6"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      }
+    }
+  ],
+  "news": [
+    {
+      "title": "Tools for Autodarts now available!",
+      "identifier": "news_wlwz3umyaf",
+      "caption": "You can now install Tools for Autodarts via AltStore.",
+      "date": "2025-05-27T14:22",
+      "tintColor": "#6156e2",
+      "notify": true,
+      "url": "https://github.com/creazy231/tools-for-autodarts",
+      "appID": "com.boltapi.autodarts-tools"
+    }
+  ]
+}
