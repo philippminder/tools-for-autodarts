@@ -27,6 +27,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - [Chrome Web Store](https://chromewebstore.google.com/detail/tools-for-autodarts/oolfddhehmbpdnlmoljmllcdggmkgihh)
 - [Firefox Add-ons](https://addons.mozilla.org/de/firefox/addon/tools-for-autodarts)
 - [MacOS & iOS App Store](https://apps.apple.com/de/app/tools-for-autodarts/id6479754594)
+- [iOS sideload via AltStore](https://tinyurl.com/autodartstools-ipa)
 
 # 📑 Table of Contents
 
