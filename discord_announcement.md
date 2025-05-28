@@ -1,14 +1,13 @@
-# :dart: Tools for Autodarts v2.1.7 Released! :dart:
+# :dart: Tools for Autodarts v2.1.15 Released! :dart:
 
-### :arrows_counterclockwise: Discord Integration Enhancement
-- **Live Update Support**: Discord webhooks now feature powerful live update capabilities for real-time notifications
+### :wrench: Quick Correction Feature Enhancement
+- **Improved API Flow**: Completely restructured correction workflow to follow proper API sequence (activation → correction → double deactivation → throws update)
+- **Refined Data Structure**: Updated segment information with correct bed values and proper coordinates
 
-### :wrench: Fixed Issues
-- **Quick Correction Improvements**: Fixed keyboard shortcut handling to work seamlessly with numpad keys
-- **Game Progression Fix**: Enhanced the Automatic **Next Leg** feature to ensure proper game progression with no interruptions
-- **Sound Playback Improvements**: 
-  - Optimized Caller and Sound FX features to intelligently handle match transitions
-  - Resolved issues with features and sounds maintaining full functionality between consecutive matches
+### :bug: Fixed Issues
+- **API Reliability**: Fixed Quick Correction to use correct endpoints and payload structures for better stability
+- **Throw Identification**: Enhanced throw activation to properly identify which dart (first, second, or third) is being corrected
+- **Segment Accuracy**: Improved segment information to include proper coordinates, segment details, and multipliers
 
 Please report any bugs in
 :flag_de: https://discord.com/channels/802528604067201055/1255293632110530612/1255293632110530612

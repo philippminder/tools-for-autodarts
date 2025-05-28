@@ -2,7 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.14] - 2025-01-XX
+## [2.1.15] - 2025-05-28
+
+### Changed
+- Enhanced Quick Correction feature with improved API flow and reliability:
+  - Restructured correction workflow to follow proper API sequence: activation → correction → double deactivation → throws update
+  - Added proper throw index tracking (0, 1, or 2) for accurate dart identification
+  - Improved segment data structure with correct bed values ("Single", "Double", "Triple", "Bull")
+  - Reduced API call delays from 500ms to 50ms for faster correction processing
+  - Enhanced error handling and logging throughout the correction process
+  - Removed redundant deactivation function and streamlined code architecture
+
+### Fixed
+- Fixed Quick Correction API calls to use the correct endpoints and payload structures
+- Fixed throw activation to properly identify which dart (first, second, or third) is being corrected
+- Fixed segment information to include proper coordinates, segment details, and multipliers
+
+## [2.1.14] - 2025-01-27
 
 ### Added
 - Added Instant Replay feature that records webcam footage and automatically shows replays of winning throws

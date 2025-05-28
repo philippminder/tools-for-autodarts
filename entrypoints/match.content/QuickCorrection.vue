@@ -225,6 +225,8 @@ const correctionContainerX = ref<number>(0);
 const correctionContainerY = ref<number>(0);
 const currentGrid = ref<string[][]>([]);
 const currentGridIndex = ref<number>(-1);
+const currentThrowText = ref<string>("");
+const currentThrowIndex = ref<number>(-1);
 
 watch(open, (newVal) => {
   if (newVal) {
@@ -245,7 +247,6 @@ function handleKeyDown(event: KeyboardEvent) {
   const isNumpadKey = event.key.startsWith("Numpad") || event.code.startsWith("Numpad");
 
   if (event.key === "+" || event.key === "NumpadAdd" || event.key === "Escape") {
-    deactivateThrow(true);
     open.value = false;
     if (event.key === "NumpadAdd" || isNumpadKey) {
       event.preventDefault();
@@ -383,7 +384,6 @@ function getCellColor(cell: string, rowIndex: number, cellIndex: number): string
 }
 
 onClickOutside(correctionRef, () => {
-  deactivateThrow(false);
   open.value = false;
 });
 
@@ -427,6 +427,53 @@ onMounted(async () => {
 async function openCorrection(throwElement?: HTMLElement) {
   if (!throwElement?.classList.contains("ad-ext-turn-throw")) return;
 
+  // Determine throw index (0, 1, or 2)
+  let throwIndex = -1;
+  if (throwElement === throw1.value) {
+    throwIndex = 0;
+  } else if (throwElement === throw2.value) {
+    throwIndex = 1;
+  } else if (throwElement === throw3.value) {
+    throwIndex = 2;
+  }
+
+  if (throwIndex === -1) {
+    console.error("Could not determine throw index");
+    return;
+  }
+
+  currentThrowIndex.value = throwIndex;
+
+  // First, activate the throw
+  const gameData = await AutodartsToolsGameData.getValue();
+  const matchId = gameData.match?.id;
+
+  if (!matchId) {
+    console.error("No match ID found");
+    return;
+  }
+
+  try {
+    await browser.runtime.sendMessage({
+      type: "fetch",
+      url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
+      options: {
+        method: "POST",
+        credentials: "include",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": await getAuthToken(),
+        },
+        body: JSON.stringify({ activated: throwIndex }),
+      },
+    });
+    console.log(`Throw ${throwIndex} activated successfully`);
+  } catch (error) {
+    console.error("Error activating throw:", error);
+    return;
+  }
+
   if (throwElement) {
     const rect = throwElement.getBoundingClientRect();
     correctionContainerWidth.value = rect.width;
@@ -458,6 +505,7 @@ async function openCorrection(throwElement?: HTMLElement) {
       ? (throwElement.querySelector("p > div > div:last-of-type") as HTMLElement)?.innerText.trim()
       : (throwElement as HTMLElement).innerText.trim();
 
+    currentThrowText.value = throwText;
     findGridForThrow(throwText);
   }
 
@@ -468,88 +516,62 @@ function findGridForThrow(throwText: string) {
   currentGrid.value = [];
   currentGridIndex.value = -1;
 
-  if (throwText.startsWith("S")) {
-    for (let i = 0; i < FIELDS.length; i++) {
-      if (FIELDS[i][1] === throwText) {
-        currentGrid.value = [
-          FIELDS[i].slice(0, 3),
-          FIELDS[i].slice(3, 6),
-          FIELDS[i].slice(6, 9),
-        ];
-        currentGridIndex.value = i;
-        break;
-      }
-    }
-  } else if (throwText.startsWith("D")) {
-    for (let i = 0; i < FIELDS.length; i++) {
-      if (FIELDS[i][4] === throwText) {
-        currentGrid.value = [
-          FIELDS[i].slice(0, 3),
-          FIELDS[i].slice(3, 6),
-          FIELDS[i].slice(6, 9),
-        ];
-        currentGridIndex.value = i;
-        break;
-      }
-    }
-  } else if (throwText.startsWith("T")) {
-    for (let i = 0; i < FIELDS.length; i++) {
-      if (FIELDS[i][7] === throwText) {
-        currentGrid.value = [
-          FIELDS[i].slice(0, 3),
-          FIELDS[i].slice(3, 6),
-          FIELDS[i].slice(6, 9),
-        ];
-        currentGridIndex.value = i;
-        break;
-      }
-    }
-  }
-}
-
-async function deactivateThrow(submit: boolean = true) {
-  if (!submit) return;
-
-  const gameData = await AutodartsToolsGameData.getValue();
-  const matchId = gameData.match?.id;
-
-  if (!matchId) {
-    console.error("No match ID found");
-    return;
+  // Handle missed darts (M14 -> treat as S14)
+  let searchText = throwText;
+  if (throwText.startsWith("M")) {
+    searchText = `S${throwText.slice(1)}`;
   }
 
-  try {
-    await browser.runtime.sendMessage({
-      type: "fetch",
-      url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
-      options: {
-        method: "POST",
-        credentials: "include",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": await getAuthToken(),
-        },
-        body: JSON.stringify({ activated: -1 }),
-      },
-    });
-    console.log("Throw deactivated successfully");
-  } catch (error) {
-    console.error("Error deactivating throw:", error);
+  if (searchText.startsWith("S")) {
+    for (let i = 0; i < FIELDS.length; i++) {
+      if (FIELDS[i][1] === searchText) {
+        currentGrid.value = [
+          FIELDS[i].slice(0, 3),
+          FIELDS[i].slice(3, 6),
+          FIELDS[i].slice(6, 9),
+        ];
+        currentGridIndex.value = i;
+        break;
+      }
+    }
+  } else if (searchText.startsWith("D")) {
+    for (let i = 0; i < FIELDS.length; i++) {
+      if (FIELDS[i][4] === searchText) {
+        currentGrid.value = [
+          FIELDS[i].slice(0, 3),
+          FIELDS[i].slice(3, 6),
+          FIELDS[i].slice(6, 9),
+        ];
+        currentGridIndex.value = i;
+        break;
+      }
+    }
+  } else if (searchText.startsWith("T")) {
+    for (let i = 0; i < FIELDS.length; i++) {
+      if (FIELDS[i][7] === searchText) {
+        currentGrid.value = [
+          FIELDS[i].slice(0, 3),
+          FIELDS[i].slice(3, 6),
+          FIELDS[i].slice(6, 9),
+        ];
+        currentGridIndex.value = i;
+        break;
+      }
+    }
   }
 }
 
 async function applyCorrection(value: string) {
   const gameData = await AutodartsToolsGameData.getValue();
   const matchId = gameData.match?.id;
-  const activated = gameData.match?.activated ?? -1;
+  const throwIndex = currentThrowIndex.value;
 
-  if (!matchId || activated === -1) {
-    console.error("No match ID or match not activated");
+  if (!matchId || throwIndex === -1) {
+    console.error("No match ID or throw index not set");
     return;
   }
 
-  console.log(`Applying correction: ${value}`);
+  console.log(`Applying correction: ${value} to throw ${throwIndex}`);
 
   const coords = CORRECTIONS[value];
   if (!coords && value !== "MISS") {
@@ -557,38 +579,176 @@ async function applyCorrection(value: string) {
     return;
   }
 
-  let payload;
+  const authToken = await getAuthToken();
 
+  // Handle MISS separately - activate, deactivate, then send PATCH to throws endpoint
   if (value === "MISS") {
-    payload = {
-      changes: {
-        [activated]: {
-          type: "bouncer",
+    try {
+      // Step 1: Activate the throw
+      await browser.runtime.sendMessage({
+        type: "fetch",
+        url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
+        options: {
+          method: "POST",
+          credentials: "include",
+          mode: "cors",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": authToken,
+          },
+          body: JSON.stringify({ activated: throwIndex }),
         },
-      },
-    };
-  } else {
-    payload = {
+      });
+      console.log("Throw activated for MISS correction");
+
+      // Step 2: Deactivate throw (first time)
+      setTimeout(async () => {
+        try {
+          await browser.runtime.sendMessage({
+            type: "fetch",
+            url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
+            options: {
+              method: "POST",
+              credentials: "include",
+              mode: "cors",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": await getAuthToken(),
+              },
+              body: JSON.stringify({ activated: -1 }),
+            },
+          });
+          console.log("Throw deactivated (first time) for MISS");
+
+          // Step 3: Deactivate throw (second time)
+          setTimeout(async () => {
+            try {
+              await browser.runtime.sendMessage({
+                type: "fetch",
+                url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
+                options: {
+                  method: "POST",
+                  credentials: "include",
+                  mode: "cors",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": await getAuthToken(),
+                  },
+                  body: JSON.stringify({ activated: -1 }),
+                },
+              });
+              console.log("Throw deactivated (second time) for MISS");
+
+              // Step 4: Send PATCH to throws endpoint with bouncer
+              setTimeout(async () => {
+                try {
+                  const throwsPayload = {
+                    changes: {
+                      [throwIndex]: {
+                        type: "bouncer",
+                      },
+                    },
+                  };
+
+                  await browser.runtime.sendMessage({
+                    type: "fetch",
+                    url: `https://api.autodarts.io/gs/v0/matches/${matchId}/throws`,
+                    options: {
+                      method: "PATCH",
+                      credentials: "include",
+                      mode: "cors",
+                      headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": await getAuthToken(),
+                      },
+                      body: JSON.stringify(throwsPayload),
+                    },
+                  });
+                  console.log("MISS correction applied successfully");
+                } catch (error) {
+                  console.error("Error applying MISS correction:", error);
+                }
+              }, 50);
+            } catch (error) {
+              console.error("Error deactivating throw (second time) for MISS:", error);
+            }
+          }, 50);
+        } catch (error) {
+          console.error("Error deactivating throw (first time) for MISS:", error);
+        }
+      }, 50);
+    } catch (error) {
+      console.error("Error activating throw for MISS correction:", error);
+    }
+
+    open.value = false;
+    return;
+  }
+
+  // Handle non-MISS values with full corrections flow
+  try {
+    // Step 1: Send correction with segment info
+    // Parse the segment information from the value
+    let segment;
+    if (value === "25") {
+      segment = {
+        name: "25",
+        number: 25,
+        bed: "Single",
+        multiplier: 1,
+      };
+    } else if (value === "BULL") {
+      segment = {
+        name: "BULL",
+        number: 25,
+        bed: "Bull",
+        multiplier: 2,
+      };
+    } else {
+      // Parse S/D/T values
+      const prefix = value.charAt(0);
+      const number = Number.parseInt(value.slice(1));
+
+      let bed, multiplier;
+      if (prefix === "S") {
+        bed = "Single";
+        multiplier = 1;
+      } else if (prefix === "D") {
+        bed = "Double";
+        multiplier = 2;
+      } else if (prefix === "T") {
+        bed = "Triple";
+        multiplier = 3;
+      }
+
+      segment = {
+        name: value,
+        number,
+        bed,
+        multiplier,
+      };
+    }
+
+    const payload = {
+      activated: throwIndex,
       changes: {
-        [activated]: {
-          point: {
+        [throwIndex]: {
+          coords: {
             x: coords.x,
             y: coords.y,
           },
+          segment,
           type: "normal",
         },
       },
     };
-  }
 
-  const authToken = await getAuthToken();
-
-  try {
+    // Send the correction
     const response = await browser.runtime.sendMessage({
       type: "fetch",
-      url: `https://api.autodarts.io/gs/v0/matches/${matchId}/throws`,
+      url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
       options: {
-        method: "PATCH",
+        method: "POST",
         credentials: "include",
         mode: "cors",
         headers: {
@@ -599,42 +759,98 @@ async function applyCorrection(value: string) {
       },
     });
 
-    if (response.ok) {
-      console.log("Correction applied successfully");
-    } else {
+    if (!response.ok) {
       console.error("Failed to apply correction:", response.statusText || response.error || response);
+      return;
+    }
 
-      console.log("Attempting fallback method...");
+    console.log("Correction applied successfully");
 
-      setTimeout(async () => {
-        const retryResponse = await browser.runtime.sendMessage({
+    // Step 2: Deactivate throw (first time)
+    setTimeout(async () => {
+      try {
+        await browser.runtime.sendMessage({
           type: "fetch",
-          url: `https://api.autodarts.io/gs/v0/matches/${matchId}/throws`,
+          url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
           options: {
-            method: "PATCH",
+            method: "POST",
             credentials: "include",
             mode: "cors",
             headers: {
               "Content-Type": "application/json",
               "Authorization": await getAuthToken(),
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ activated: -1 }),
           },
         });
+        console.log("Throw deactivated (first time)");
 
-        if (retryResponse.ok) {
-          console.log("Correction applied successfully on retry");
-        } else {
-          console.error("Failed to apply correction on retry:", retryResponse.statusText || retryResponse.error || retryResponse);
-        }
-      }, 2000);
-    }
+        // Step 3: Deactivate throw (second time)
+        setTimeout(async () => {
+          try {
+            await browser.runtime.sendMessage({
+              type: "fetch",
+              url: `https://api.autodarts.io/gs/v0/matches/${matchId}/corrections`,
+              options: {
+                method: "POST",
+                credentials: "include",
+                mode: "cors",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": await getAuthToken(),
+                },
+                body: JSON.stringify({ activated: -1 }),
+              },
+            });
+            console.log("Throw deactivated (second time)");
+
+            // Step 4: Send PATCH to throws endpoint
+            setTimeout(async () => {
+              try {
+                const throwsPayload = {
+                  changes: {
+                    [throwIndex]: {
+                      coords: {
+                        x: coords.x,
+                        y: coords.y,
+                      },
+                      type: "normal",
+                    },
+                  },
+                };
+
+                await browser.runtime.sendMessage({
+                  type: "fetch",
+                  url: `https://api.autodarts.io/gs/v0/matches/${matchId}/throws`,
+                  options: {
+                    method: "PATCH",
+                    credentials: "include",
+                    mode: "cors",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": await getAuthToken(),
+                    },
+                    body: JSON.stringify(throwsPayload),
+                  },
+                });
+                console.log("Throws update sent successfully");
+              } catch (error) {
+                console.error("Error updating throws:", error);
+              }
+            }, 50);
+          } catch (error) {
+            console.error("Error deactivating throw (second time):", error);
+          }
+        }, 50);
+      } catch (error) {
+        console.error("Error deactivating throw (first time):", error);
+      }
+    }, 50);
   } catch (error) {
     console.error("Error sending correction:", error);
   }
 
   open.value = false;
-  deactivateThrow(true);
 }
 </script>
 
