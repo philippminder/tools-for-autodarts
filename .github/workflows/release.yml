@@ -163,7 +163,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
           
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -199,3 +199,22 @@ jobs:
             git commit -m "Update AltStore source for version ${{ needs.draft_release.outputs.version }}"
             git push
           fi
+
+      - name: Create Pull Request for AltStore Source Update (Fallback)
+        if: failure()
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update AltStore source for version ${{ needs.draft_release.outputs.version }}"
+          title: "Update AltStore source for version ${{ needs.draft_release.outputs.version }}"
+          body: |
+            This PR updates the AltStore source file with the new version ${{ needs.draft_release.outputs.version }}.
+            
+            Changes:
+            - Updated version information in Autodarts_Tools_Source.json
+            - Added news entry for the new release
+            
+            This PR was automatically created by the release workflow as a fallback when direct push failed.
+          branch: update-altstore-source-${{ needs.draft_release.outputs.version }}
+          delete-branch: true
+          base: main
