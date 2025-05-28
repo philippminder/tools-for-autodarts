@@ -154,13 +154,57 @@ jobs:
           files: |
             .output/autodarts-tools-ios.ipa
 
+  check_version_change:
+    permissions:
+      contents: read
+    
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [draft_release, build_ios_app]
+    outputs:
+      version_changed: ${{ steps.compare-versions.outputs.version_changed }}
+    
+    steps:
+      - uses: actions/checkout@v3
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+          
+      - name: Compare Versions
+        id: compare-versions
+        run: |
+          # Get current version from package.json
+          CURRENT_VERSION="${{ needs.draft_release.outputs.version }}"
+          
+          # Get latest version from AltStore source
+          ALTSTORE_VERSION=$(node -p "
+            const fs = require('fs');
+            const source = JSON.parse(fs.readFileSync('Autodarts_Tools_Source.json', 'utf8'));
+            const app = source.apps.find(app => app.bundleIdentifier === 'com.boltapi.autodarts-tools');
+            app && app.versions && app.versions.length > 0 ? app.versions[0].version : '';
+          ")
+          
+          echo "Current version: $CURRENT_VERSION"
+          echo "AltStore version: $ALTSTORE_VERSION"
+          
+          if [[ "$CURRENT_VERSION" != "$ALTSTORE_VERSION" ]]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "Version has changed, will update AltStore source"
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "Version is the same, skipping AltStore source update"
+          fi
+
   update_altstore_source:
     permissions:
       contents: write # Allows this job to commit changes
     
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [draft_release, build_ios_app]
+    needs: [draft_release, build_ios_app, check_version_change]
+    if: needs.check_version_change.outputs.version_changed == 'true'
     
     steps:
       - uses: actions/checkout@v3
