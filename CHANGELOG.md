@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.16] - 2025-05-28
+
+### Added
+- Added checkout suggestions feature to Streaming Mode that displays recommended dart throws for finishing a game
+  - New toggle option "Display Checkout Suggestions" in Streaming Mode settings
+  - Shows suggested dart throws in italicized text when a checkout is possible
+  - Integrates with existing checkout guide data from the game state
+  - Helps streamers and viewers see optimal finishing combinations during matches
+
+### Changed
+- Enhanced Streaming Mode throw display to show checkout suggestions alongside actual throws
+- Updated configuration version to 16 with automatic migration for new checkout setting
+
 ## [2.1.15] - 2025-05-28
 
 ### Changed
