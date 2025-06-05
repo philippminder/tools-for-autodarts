@@ -17,9 +17,16 @@ const pbxprojContent = fs.readFileSync(pbxprojPath, "utf-8");
 const marketingVersionMatch = pbxprojContent.match(/MARKETING_VERSION = ([^;]+);/);
 const xcodeVersion = marketingVersionMatch ? marketingVersionMatch[1] : null;
 
+const currentProjectVersionMatch = pbxprojContent.match(/CURRENT_PROJECT_VERSION = ([^;]+);/);
+const xcodeBuildVersion = currentProjectVersionMatch ? currentProjectVersionMatch[1] : null;
+
+const latestAltstoreBuildVersion = altstoreSource.apps[0].versions[0].buildVersion;
+
 console.log(`📦 Package.json version: ${packageVersion}`);
 console.log(`🏪 AltStore source version: ${latestAltstoreVersion}`);
+console.log(`🏪 AltStore source build version: ${latestAltstoreBuildVersion}`);
 console.log(`📱 Xcode project version: ${xcodeVersion}`);
+console.log(`📱 Xcode project build version: ${xcodeBuildVersion}`);
 
 let hasErrors = false;
 
@@ -30,6 +37,11 @@ if (packageVersion !== latestAltstoreVersion) {
 
 if (packageVersion !== xcodeVersion) {
   console.error(`❌ Version mismatch: package.json (${packageVersion}) != Xcode project (${xcodeVersion})`);
+  hasErrors = true;
+}
+
+if (latestAltstoreBuildVersion !== xcodeBuildVersion) {
+  console.error(`❌ Build version mismatch: AltStore source (${latestAltstoreBuildVersion}) != Xcode project (${xcodeBuildVersion})`);
   hasErrors = true;
 }
 
