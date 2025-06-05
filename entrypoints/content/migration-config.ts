@@ -133,6 +133,13 @@ async function migrateConfig(currentConfigVersion: number) {
           config.instantReplay.delay = 5;
         }
         break;
+      case 15:
+        // Migration from version 15 to version 16
+        config.version = 16;
+        if (config.streamingMode && config.streamingMode.checkout === undefined) {
+          config.streamingMode.checkout = false;
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);

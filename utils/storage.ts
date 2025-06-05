@@ -30,6 +30,7 @@ export interface IConfig {
     board: boolean;
     boardImage: boolean;
     avg: boolean; // P4394
+    checkout: boolean; // Display checkout suggestions
     scoreBoardSettings: {
       scale: number;
       x: number;
@@ -308,7 +309,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 15,
+  version: 16,
   discord: {
     enabled: false,
     manually: false,
@@ -337,6 +338,7 @@ export const defaultConfig: IConfig = {
     board: false,
     boardImage: false,
     avg: false, // P42de
+    checkout: false,
     scoreBoardSettings: {
       scale: 1,
       x: 0,

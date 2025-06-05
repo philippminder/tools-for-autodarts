@@ -134,10 +134,14 @@
                 'relative flex items-center justify-center p-2 uppercase',
                 'bg-gray-300 text-black',
                 gameData?.match?.turns?.[0]?.throws?.[n - 1] && 'bg-cyan-600 text-white',
+                possibleCheckout && gameData?.match?.player !== undefined && possibleCheckout[n - 1] && 'bg-cyan-600',
               )"
             >
               <template v-if="gameData?.match?.turns?.[0]?.throws?.[n - 1]">
                 {{ gameData?.match?.turns?.[0]?.throws?.[n - 1]?.segment.name }}
+              </template>
+              <template v-else-if="possibleCheckout && gameData?.match?.player !== undefined && possibleCheckout[n - 1]">
+                <span class="text-4xl font-normal italic text-white/65">{{ possibleCheckout[n - 1].name }}</span>
               </template>
               <template v-else>
                 <div class="absolute inset-0 flex items-center justify-center">
@@ -274,6 +278,24 @@ const currentBoardImage = ref<string>("");
 const streamingModeButton: Ref<HTMLAnchorElement | null> = ref(null);
 
 const showAvg = computed(() => config.value?.streamingMode.avg);
+
+// Computed property to check for possible checkout
+const possibleCheckout = computed(() => {
+  // Check if checkout feature is enabled in config
+  if (!config.value?.streamingMode.checkout) return null;
+
+  if (!gameData.value?.match?.state?.checkoutGuide?.length) return null;
+
+  const currentPlayerIndex = gameData.value.match.player;
+  const currentScore = gameData.value.match.gameScores[currentPlayerIndex];
+
+  // Return the checkout guide segments if available and player has a valid score
+  if (currentScore > 0) {
+    return gameData.value.match.state.checkoutGuide;
+  }
+
+  return null;
+});
 
 // Custom drag handlers
 function initDraggable() {

@@ -122,6 +122,12 @@
                   <AppToggle v-model="config.streamingMode.avg" />
                   <p>Display AVG Score</p>
                 </div>
+
+                <!-- Display Checkout Toggle -->
+                <div class="grid grid-cols-[auto_1fr] items-center gap-4">
+                  <AppToggle v-model="config.streamingMode.checkout" />
+                  <p>Display Checkout Suggestions</p>
+                </div>
               </div>
 
               <!-- Footer Text Input -->

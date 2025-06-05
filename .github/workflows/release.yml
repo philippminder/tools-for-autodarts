@@ -189,12 +189,12 @@ jobs:
           echo "Current version: $CURRENT_VERSION"
           echo "AltStore version: $ALTSTORE_VERSION"
           
+          # Always proceed with update - let the script handle whether to add or update
+          echo "version_changed=true" >> $GITHUB_OUTPUT
           if [[ "$CURRENT_VERSION" != "$ALTSTORE_VERSION" ]]; then
-            echo "version_changed=true" >> $GITHUB_OUTPUT
             echo "Version has changed, will update AltStore source"
           else
-            echo "version_changed=false" >> $GITHUB_OUTPUT
-            echo "Version is the same, skipping AltStore source update"
+            echo "Version is the same, will update existing AltStore source entry"
           fi
 
   update_altstore_source:
