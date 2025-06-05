@@ -105,6 +105,10 @@ jobs:
         run: |
           yarn build -b safari
           bun run scripts/safari.ts
+          
+      - name: Update Xcode Project Version
+        run: |
+          bun run scripts/update-xcode-version.ts
       
       - name: Install latest Xcode
         uses: maxim-lobanov/setup-xcode@v1
