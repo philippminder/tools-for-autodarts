@@ -158,8 +158,10 @@ export async function ring() {
       top: 50%;
       left: 50%;
       font-weight: 900;
+      pointer-events: none;
     }
     .char {
+      pointer-events: none;
       display: inline-block;
       position: absolute;
       top: 50%;
@@ -169,7 +171,11 @@ export async function ring() {
         rotate(calc(var(--inner-angle) * var(--char-index) - 2deg))
         translateY(var(--radius));
     }
+    .adt-boardview-container {
+      pointer-events: none;
+    }
     .adt-boardview-container .adt-boardview-numbers {
+      pointer-events: none;
       position: absolute;
       left: 0;
       top: 0;

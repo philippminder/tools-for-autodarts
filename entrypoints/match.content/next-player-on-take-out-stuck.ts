@@ -72,6 +72,9 @@ export async function nextPlayerOnTakeOutStuck() {
 
       if (takeOutTimout) clearInterval(takeOutTimout);
 
+      const gameData = await AutodartsToolsGameData.getValue();
+      if (gameData.match?.variant === "Bull-off") return;
+
       if (boardData.status === "Takeout in progress") {
         // Use a more robust selector that works in both normal and fullscreen modes
         // Increase timeout to allow more time for DOM to settle in fullscreen mode

@@ -39,6 +39,12 @@ async function handleChangeColor() {
       element.style.color = `${config.colors.text}`;
     });
 
+    // Apply only text color to player name elements (no background)
+    const playerNameElements = document.querySelectorAll(".ad-ext-player-name");
+    playerNameElements.forEach((element) => {
+      (element as HTMLElement).style.color = `${config.colors.text}`;
+    });
+
     if (body && config.colors.enabled && config.colors.matchBackground) {
       body.style.setProperty("background-color", config.colors.matchBackground, "important");
       body.style.setProperty("background-image", "none", "important");

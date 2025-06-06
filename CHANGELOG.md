@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.16] - 2025-05-28
+## [2.1.16] - 2025-06-06
 
 ### Added
 - Added checkout suggestions feature to Streaming Mode that displays recommended dart throws for finishing a game
@@ -11,9 +11,20 @@ All notable changes to this project will be documented in this file.
   - Integrates with existing checkout guide data from the game state
   - Helps streamers and viewers see optimal finishing combinations during matches
 
+### Enhanced
+- Enhanced color customization feature to include player names
+  - Player names now also get colored using the configured text color
+- Excluded "Bull-off" variant from game data processing in Next Player On Takeout Stuck feature
+
 ### Changed
 - Enhanced Streaming Mode throw display to show checkout suggestions alongside actual throws
 - Updated configuration version to 16 with automatic migration for new checkout setting
+
+### Fixed
+- Fixed Quick Correction feature interference with ring and numbers overlay in live view
+  - Ring and numbers display now properly allows clicking through to correct missed dart throws
+  - Enhanced z-index management and pointer event handling for overlay elements
+  - Users can now successfully click on dart positions in the image even when visual overlays are active (ring feature)
 
 ## [2.1.15] - 2025-05-28
 
