@@ -171,9 +171,6 @@ export async function ring() {
         rotate(calc(var(--inner-angle) * var(--char-index) - 2deg))
         translateY(var(--radius));
     }
-    .adt-boardview-container {
-      pointer-events: none;
-    }
     .adt-boardview-container .adt-boardview-numbers {
       pointer-events: none;
       position: absolute;

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.17] - 2025-06-26
+
+### Fixed
+- Fixed Ring feature preventing users from clicking game finish button
+
 ## [2.1.16] - 2025-06-06
 
 ### Added
