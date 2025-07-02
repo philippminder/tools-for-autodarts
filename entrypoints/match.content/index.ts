@@ -12,7 +12,6 @@ import { largerPlayerMatchData } from "./larger-player-match-data";
 import { largerLegsSets } from "./larger-legs-sets";
 import { largerPlayerNames } from "./larger-player-names";
 import { winnerAnimation, winnerAnimationOnRemove } from "./winner-animation";
-import { ring } from "./ring";
 import { soundFx, soundFxOnRemove } from "./sound-fx";
 import { caller, callerOnRemove } from "./caller";
 import Zoom from "./Zoom.vue";
@@ -90,7 +89,7 @@ export default defineContentScript({
           }
         }
 
-        const activeMatch = window.location.href.includes("boards") ? !(await waitForElementWithTextContent("h2", ["Board has no active match", "Board hat kein aktives Spiel", "Bord heeft geen actieve wedstrijd"], 1000).catch(() => undefined)) : true;
+        const activeMatch = window.location.href.includes("boards") ? !(await waitForElementWithTextContent("h2", [ "Board has no active match", "Board hat kein aktives Spiel", "Bord heeft geen actieve wedstrijd" ], 1000).catch(() => undefined)) : true;
 
         if (activeMatch) {
           console.log("Autodarts Tools: Match found, initializing match");
@@ -173,16 +172,8 @@ async function initMatch(ctx, url: string, matchId?: string) {
     await initScript(winnerAnimation, url).catch(console.error);
   }
 
-  if (config.ring.enabled) {
-    await initScript(ring, url).catch(console.error);
-  }
-
   if (config.zoom.enabled) {
     await initZoom(ctx).catch(console.error);
-  }
-
-  if (config.ring.enabled) {
-    await initScript(ring, url).catch(console.error);
   }
 
   if (config.quickCorrection.enabled) {
@@ -254,7 +245,7 @@ function startActiveMatchObserver(ctx) {
     if (!(/\/(matches|boards)\/([0-9a-f-]+)/.test(url))) return;
 
     // Check if the "Board has no active match" element no longer exists
-    const activeMatch = window.location.href.includes("boards") ? !(await waitForElementWithTextContent("h2", ["Board has no active match", "Board hat kein aktives Spiel", "Bord heeft geen actieve wedstrijd"], 1000).catch(() => undefined)) : true;
+    const activeMatch = window.location.href.includes("boards") ? !(await waitForElementWithTextContent("h2", [ "Board has no active match", "Board hat kein aktives Spiel", "Bord heeft geen actieve wedstrijd" ], 1000).catch(() => undefined)) : true;
 
     if (!activeMatch) {
       console.log("Autodarts Tools Observer: No Active Match found, waiting for match to start");

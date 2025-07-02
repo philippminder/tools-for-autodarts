@@ -48,11 +48,12 @@
 </template>
 
 <script setup lang="ts">
+import type { IConfig } from "@/utils/storage";
+
 import AppModal from "@/components/AppModal.vue";
 import AppButton from "@/components/AppButton.vue";
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import AppNotification from "@/components/AppNotification.vue";
-import type { IConfig } from "@/utils/storage";
 import { AutodartsToolsConfig } from "@/utils/storage";
 import { clearCallerSoundsFromIndexedDB, clearSoundFxFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
 
@@ -135,12 +136,7 @@ interface OldConfig {
   thrownDartsOnWin: {
     enabled: boolean;
   };
-  liveViewRing: {
-    enabled: boolean;
-    size: number;
-    colorEnabled: boolean;
-    color: string;
-  };
+
   nextPlayerAfter3darts: {
     enabled: boolean;
   };
@@ -151,9 +147,7 @@ interface OldConfig {
   teamLobby: {
     enabled: boolean;
   };
-  ring: {
-    enabled: boolean;
-  };
+
   animations: {
     enabled: boolean;
     startDelay: number;
@@ -269,7 +263,7 @@ async function migrateSettings() {
     config.largerPlayerMatchData = oldConfig.playerMatchData;
     config.automaticNextLeg = oldConfig.automaticNextLeg;
     config.winnerAnimation = oldConfig.winnerAnimation;
-    config.ring = oldConfig.liveViewRing;
+
     config.nextPlayerOnTakeOutStuck = oldConfig.nextPlayerOnTakeOutStuck;
     config.teamLobby = oldConfig.teamLobby;
 

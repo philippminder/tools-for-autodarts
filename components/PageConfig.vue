@@ -175,20 +175,19 @@
             <WinnerAnimation @setting-change="updateConfig" class="feature-card" data-feature-index="18" />
 
             <!-- Seventh row of feature cards -->
-            <Ring @toggle="openSettingsModal('ring')" @setting-change="updateConfig" :config="config" class="feature-card" data-feature-index="19" />
-            <AutomaticFullscreen @setting-change="updateConfig" class="feature-card" data-feature-index="20" />
+            <AutomaticFullscreen @setting-change="updateConfig" class="feature-card" data-feature-index="19" />
 
             <!-- Eighth row of feature cards -->
-            <Zoom @toggle="openSettingsModal('zoom')" @setting-change="updateConfig" class="feature-card" data-feature-index="21" />
+            <Zoom @toggle="openSettingsModal('zoom')" @setting-change="updateConfig" class="feature-card" data-feature-index="20" />
 
             <!-- Ninth row of feature cards -->
-            <QuickCorrection @setting-change="updateConfig" class="feature-card" data-feature-index="22" />
+            <QuickCorrection @setting-change="updateConfig" class="feature-card" data-feature-index="21" />
 
             <!-- Tenth row of feature cards -->
-            <EnhancedScoringDisplay @setting-change="updateConfig" class="feature-card" data-feature-index="23" />
+            <EnhancedScoringDisplay @setting-change="updateConfig" class="feature-card" data-feature-index="22" />
 
             <!-- Eleventh row of feature cards -->
-            <InstantReplay @toggle="openSettingsModal('instant-replay')" @setting-change="updateConfig" class="feature-card" data-feature-index="30" />
+            <InstantReplay @toggle="openSettingsModal('instant-replay')" @setting-change="updateConfig" class="feature-card" data-feature-index="23" />
           </div>
 
           <!-- Feature cards grid for Boards tab -->
@@ -262,7 +261,6 @@ import LargerLegsSets from "./Settings/LargerLegsSets.vue";
 import LargerPlayerMatchData from "./Settings/LargerPlayerMatchData.vue";
 import LargerPlayerNames from "./Settings/LargerPlayerNames.vue";
 import WinnerAnimation from "./Settings/WinnerAnimation.vue";
-import Ring from "./Settings/Ring.vue";
 import Animations from "./Settings/Animations.vue";
 import Caller from "./Settings/Caller.vue";
 import ExternalBoards from "./Settings/ExternalBoards.vue";
@@ -317,13 +315,13 @@ const featureGroups = [
       { id: "larger-player-names", title: "Larger Player Names Settings", component: LargerPlayerNames, hasSettings: true },
       { id: "larger-player-match-data", title: "Larger Player Match Data Settings", component: LargerPlayerMatchData, hasSettings: true },
       { id: "winner-animation", title: "Winner Animation Settings", component: WinnerAnimation, hasSettings: false },
-      { id: "ring", title: "Ring Settings", component: Ring, hasSettings: true },
+
       { id: "automatic-fullscreen", title: "Automatic Fullscreen Settings", component: AutomaticFullscreen, hasSettings: false },
       { id: "zoom", title: "Darts Zoom Settings", component: Zoom, hasSettings: true },
       { id: "quick-correction", title: "Quick Correction Settings", component: QuickCorrection, hasSettings: false },
       { id: "instant-replay", title: "Instant Replay Settings", component: InstantReplay, hasSettings: true },
     ],
-    settingIds: [ "colors", "next-player-on-takeout-stuck", "automatic-next-leg", "streaming-mode", "larger-legs-sets", "larger-player-names", "larger-player-match-data", "ring", "automatic-fullscreen", "zoom", "instant-replay" ],
+    settingIds: [ "colors", "next-player-on-takeout-stuck", "automatic-next-leg", "streaming-mode", "larger-legs-sets", "larger-player-names", "larger-player-match-data", "automatic-fullscreen", "zoom", "instant-replay" ],
   },
   // Boards (Tab 2)
   {

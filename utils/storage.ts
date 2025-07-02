@@ -104,12 +104,7 @@ export interface IConfig {
   teamLobby: {
     enabled: boolean;
   };
-  ring: {
-    enabled: boolean;
-    size: number;
-    colorEnabled: boolean;
-    color: string;
-  };
+
   animations: {
     enabled: boolean;
     duration?: number;
@@ -415,12 +410,7 @@ export const defaultConfig: IConfig = {
   teamLobby: {
     enabled: false,
   },
-  ring: {
-    enabled: false,
-    size: 2,
-    colorEnabled: true,
-    color: "#000000",
-  },
+
   zoom: {
     enabled: false,
     position: "bottom-right",

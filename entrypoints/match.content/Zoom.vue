@@ -129,7 +129,7 @@ async function updatePlayerStatus(gameData: IGameData) {
 function getShowAnimationsContainer(): HTMLElement | null {
   const gameMode = document.querySelector("#ad-ext-game-variant")?.textContent;
 
-  // Use the same approach as in ring.ts to find the container
+  // Find the container that holds the game animations
   const container = gameMode === "Cricket"
     ? document.getElementById("ad-ext-turn")?.nextElementSibling?.children[1]?.querySelector(".showAnimations")?.parentElement?.parentElement
     : document.getElementById("ad-ext-turn")?.nextElementSibling?.querySelector(".showAnimations")?.parentElement?.parentElement;

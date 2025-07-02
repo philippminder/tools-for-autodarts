@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.18] - 2025-07-2
+
+### Removed
+- Removed Ring feature as it has been implemented by the Autodarts Team
+
 ## [2.1.17] - 2025-06-26
 
 ### Fixed
