@@ -451,20 +451,31 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData, from
     if (config.caller.callCheckout && currentScore > 0 && gameData.match.turns[0].throws.length === 0) {
       console.log(`Autodarts Tools: Playing checkout guide sound for ${currentScore}`);
 
-      // First check for specific you_require_XXX sound (e.g., "you_require_120")
-      const specificTrigger = `you_require_${currentScore}`;
-      const hasSpecificSound = config.caller.sounds?.some(sound =>
-        sound.enabled && sound.triggers && sound.triggers.includes(specificTrigger),
+      // First check for short form yr_XXX sound (e.g., "yr_120")
+      const shortTrigger = `yr_${currentScore}`;
+      const hasShortSound = config.caller.sounds?.some(sound =>
+        sound.enabled && sound.triggers && sound.triggers.includes(shortTrigger),
       );
 
-      if (hasSpecificSound) {
-        console.log(`Autodarts Tools: Using specific checkout sound: ${specificTrigger}`);
-        playSound(specificTrigger);
+      if (hasShortSound) {
+        console.log(`Autodarts Tools: Using short checkout sound: ${shortTrigger}`);
+        playSound(shortTrigger);
       } else {
-        console.log(`Autodarts Tools: No specific sound found for ${specificTrigger}, using fallback`);
-        // Fall back to "you_require" followed by the player's current score
-        playSound("you_require");
-        playSound(`s${currentScore}`);
+        // Then check for specific you_require_XXX sound (e.g., "you_require_120")
+        const specificTrigger = `you_require_${currentScore}`;
+        const hasSpecificSound = config.caller.sounds?.some(sound =>
+          sound.enabled && sound.triggers && sound.triggers.includes(specificTrigger),
+        );
+
+        if (hasSpecificSound) {
+          console.log(`Autodarts Tools: Using specific checkout sound: ${specificTrigger}`);
+          playSound(specificTrigger);
+        } else {
+          console.log(`Autodarts Tools: No specific sound found for ${specificTrigger}, using fallback`);
+          // Fall back to "you_require" followed by the player's current score
+          playSound("you_require");
+          playSound(`s${currentScore}`);
+        }
       }
     }
   }

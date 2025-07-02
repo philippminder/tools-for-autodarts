@@ -12,7 +12,9 @@ All notable changes to this project will be documented in this file.
 
 ### Enhanced
 - Enhanced Caller checkout guide functionality to support specific combined sounds
-  - Now checks for specific "you_require_XXX" sounds (e.g., "you_require_120") before falling back to separate "you_require" + score sounds
+  - Now checks for short form "yr_XXX" sounds (e.g., "yr_120") as the first priority
+  - Then checks for specific "you_require_XXX" sounds (e.g., "you_require_120") as fallback
+  - Finally falls back to separate "you_require" + score sounds if neither specific sound is available
 
 ### Removed
 - Removed Ring feature as it has been implemented by the Autodarts Team
