@@ -70,6 +70,7 @@ const zoomContainerHeight = ref<number>(128); // Default fallback height
 const position = ref<"bottom-right" | "bottom-left" | "center">("bottom-right");
 const currentUserId = ref<string | null>(null);
 const isOpponentPlaying = ref<boolean>(false);
+const gameData = ref<IGameData | null>(null);
 
 // Store divs for access from other functions
 const zoomDiv1 = ref<HTMLElement | null>(null);
@@ -86,8 +87,24 @@ const filteredBoardImages = computed(() => {
   return boardImages.value.filter(image => image !== "");
 });
 
+// Computed property to check for possible checkout
+const isCheckoutAvailable = computed(() => {
+  if (!gameData.value?.match?.state?.checkoutGuide?.length) return false;
+
+  const currentPlayerIndex = gameData.value.match.player;
+  const currentScore = gameData.value.match.gameScores[currentPlayerIndex];
+
+  // Return true if checkout guide is available and player has a valid score
+  return currentScore > 0;
+});
+
 const shouldShowZoom = computed(() => {
   if (!config.value?.zoom) return true;
+
+  // Check if onlyOnCheckout is enabled and no checkout is available
+  if (config.value.zoom.onlyOnCheckout && !isCheckoutAvailable.value) {
+    return false;
+  }
 
   const zoomOn = config.value.zoom.zoomOn || "everyone";
 
@@ -281,6 +298,9 @@ onMounted(async () => {
   // Also update the AutodartsToolsGameData.watch to call updateZoomDivs
   AutodartsToolsGameData.watch(async (_gameData: IGameData, _previousGameData: IGameData) => {
     if (!_gameData.match?.turns?.length) return;
+
+    // Store the game data for checkout availability checking
+    gameData.value = _gameData;
 
     // Update player status to check if current player is opponent
     await updatePlayerStatus(_gameData);

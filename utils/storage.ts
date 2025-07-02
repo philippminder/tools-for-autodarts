@@ -130,6 +130,7 @@ export interface IConfig {
     mode: "live" | "image";
     zoomOn: "everyone" | "opponents";
     showMarker: boolean;
+    onlyOnCheckout: boolean;
   };
   quickCorrection: {
     enabled: boolean;
@@ -304,7 +305,7 @@ export interface ILobbyStatus {
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 16,
+  version: 17,
   discord: {
     enabled: false,
     manually: false,
@@ -418,6 +419,7 @@ export const defaultConfig: IConfig = {
     mode: "live",
     zoomOn: "everyone",
     showMarker: true,
+    onlyOnCheckout: false,
   },
   quickCorrection: {
     enabled: false,

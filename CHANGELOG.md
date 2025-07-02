@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [2.1.18] - 2025-07-2
 
+### Added
+- Added "Checkout Only" option to Darts Zoom feature
+  - New toggle setting "Show zoom only when checkout is available"
+  - When enabled, zoom images will only appear when a checkout is possible
+  - Works in combination with existing "Zoom On" filter (Everyone/Opponents)
+
+### Enhanced
+- Enhanced Caller checkout guide functionality to support specific combined sounds
+  - Now checks for specific "you_require_XXX" sounds (e.g., "you_require_120") before falling back to separate "you_require" + score sounds
+
 ### Removed
 - Removed Ring feature as it has been implemented by the Autodarts Team
 

@@ -80,6 +80,21 @@
               </p>
             </div>
 
+            <div class="mt-4">
+              <h4 class="mb-2 font-semibold">
+                Checkout Only
+              </h4>
+              <div class="flex items-center">
+                <AppToggle
+                  v-model="config.zoom.onlyOnCheckout"
+                />
+                <span class="ml-2">Show zoom only when checkout is available</span>
+              </div>
+              <p class="mt-1 text-sm text-white/60">
+                When enabled, the zoom view will only appear when a checkout is possible.
+              </p>
+            </div>
+
             <div class="mt-6">
               <h4 class="mb-2 font-semibold">
                 Zoom Level

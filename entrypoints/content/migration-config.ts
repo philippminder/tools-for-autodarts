@@ -140,6 +140,13 @@ async function migrateConfig(currentConfigVersion: number) {
           config.streamingMode.checkout = false;
         }
         break;
+      case 16:
+        // Migration from version 16 to version 17
+        config.version = 17;
+        if (config.zoom && config.zoom.onlyOnCheckout === undefined) {
+          config.zoom.onlyOnCheckout = false;
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);
