@@ -148,6 +148,11 @@ export interface IConfig {
     positionX: number;
     positionY: number;
   };
+  wledFx: {
+    enabled: boolean;
+    boardIds: string[];
+    effects: IWled[];
+  };
 }
 
 export interface ISound {
@@ -302,10 +307,17 @@ export interface ILobbyStatus {
   maxPlayers?: number;
 }
 
+export interface IWled {
+  name: string;
+  url: string;
+  enabled: boolean;
+  triggers: string[];
+}
+
 export type TBoardStatus = BoardStatus | undefined;
 
 export const defaultConfig: IConfig = {
-  version: 17,
+  version: 18,
   discord: {
     enabled: false,
     manually: false,
@@ -639,6 +651,48 @@ export const defaultConfig: IConfig = {
         base64: "",
         enabled: true,
         triggers: [ "cricket_hit" ],
+      },
+    ],
+  },
+  wledFx: {
+    enabled: false,
+    boardIds: [],
+    effects: [
+      {
+        name: "gameon",
+        url: "https://wled.fritz.box/win/PL=10",
+        enabled: true,
+        triggers: ["gameon"],
+      },
+      {
+        name: "takeout",
+        url: "https://wled.fritz.box/win/PL=24",
+        enabled: true,
+        triggers: ["takeout"],
+      },
+      {
+        name: "gameshot",
+        url: "https://wled.fritz.box/win/PL=9",
+        enabled: true,
+        triggers: ["gameshot"],
+      },
+      {
+        name: "matchshot",
+        url: "https://wled.fritz.box/win/PL=3",
+        enabled: true,
+        triggers: ["matchshot"],
+      },
+      {
+        name: "180",
+        url: "https://wled.fritz.box/win/PL=12",
+        enabled: true,
+        triggers: ["180"],
+      },
+      {
+        name: "busted",
+        url: "https://wled.fritz.box/win/PL=20",
+        enabled: true,
+        triggers: ["busted"],
       },
     ],
   },
