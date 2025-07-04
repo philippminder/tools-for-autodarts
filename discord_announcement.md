@@ -1,13 +1,20 @@
-# :dart: Tools for Autodarts v2.1.15 Released! :dart:
+# :dart: Tools for Autodarts v2.1.18 Released! :dart:
 
-### :wrench: Quick Correction Feature Enhancement
-- **Improved API Flow**: Completely restructured correction workflow to follow proper API sequence (activation → correction → double deactivation → throws update)
-- **Refined Data Structure**: Updated segment information with correct bed values and proper coordinates
+### :new: New Features
+- **Checkout Only Zoom Option**: Added new toggle for Darts Zoom feature to show zoom images only when checkout is available
+- **WLED Integration (BETA)**: :warning: NEW synchronized lighting effects during gameplay - trigger HTTP requests based on game events, CSV import support, drag & drop reordering, and smart effect selection with priority system *(Feature currently in BETA - I'm unable to test this since I don't have a WLED setup)*
 
-### :bug: Fixed Issues
-- **API Reliability**: Fixed Quick Correction to use correct endpoints and payload structures for better stability
-- **Throw Identification**: Enhanced throw activation to properly identify which dart (first, second, or third) is being corrected
-- **Segment Accuracy**: Improved segment information to include proper coordinates, segment details, and multipliers
+### :sparkles: Enhanced Features
+- **Caller Checkout Guide**: Enhanced functionality to support specific combined sounds with intelligent fallback system
+  - Prioritizes short form "yr_XXX" sounds (e.g., "yr_120")
+  - Falls back to specific "you_require_XXX" sounds
+  - Finally uses separate "you_require" + score sounds if needed
+
+### :wastebasket: Removed Features
+- **Ring Feature**: Removed as it has been officially implemented by the Autodarts Team
+
+### :pray: Special Thanks
+- **@meister_bob_** for contributing the WLED Integration feature!
 
 Please report any bugs in
 :flag_de: https://discord.com/channels/802528604067201055/1255293632110530612/1255293632110530612
