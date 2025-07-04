@@ -1,6 +1,11 @@
+import type { ILobbies } from "@/utils/websocket-helpers";
+
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
+import { AutodartsToolsLobbyData } from "@/utils/lobby-data-storage";
+import { AutodartsToolsBoardData, type IBoard } from "@/utils/board-data-storage";
 import { AutodartsToolsConfig, type IConfig, type IWled } from "@/utils/storage";
 import { triggerPatterns } from "@/utils/helpers";
+import { gameDataProcessor } from "@/utils/wled";
 
 let gameDataWatcherUnwatch: any;
 let lobbyDataWatcherUnwatch: any;
@@ -15,12 +20,11 @@ async function checkStatus(boardData: IBoard) {
   const boardStatus: string | undefined = boardData.status;
 
   if (
-    boardStatus === "Takeout in progress" &&
-    isTriggerPresent("takeout") &&
-    (config.wledFx.boardIds.length == 0 ||
-      (config.wledFx.boardIds.length > 0 && config.wledFx.boardIds.includes(currentBoardId)))
-  )
-    setEffectByTrigger("takeout");
+    boardStatus === "Takeout in progress"
+    && isTriggerPresent("takeout")
+    && (config.wledFx.boardIds.length === 0
+      || (config.wledFx.boardIds.length > 0 && config.wledFx.boardIds.includes(currentBoardId)))
+  ) { setEffectByTrigger("takeout"); }
 }
 
 export async function wledFx() {
@@ -32,7 +36,7 @@ export async function wledFx() {
     console.log(
       `Autodarts Tools: WLED: Config loaded, ${
         config?.wledFx?.effects?.length || 0
-      } effects available`
+      } effects available`,
     );
 
     if (!gameDataWatcherUnwatch) {
@@ -49,12 +53,12 @@ export async function wledFx() {
             processGameData(gameData, oldGameData, true);
             debounceTimer = null;
           }, DEBOUNCE_DELAY);
-        }
+        },
       );
 
       const url = window.location.href;
       const matchId = url.match(
-        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/
+        /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/,
       )?.[0];
 
       if (gameData.match?.id === matchId) {
@@ -70,19 +74,19 @@ export async function wledFx() {
           if (!currentURL.includes("lobbies")) return;
 
           if (
-            (_lobbyData.players?.length ?? 0) > (_oldLobbyData.players?.length ?? 0) &&
-            (_lobbyData.players?.length ?? 0) > 1
+            (_lobbyData.players?.length ?? 0) > (_oldLobbyData.players?.length ?? 0)
+            && (_lobbyData.players?.length ?? 0) > 1
           ) {
             setEffectByTrigger("lobby_in");
           }
 
           if (
-            (_lobbyData.players?.length ?? 0) < (_oldLobbyData.players?.length ?? 0) &&
-            (_lobbyData.players?.length ?? 0) > 0
+            (_lobbyData.players?.length ?? 0) < (_oldLobbyData.players?.length ?? 0)
+            && (_lobbyData.players?.length ?? 0) > 0
           ) {
             setEffectByTrigger("lobby_out");
           }
-        }
+        },
       );
     }
 
@@ -122,7 +126,7 @@ export function wledFxOnRemove() {
 async function processGameData(
   gameData: IGameData,
   oldGameData: IGameData,
-  fromWebSocket: boolean = false
+  fromWebSocket: boolean = false,
 ): Promise<void> {
   if (!gameData.match || !gameData.match.turns?.length) return;
 
@@ -134,7 +138,7 @@ async function processGameData(
   let nextEffect: string | IWled = "gameon";
 
   // Play player effect when it's the next players turn
-  if (gameData.match.turns[0].throws.length == 0) {
+  if (gameData.match.turns[0].throws.length === 0) {
     const currentPlayer = gameData.match.players?.[gameData.match.player];
     const isBot = currentPlayer?.cpuPPR !== null;
     const playerName = currentPlayer?.name;
@@ -147,16 +151,16 @@ async function processGameData(
       const playerNameLower = playerName.toLowerCase();
       const playerNameWithUnderscores = playerNameLower.replace(/\s+/g, "_");
       const playerNameEffects = config.wledFx.effects?.filter(
-        (effect) =>
-          effect.enabled &&
-          effect.triggers &&
-          (effect.triggers.includes(playerNameLower) ||
-            effect.triggers.includes(playerNameWithUnderscores))
+        effect =>
+          effect.enabled
+          && effect.triggers
+          && (effect.triggers.includes(playerNameLower)
+            || effect.triggers.includes(playerNameWithUnderscores)),
       );
 
       if (playerNameEffects.length > 0) {
         console.log(
-          `Autodarts Tools: WLED: Found player name effect for ${playerNameWithUnderscores}`
+          `Autodarts Tools: WLED: Found player name effect for ${playerNameWithUnderscores}`,
         );
 
         const randomIndex = Math.floor(Math.random() * playerNameEffects.length);
@@ -165,19 +169,18 @@ async function processGameData(
     }
   }
 
-  let effect: string | null;
-  effect = await gameDataProcessor(gameData, oldGameData, fromWebSocket, isTriggerPresent);
+  const effect: string | null = await gameDataProcessor(gameData, oldGameData, fromWebSocket, isTriggerPresent);
   if (effect) {
-    // found efect for match variant
+    // found effect for match variant
     nextEffect = effect;
   }
 
   currentBoardId = gameData.match.players?.[gameData.match.player].boardId;
 
   if (
-    config.wledFx.boardIds.length > 0 &&
-    isTriggerPresent("other") &&
-    !config.wledFx.boardIds.includes(currentBoardId)
+    config.wledFx.boardIds.length > 0
+    && isTriggerPresent("other")
+    && !config.wledFx.boardIds.includes(currentBoardId)
   ) {
     nextEffect = "other";
   }
@@ -188,16 +191,16 @@ async function processGameData(
 
 function isTriggerPresent(trigger: string): boolean {
   const present: boolean = config.wledFx.effects?.some(
-    (effect) => effect.enabled && effect?.triggers.includes(trigger)
+    effect => effect.enabled && effect?.triggers.includes(trigger),
   );
   if (present) return present;
 
   // search for range trigger(range_[min]_[max])
   const points = Number(trigger);
-  if (isNaN(points)) return false;
+  if (Number.isNaN(points)) return false;
   const range_triggers = config.wledFx.effects?.filter(
-    (effect) =>
-      effect.enabled && effect?.triggers.some((trigger) => trigger.match(triggerPatterns.ranges))
+    effect =>
+      effect.enabled && effect?.triggers.some(trigger => trigger.match(triggerPatterns.ranges)),
   );
   for (let i = 0; i < range_triggers.length; i++) {
     const element = range_triggers[i];
@@ -223,15 +226,15 @@ export function setEffectByTrigger(trigger: string): void {
   }
 
   // Find all effects that match the trigger
-  let matchingEffects = config.wledFx.effects.filter(
-    (effect) => effect.enabled && effect.triggers && effect.triggers.includes(trigger)
+  const matchingEffects = config.wledFx.effects.filter(
+    effect => effect.enabled && effect.triggers && effect.triggers.includes(trigger),
   );
 
   const points = Number(trigger);
-  if (!matchingEffects.length && !isNaN(points)) {
+  if (!matchingEffects.length && !Number.isNaN(points)) {
     const range_triggers = config.wledFx.effects.filter(
-      (effect) =>
-        effect.enabled && effect?.triggers.some((trigger) => trigger.match(triggerPatterns.ranges))
+      effect =>
+        effect.enabled && effect?.triggers.some(trigger => trigger.match(triggerPatterns.ranges)),
     );
     for (let i = 0; i < range_triggers.length; i++) {
       const element = range_triggers[i];
@@ -263,7 +266,7 @@ export function setEffectByTrigger(trigger: string): void {
 
 let currentEffect: IWled;
 export function setEffect(effect: IWled) {
-  if (effect != currentEffect && effect.url) {
+  if (effect !== currentEffect && effect.url) {
     currentEffect = effect;
     fetch(effect.url).catch(() => {});
   }
