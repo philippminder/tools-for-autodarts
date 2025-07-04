@@ -147,6 +147,15 @@ async function migrateConfig(currentConfigVersion: number) {
           config.zoom.onlyOnCheckout = false;
         }
         break;
+      case 17:
+        // Migration from version 17 to version 18
+        config.version = 18;
+        if (!config.wledFx) {
+          config.wledFx = {
+            ...defaultConfig.wledFx,
+          };
+        }
+        break;
     }
 
     await AutodartsToolsConfig.setValue(config);
