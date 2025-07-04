@@ -46,6 +46,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
   - [Match Customization](#-match-customization)
   - [Gameplay Features](#-gameplay-features)
   - [Audio Features](#-audio-features)
+  - [WLED Integration](#-wled-integration)
   - [Animations](#-animations)
   - [Utility Features](#-utility-features)
 - [Configuration](#️-configuration)
@@ -101,6 +102,7 @@ Tools for Autodarts is a browser extension that enhances your gaming experience 
 - **Caller**: Voice announcements for scores, checkouts, and each dart thrown during gameplay
 - **Sound FX**: Ambient sound effects for different game events
 - **Sound Upload**: Add your own custom sounds for personalized feedback
+- **WLED Integration**: Trigger lighting effects and HTTP requests synchronized with game events
 
 ### 🗣️ Caller Feature
 The Caller feature provides voice announcements during your darts gameplay, similar to professional darts tournaments:
@@ -270,6 +272,109 @@ The Sound FX feature includes a sophisticated multi-level fallback system:
 - **IndexedDB Storage**: Efficiently stores sound files in browser database to improve performance
 - **Error Handling**: Automatically falls back to alternative sources if a sound fails to play
 - **Safari Compatible**: Works with all major browsers including Safari's strict audio policies
+
+### 💡 WLED Integration
+The WLED feature allows you to trigger lighting effects and other HTTP requests based on game events, creating an immersive visual experience synchronized with your darts gameplay.
+
+#### What is WLED?
+WLED is a popular open-source firmware for controlling addressable LED strips (WS2812B, SK6812, etc.) with ESP8266/ESP32 microcontrollers. It provides a web interface and HTTP API for controlling lighting effects, making it perfect for integrating with Tools for Autodarts.
+
+#### Configuration Options
+- **Effect Management**: Add, edit, enable/disable, and reorder lighting effects
+- **Board Filtering**: Restrict effects to specific board IDs, with an "other" effect for non-matching boards
+- **CSV Import**: Bulk import effects using CSV format: `[name];[url];[trigger1];[trigger2]...`
+- **Drag & Drop**: Reorder effects by dragging them in the settings interface
+- **URL Validation**: All URLs must use HTTPS for security reasons
+
+#### Supported Triggers
+Effects can be triggered by various game events using these triggers:
+
+##### Game Events
+- **`gameon`**: At the start of each player's turn (default fallback effect)
+- **`takeout`**: When takeout is in progress
+- **`gameshot`**: When a player wins a game/leg
+- **`matchshot`**: When a player wins the entire match
+- **`busted`**: When a player busts (scores more than needed)
+- **`idle`**: When leaving the match (cleanup effect)
+
+##### Point Totals
+- **`0` to `180`**: Triggered by the total points scored in a turn
+- **Range Format**: `range_[min]_[max]` (e.g., `range_100_180` for scores between 100-180)
+
+##### Individual Dart Throws
+- **Singles**: `s1` to `s20`, `s25` (single segments, s25 for single bull)
+- **Doubles**: `d1` to `d20`, `bull` (double segments, bull for bullseye)
+- **Triples**: `t1` to `t20` (triple segments)
+- **`outside`**: When a dart lands outside the scoring area
+
+##### Combination Throws
+- **Format**: `[dart1]_[dart2]_[dart3]` (e.g., `t20_t20_t20` for three triple 20s)
+- Triggered only when all three darts are thrown in the exact sequence
+
+##### Lobby Events
+- **`lobby_in`**: When a player joins the lobby
+- **`lobby_out`**: When a player leaves the lobby
+
+##### Player-Specific Effects
+- **Player Names**: Use the exact player name as it appears in Autodarts
+- **Spaces**: Player names with spaces are supported (e.g., `john doe`)
+- **Underscores**: Alternative format with underscores (e.g., `john_doe`)
+- **`bot_throw`**: Triggered when a CPU/bot player throws
+
+##### Board-Specific Effects
+- **Board IDs**: Configure specific board IDs to limit effects to certain boards
+- **`other`**: Special trigger for throws on boards not in the configured board ID list
+- **Format**: Board IDs are UUIDs (e.g., `6a501a61-53a5-468a-a56a-17134ace3099`)
+
+#### Smart Effect Selection
+- **Multiple Effects**: If multiple effects share the same trigger, one is randomly selected
+- **Priority System**: More specific effects take precedence over general ones
+- **Fallback Logic**: Falls back to `gameon` effect if no specific trigger matches
+
+#### Technical Implementation
+- **HTTP Requests**: Effects trigger HTTP GET requests to the specified URLs
+- **HTTPS Only**: All URLs must use HTTPS protocol for security
+- **Debouncing**: Game events are debounced to prevent rapid-fire triggers
+- **Error Handling**: Failed requests are silently ignored to prevent interrupting gameplay
+
+#### Example WLED URLs
+```
+https://wled-device.local/win/PL=1    # Play preset 1
+https://wled-device.local/win/A=128   # Set brightness to 128
+https://wled-device.local/win/FX=54   # Set effect to 54
+https://wled-device.local/win/R=255&G=0&B=0  # Set color to red
+```
+
+#### CSV Import Format
+Import multiple effects at once using this format:
+```csv
+Effect Name;https://wled-device.local/win/PL=1;gameon
+180 Effect;https://wled-device.local/win/PL=2;180
+Takeout;https://wled-device.local/win/PL=3;takeout;busted
+```
+
+#### Board Filtering
+- **Enable Filtering**: Add board IDs (one per line) to restrict effects to specific boards
+- **Other Effect**: Create an effect with trigger `other` for throws on non-matching boards
+- **Use Cases**: Different effects for different dart boards in multi-board setups
+
+#### Game Mode Support
+- **X01 Games**: Full support for all triggers and point combinations
+- **Cricket**: Basic support with plans for expanded cricket-specific triggers
+- **Bull-off**: Automatically disabled during bull-off rounds
+
+#### Best Practices
+1. **Test Effects**: Use the play button in settings to test effects before games
+2. **HTTPS URLs**: Always use HTTPS URLs for security compliance
+3. **Descriptive Names**: Use clear names for easy effect management
+4. **Logical Grouping**: Group related effects together using drag & drop
+5. **Backup Settings**: Export your configuration regularly
+
+#### Troubleshooting
+- **Effect Not Triggering**: Check that the trigger spelling matches exactly
+- **HTTPS Errors**: Ensure your WLED device supports HTTPS or use a proxy
+- **Board Filtering**: Verify board IDs are correctly formatted UUIDs
+- **URL Format**: Confirm WLED URLs follow the correct API format
 
 ### 🎬 Animations
 

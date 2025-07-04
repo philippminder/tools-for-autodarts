@@ -2,6 +2,7 @@ import "~/assets/tailwind.css";
 import { createApp } from "vue";
 
 import { soundFx, soundFxOnRemove } from "../match.content/sound-fx";
+import { wledFx, wledFxOnRemove } from "../match.content/wled";
 
 import { teamLobby } from "./team-lobby";
 
@@ -93,11 +94,17 @@ export default defineContentScript({
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(soundFx, url).catch(console.error);
         }
+
+        if (config.wledFx.enabled) {
+          await waitForElementWithTextContent("h2", "Lobby");
+          await initScript(wledFx, url).catch(console.error);
+        }
       } else {
         await onAutoStartRemove();
         await onShufflePlayersRemove();
         await onQrCodeRemove();
         await soundFxOnRemove();
+        await wledFxOnRemove();
       }
     });
   },

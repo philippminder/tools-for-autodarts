@@ -2,13 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.18] - 2025-07-2
+## [2.1.18] - 2025-07-4
 
 ### Added
 - Added "Checkout Only" option to Darts Zoom feature
   - New toggle setting "Show zoom only when checkout is available"
   - When enabled, zoom images will only appear when a checkout is possible
   - Works in combination with existing "Zoom On" filter (Everyone/Opponents)
+- Added WLED Integration feature for synchronized lighting effects during gameplay
+  - Trigger HTTP requests based on game events (points, dart throws, combinations, player-specific, lobby events)
+  - Effect management with CSV import, drag & drop reordering, and board filtering
+  - Smart effect selection with priority system and HTTPS-only URL validation
 
 ### Enhanced
 - Enhanced Caller checkout guide functionality to support specific combined sounds

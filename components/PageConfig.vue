@@ -230,9 +230,7 @@
 
             <!-- Second row of feature cards -->
             <SoundFx @toggle="openSettingsModal('sound-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="28" />
-            <div class="feature-card" data-feature-index="29">
-            <!-- Placeholder for future feature -->
-            </div>
+            <Wled @toggle="openSettingsModal('wled-fx')" @setting-change="updateConfig" class="feature-card" data-feature-index="29" />
           </div>
         </template>
       </div>
@@ -265,6 +263,7 @@ import Animations from "./Settings/Animations.vue";
 import Caller from "./Settings/Caller.vue";
 import ExternalBoards from "./Settings/ExternalBoards.vue";
 import SoundFx from "./Settings/SoundFx.vue";
+import Wled from "./Settings/Wled.vue";
 import Zoom from "./Settings/Zoom.vue";
 import QuickCorrection from "./Settings/QuickCorrection.vue";
 import EnhancedScoringDisplay from "./Settings/EnhancedScoringDisplay.vue";
@@ -340,8 +339,9 @@ const featureGroups = [
       { id: "animations", title: "Animations Settings", component: Animations, hasSettings: true },
       { id: "caller", title: "Caller Settings", component: Caller, hasSettings: true },
       { id: "sound-fx", title: "Sound FX Settings", component: SoundFx, hasSettings: true },
+      { id: "wled-fx", title: "WLED Settings", component: Wled, hasSettings: true },
     ],
-    settingIds: [ "animations", "caller", "sound-fx" ],
+    settingIds: [ "animations", "caller", "sound-fx", "wled-fx" ],
   },
 ];
 
@@ -371,7 +371,7 @@ const debouncedReload = useDebounceFn(() => {
       });
     }, 250);
   });
-}, 250); // 300ms debounce time
+}, 250); // 250ms debounce time
 
 // Initialize config with default values to avoid null issues
 const config = ref<IConfig>(defaultConfig);
