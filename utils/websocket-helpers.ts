@@ -2,6 +2,7 @@ import { AutodartsToolsBoardData, type IBoard } from "./board-data-storage";
 import { AutodartsToolsBoardImages } from "./board-image-storage";
 import { AutodartsToolsGameData } from "./game-data-storage";
 import { AutodartsToolsLobbyData } from "./lobby-data-storage";
+import { AutodartsToolsTournamentData, type ITournament } from "./tournament-data-storage";
 
 interface IUserSettings {
   callCheckouts: boolean;
@@ -200,7 +201,7 @@ export interface IMatch {
   chalkboards?: IChalkboard[];
 }
 
-export async function processWebSocketMessage(channel: string, data: ILobbies | IMatch | IBoard | string) {
+export async function processWebSocketMessage(channel: string, data: ILobbies | IMatch | IBoard | ITournament | string) {
   // do a switch on the channel
   switch (channel) {
     case "autodarts.lobbies": {
@@ -264,6 +265,13 @@ export async function processWebSocketMessage(channel: string, data: ILobbies | 
         boardImages.images.shift();
       }
       AutodartsToolsBoardImages.setValue(boardImages);
+
+      break;
+    }
+    case "autodarts.tournaments": {
+      data = data as ITournament;
+
+      AutodartsToolsTournamentData.setValue(data);
 
       break;
     }

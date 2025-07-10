@@ -99,6 +99,12 @@ export default defineContentScript({
           await waitForElementWithTextContent("h2", "Lobby");
           await initScript(wledFx, url).catch(console.error);
         }
+      } else if (/\/tournaments\//.test(url)) {
+        console.log("Autodarts Tools: Tournament Ready");
+
+        if (config.soundFx.enabled) {
+          await initScript(soundFx, url).catch(console.error);
+        }
       } else {
         await onAutoStartRemove();
         await onShufflePlayersRemove();

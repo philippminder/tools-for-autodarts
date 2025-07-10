@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.19] - 2025-07-10
+
+### Added
+- Added tournament ready sound effect for tournament gameplay
+  - New `ambient_tournament_ready` sound trigger that plays when "Time to ready up" text appears in tournaments
+  - Automatically detects tournament ready state using DOM text monitoring
+  - Sound plays once per tournament ready event with automatic cleanup
+
 ## [2.1.18] - 2025-07-4
 
 ### Added

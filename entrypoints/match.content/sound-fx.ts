@@ -4,6 +4,7 @@ import { getSoundFxFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: any;
 let lobbyDataWatcherUnwatch: any;
+let tournamentReadyObserver: MutationObserver | null = null;
 let config: IConfig;
 
 // Audio player for Safari compatibility
@@ -90,6 +91,32 @@ export async function soundFx() {
         }
       });
     }
+
+    if (!tournamentReadyObserver) {
+      tournamentReadyObserver = new MutationObserver((mutations) => {
+        if (!config?.soundFx?.enabled) return;
+
+        // Check if "Time to ready up" text appears in the DOM
+        const bodyText = document.body.textContent || document.body.innerText;
+        if (bodyText.includes("Time to ready up")) {
+          console.log("Autodarts Tools: Found 'Time to ready up' text, playing tournament ready sound");
+          playSound("ambient_tournament_ready");
+
+          // Disconnect the observer after playing the sound once
+          if (tournamentReadyObserver) {
+            tournamentReadyObserver.disconnect();
+            tournamentReadyObserver = null;
+          }
+        }
+      });
+
+      // Start observing the body for text changes
+      tournamentReadyObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+    }
   } catch (error) {
     console.error("Autodarts Tools: soundFx initialization error", error);
   }
@@ -105,6 +132,11 @@ export function soundFxOnRemove() {
   if (lobbyDataWatcherUnwatch) {
     lobbyDataWatcherUnwatch();
     lobbyDataWatcherUnwatch = null;
+  }
+
+  if (tournamentReadyObserver) {
+    tournamentReadyObserver.disconnect();
+    tournamentReadyObserver = null;
   }
 
   // Clear any pending debounce timer
