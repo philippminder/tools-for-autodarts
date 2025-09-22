@@ -268,6 +268,12 @@ let currentEffect: IWled;
 export function setEffect(effect: IWled) {
   if (effect !== currentEffect && effect.url) {
     currentEffect = effect;
-    fetch(effect.url).catch(() => {});
+    console.info("Autodarts Tools: WLED: fetching", effect.url);
+    fetch(effect.url, {
+      mode: 'no-cors',
+      method: 'GET'
+    }).catch((e) => { console.log("Autodarts Tools: WLED:", e); });
+  } else {
+    console.info("Autodarts Tools: WLED: didn't fetch", effect.url, "because the effect is already active");
   }
 }
