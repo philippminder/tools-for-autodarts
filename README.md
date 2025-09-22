@@ -293,7 +293,9 @@ Effects can be triggered by various game events using these triggers:
 - **`gameon`**: At the start of each player's turn (default fallback effect)
 - **`takeout`**: When takeout is in progress
 - **`gameshot`**: When a player wins a game/leg
+- **`gameshot+[throwName]`**: When a player wins a game/leg with the specified throw (e.g. `gameshot+d10`)
 - **`matchshot`**: When a player wins the entire match
+- **`matchshot+[throwName]`**: When a player wins the entire match with the specified throw (e.g. `matchshot+bull`)
 - **`busted`**: When a player busts (scores more than needed)
 - **`idle`**: When leaving the match (cleanup effect)
 
