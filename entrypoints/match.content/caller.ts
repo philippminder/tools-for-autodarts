@@ -1,6 +1,6 @@
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsConfig, type IConfig } from "@/utils/storage";
-import { getSoundFromIndexedDB, isIndexedDBAvailable } from "@/utils/helpers";
+import { getSoundFromIndexedDB, isIndexedDBAvailable, triggerPatterns } from "@/utils/helpers";
 
 let gameDataWatcherUnwatch: any;
 let config: IConfig;
@@ -36,6 +36,7 @@ export async function caller() {
 
   try {
     config = await AutodartsToolsConfig.getValue();
+    console.log("config", config);
     const gameData = await AutodartsToolsGameData.getValue();
     console.log("Autodarts Tools: Config loaded", config?.caller?.sounds?.length || 0, "sounds available");
 
@@ -553,6 +554,25 @@ async function processGameData(gameData: IGameData, oldGameData: IGameData, from
  * Play a sound based on the trigger
  * Adds the sound to a queue to be played sequentially
  */
+
+function triggerIncludes(triggers: string[], trigger: string): boolean {
+  const triggerNum = Number(trigger);
+  if (!Number.isNaN(triggerNum)) {
+    const rangeTriggers = triggers.map((t: string) => {
+      const match = t.match(triggerPatterns.ranges);
+      if (!match) return null;
+      return { min: Number(match[1]), max: Number(match[2]) };
+    }).filter(x => x !== null);
+
+    const hasMatchingRange = rangeTriggers.some(({ min, max }: { min: number; max: number }) => {
+      return triggerNum >= min && triggerNum <= max;
+    });
+    if (hasMatchingRange) return true;
+  }
+
+  return triggers.includes(trigger);
+}
+
 function playSound(trigger: string): void {
   console.log("Autodarts Tools: Adding sound to queue", trigger);
 
@@ -563,9 +583,8 @@ function playSound(trigger: string): void {
 
   // Find all sounds that match the trigger
   let matchingSounds = config.caller.sounds.filter(sound =>
-    sound.enabled && sound.triggers && sound.triggers.includes(trigger),
+    sound.enabled && sound.triggers && triggerIncludes(sound.triggers, trigger),
   );
-
   // If no direct match, try to find a fallback only for s, d, or t prefixes
   // For example, if "s41" is not found, try "41"
   if (!matchingSounds.length && trigger.length > 1) {
