@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.21] - 2025-10-30
+
+### Added
+- Added WLED trigger support for match/gameshot with throw name specificity
+  - New `matchshot+[throwName]` trigger that activates when a player wins the entire match with a specific throw (e.g., `matchshot+bull`, `matchshot+d20`)
+  - New `gameshot+[throwName]` trigger that activates when a player wins a game/leg with a specific throw (e.g., `gameshot+d10`, `gameshot+t20`)
+  - Allows more granular lighting control for winning throws with specific dart segments
+
+### Fixed
+- Fixed WLED effect fetching compatibility issue in Firefox
+  - Added `no-cors` mode to effect URL fetching to resolve Firefox CORS restrictions
+  - WLED effects now work correctly in Firefox browsers
+
 ## [2.1.20] - 2025-07-10
 
 ### Added

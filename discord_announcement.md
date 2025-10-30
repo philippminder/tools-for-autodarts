@@ -1,10 +1,14 @@
-# :dart: Tools for Autodarts v2.1.19 Released! :dart:
+# :dart: Tools for Autodarts v2.1.21 Released! :dart:
 
 ### :new: New Features
-- **Tournament Ready Sound Effect**: Added new `ambient_tournament_ready` sound trigger that plays when "Time to ready up" text appears in tournaments
-  - Automatically detects tournament ready state
-  - Plays once per tournament ready event with automatic cleanup
-  - **Note**: Only works when Autodarts website language is set to English for now
+- **Enhanced WLED Triggers**: Added new trigger support for match/gameshot with throw name specificity
+  - New `matchshot+[throwName]` trigger (e.g., `matchshot+bull`, `matchshot+d20`) - triggers when winning the entire match with a specific throw
+  - New `gameshot+[throwName]` trigger (e.g., `gameshot+d10`, `gameshot+t20`) - triggers when winning a game/leg with a specific throw
+  - Enables more precise lighting control for winning throws with specific dart segments
+
+### :bug: Bug Fixes
+- **Firefox Compatibility**: Fixed WLED effect fetching issue in Firefox browsers
+  - Added CORS handling to ensure WLED effects work correctly in Firefox
 
 Please report any bugs in
 :flag_de: https://discord.com/channels/802528604067201055/1255293632110530612/1255293632110530612
