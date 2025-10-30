@@ -36,7 +36,6 @@ export async function caller() {
 
   try {
     config = await AutodartsToolsConfig.getValue();
-    console.log("config", config);
     const gameData = await AutodartsToolsGameData.getValue();
     console.log("Autodarts Tools: Config loaded", config?.caller?.sounds?.length || 0, "sounds available");
 
