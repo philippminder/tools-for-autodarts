@@ -48,7 +48,9 @@ async function processX01Data(
     .map((t) => t.segment.name.toLowerCase())
     .join("_");
 
+  if (winnerMatch && triggerPresentCB("matchshot+" + throwName)) return "matchshot+" + throwName;
   if (winnerMatch && triggerPresentCB("matchshot")) return "matchshot";
+  if (winner && triggerPresentCB("gameshot+" + throwName)) return "gameshot+" + throwName;
   if (winner && triggerPresentCB("gameshot")) return "gameshot";
   if (busted && triggerPresentCB("busted")) return "busted";
   if (isLastThrow && triggerPresentCB(combinedThrows)) return combinedThrows;
