@@ -3,6 +3,7 @@ import type { ILobbies } from "@/utils/websocket-helpers";
 import { AutodartsToolsGameData, type IGameData } from "@/utils/game-data-storage";
 import { AutodartsToolsLobbyData } from "@/utils/lobby-data-storage";
 import { AutodartsToolsBoardData, type IBoard } from "@/utils/board-data-storage";
+import { AutodartsToolsTournamentData, type ITournament } from "@/utils/tournament-data-storage";
 import { AutodartsToolsConfig, type IConfig, type IWled } from "@/utils/storage";
 import { triggerPatterns } from "@/utils/helpers";
 import { gameDataProcessor } from "@/utils/wled";
@@ -10,6 +11,7 @@ import { gameDataProcessor } from "@/utils/wled";
 let gameDataWatcherUnwatch: any;
 let lobbyDataWatcherUnwatch: any;
 let boardDataWatcherUnwatch: any;
+let tournamentDataWatcherUnwatch: any;
 let config: IConfig;
 let currentBoardId: string;
 
@@ -95,6 +97,20 @@ export async function wledFx() {
         checkStatus(boardData).catch(console.error);
       });
     }
+
+    if (!tournamentDataWatcherUnwatch) {
+      tournamentDataWatcherUnwatch = AutodartsToolsTournamentData.watch(
+        async (tournamentData: ITournament | undefined, oldTournamentData: ITournament | undefined) => {
+          if (!tournamentData || !config?.wledFx?.enabled) return;
+
+          // Check if tournament event is "start" and trigger the ambient_tournament_ready effect
+          if (tournamentData.event === "start") {
+            console.log("Autodarts Tools: WLED: Tournament start event detected, triggering tournament_ready effect");
+            setEffectByTrigger("tournament_ready");
+          }
+        },
+      );
+    }
   } catch (error) {
     console.error("Autodarts Tools: WLED: wledFx initialization error", error);
   }
@@ -115,6 +131,11 @@ export function wledFxOnRemove() {
   if (boardDataWatcherUnwatch) {
     boardDataWatcherUnwatch();
     boardDataWatcherUnwatch = null;
+  }
+
+  if (tournamentDataWatcherUnwatch) {
+    tournamentDataWatcherUnwatch();
+    tournamentDataWatcherUnwatch = null;
   }
 
   setEffectByTrigger("idle");

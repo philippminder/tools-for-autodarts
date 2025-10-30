@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.20] - 2025-07-10
+
+### Added
+- Added tournament ready WLED trigger for tournament gameplay
+  - New `tournament_ready` WLED trigger that activates when tournament start event is received via websocket
+  - Automatically detects tournament start events using websocket monitoring
+  - Extended WLED feature to work on tournament pages
+  - Added default tournament_ready effect to WLED configuration
+
 ## [2.1.19] - 2025-07-10
 
 ### Added

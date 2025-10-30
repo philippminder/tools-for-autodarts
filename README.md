@@ -221,6 +221,8 @@ Add sound effects for various game events:
 - **Lobby Sounds**:
   - `ambient_lobby_in`: Plays when a player joins the lobby
   - `ambient_lobby_out`: Plays when a player leaves the lobby
+- **Tournament Sounds**:
+  - `ambient_tournament_ready`: Plays when "Time to ready up" text appears in tournaments
 - **Player-Specific Gameshot**: Create personalized winning sounds for specific players using the following formats:
   - `gameshot_player name` (spaces preserved)
   - `gameshot_player_name` (with underscores replacing spaces)
@@ -314,6 +316,9 @@ Effects can be triggered by various game events using these triggers:
 ##### Lobby Events
 - **`lobby_in`**: When a player joins the lobby
 - **`lobby_out`**: When a player leaves the lobby
+
+##### Tournament Events
+- **`tournament_ready`**: Triggered when tournament start event is received via websocket
 
 ##### Player-Specific Effects
 - **Player Names**: Use the exact player name as it appears in Autodarts

@@ -105,6 +105,10 @@ export default defineContentScript({
         if (config.soundFx.enabled) {
           await initScript(soundFx, url).catch(console.error);
         }
+
+        if (config.wledFx.enabled) {
+          await initScript(wledFx, url).catch(console.error);
+        }
       } else {
         await onAutoStartRemove();
         await onShufflePlayersRemove();
